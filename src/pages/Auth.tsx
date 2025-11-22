@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
+import beachImage from "@/assets/poipu-beach-sunset.jpg";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -97,11 +98,30 @@ const Auth = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold">Poipu Shores</CardTitle>
-          <CardDescription className="text-lg">Owner Portal</CardDescription>
+    <div className="flex min-h-screen items-center justify-center p-4 relative overflow-hidden">
+      {/* Background Image */}
+      <div 
+        className="absolute inset-0 z-0"
+        style={{
+          backgroundImage: `url(${beachImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          filter: 'brightness(0.7)',
+        }}
+      />
+      
+      {/* Overlay */}
+      <div className="absolute inset-0 z-0 bg-gradient-to-br from-primary/20 via-background/60 to-secondary/20" />
+      
+      <Card className="w-full max-w-md relative z-10 shadow-2xl border-2">
+        <CardHeader className="text-center pb-4">
+          <CardTitle className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            Poipu Shores
+          </CardTitle>
+          <CardDescription className="text-xl mt-2 text-foreground/80">
+            🌺 Owner Portal 🌺
+          </CardDescription>
+          <p className="text-sm text-muted-foreground mt-1">Kauai, Hawaii</p>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login">
