@@ -2,7 +2,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Footer } from "@/components/Footer";
 import { useTheme } from "@/contexts/ThemeContext";
-import beachSunset from "@/assets/poipu-beach-sunset.jpg";
+import beachImage from "@/assets/condo-oceanfront.jpeg";
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const { isGlassTheme } = useTheme();
@@ -16,7 +16,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             <div 
               className="absolute inset-0 z-0"
               style={{
-                backgroundImage: `url(${beachSunset})`,
+                backgroundImage: `url(${beachImage})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundAttachment: 'fixed',
