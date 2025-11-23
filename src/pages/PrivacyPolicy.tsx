@@ -119,8 +119,8 @@ const PrivacyPolicy = () => {
                 For questions about this privacy policy or your personal information, please contact:
               </p>
               <p className="text-muted-foreground font-semibold mt-2">
-                Cook Solutions Group<br />
-                Email: privacy@cooksolutionsgroup.com
+                Poipu Shores<br />
+                Email: privacy@poipu-shores.com
               </p>
             </section>
           </CardContent>
