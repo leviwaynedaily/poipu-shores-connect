@@ -17,7 +17,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const [isGlassTheme, setIsGlassTheme] = useState(false);
-  const [glassIntensity, setGlassIntensityState] = useState(50);
+  const [glassIntensity, setGlassIntensityState] = useState(90);
   const [showThemeDialog, setShowThemeDialog] = useState(false);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
@@ -39,7 +39,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 
         if (error) throw error;
         setIsGlassTheme(data?.glass_theme_enabled ?? false);
-        setGlassIntensityState(data?.glass_intensity ?? 50);
+        setGlassIntensityState(data?.glass_intensity ?? 90);
       } catch (error) {
         console.error('Error loading theme preference:', error);
       } finally {

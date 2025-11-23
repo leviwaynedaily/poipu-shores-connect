@@ -5,7 +5,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import beachImage from "@/assets/condo-oceanfront.jpeg";
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
-  const { isGlassTheme } = useTheme();
+  const { isGlassTheme, glassIntensity } = useTheme();
 
   return (
     <SidebarProvider>
@@ -31,11 +31,18 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         <AppSidebar />
         <main className="flex-1 flex flex-col relative z-10">
           <header 
-            className={`sticky top-0 z-10 flex h-16 items-center border-b px-4 shadow-sm ${
-              isGlassTheme 
-                ? 'bg-card/5 backdrop-blur-sm border-border/15' 
-                : 'bg-card/95 backdrop-blur-sm border-border'
-            }`}
+            className="sticky top-0 z-10 flex h-16 items-center border-b px-4 shadow-sm backdrop-blur-sm"
+            style={
+              isGlassTheme
+                ? {
+                    backgroundColor: `hsl(var(--card) / ${glassIntensity / 100})`,
+                    borderColor: `hsl(var(--border) / ${Math.max(0.15, glassIntensity / 100)})`,
+                  }
+                : {
+                    backgroundColor: 'hsl(var(--card) / 0.95)',
+                    borderColor: 'hsl(var(--border))',
+                  }
+            }
           >
             <SidebarTrigger className="mr-4" />
             <div className="flex items-center gap-2">
