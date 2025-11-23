@@ -94,7 +94,7 @@ const Auth = () => {
       <div className="absolute inset-0 z-0 bg-gradient-to-br from-primary/20 via-background/60 to-secondary/20" />
       
       <div className="flex-1 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md relative z-10 bg-background/5 backdrop-blur-2xl border border-border/30 shadow-2xl">
+        <Card className="w-full max-w-md relative z-10 bg-background/10 backdrop-blur-md border border-border/20 shadow-xl">
         <CardHeader className="text-center pb-4">
           <CardTitle className="text-4xl font-bold text-foreground">
             Poipu Shores
