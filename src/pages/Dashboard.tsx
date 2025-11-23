@@ -5,6 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Pin, MessageSquare, FileText, Users } from "lucide-react";
 import { format } from "date-fns";
+import { WeatherWidget } from "@/components/dashboard/WeatherWidget";
+import { BeachConditions } from "@/components/dashboard/BeachConditions";
+import { EmergencyContacts } from "@/components/dashboard/EmergencyContacts";
+import { LiveCamera } from "@/components/dashboard/LiveCamera";
 
 interface Announcement {
   id: string;
@@ -84,7 +88,7 @@ const Dashboard = () => {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Community Activity</CardTitle>
@@ -117,15 +121,25 @@ const Dashboard = () => {
             <p className="text-xs text-muted-foreground">Registered users</p>
           </CardContent>
         </Card>
+
+        <WeatherWidget />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Recent Announcements</CardTitle>
-          <CardDescription className="text-lg">
-            Important updates from the board and administration
-          </CardDescription>
-        </CardHeader>
+      <div className="grid gap-4 md:grid-cols-2">
+        <BeachConditions />
+        <LiveCamera />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <EmergencyContacts />
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl">Recent Announcements</CardTitle>
+            <CardDescription className="text-lg">
+              Important updates from the board and administration
+            </CardDescription>
+          </CardHeader>
         <CardContent className="space-y-4">
           {announcements.length === 0 ? (
             <p className="text-lg text-muted-foreground">No announcements yet.</p>
@@ -158,7 +172,8 @@ const Dashboard = () => {
             ))
           )}
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 };
