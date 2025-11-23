@@ -112,6 +112,48 @@ export type Database = {
           },
         ]
       }
+      community_photos: {
+        Row: {
+          caption: string | null
+          category: string
+          created_at: string
+          file_path: string
+          file_size: number | null
+          id: string
+          is_approved: boolean
+          likes_count: number
+          location: string | null
+          title: string
+          uploaded_by: string
+        }
+        Insert: {
+          caption?: string | null
+          category?: string
+          created_at?: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          is_approved?: boolean
+          likes_count?: number
+          location?: string | null
+          title: string
+          uploaded_by: string
+        }
+        Update: {
+          caption?: string | null
+          category?: string
+          created_at?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          is_approved?: boolean
+          likes_count?: number
+          location?: string | null
+          title?: string
+          uploaded_by?: string
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           category: string
