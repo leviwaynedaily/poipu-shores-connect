@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 import { WeatherWidget } from "@/components/dashboard/WeatherWidget";
 import { BeachConditions } from "@/components/dashboard/BeachConditions";
 import { EmergencyContacts } from "@/components/dashboard/EmergencyContacts";
-import { LiveCamera } from "@/components/dashboard/LiveCamera";
+import { LiveCameraDropdown } from "@/components/dashboard/LiveCameraDropdown";
 import { PhotoCarousel } from "@/components/photos/PhotoCarousel";
 
 interface Announcement {
@@ -131,10 +131,13 @@ const Dashboard = () => {
         </Link>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="flex items-center gap-4 mb-4">
+        <LiveCameraDropdown />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
         <BeachConditions />
         <WeatherWidget />
-        <LiveCamera />
       </div>
 
       <PhotoCarousel />
