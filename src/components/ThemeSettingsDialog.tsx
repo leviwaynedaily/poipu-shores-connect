@@ -61,18 +61,18 @@ export const ThemeSettingsDialog = ({ open, onOpenChange }: ThemeSettingsDialogP
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label>Glass Effect Intensity</Label>
-                <span className="text-sm text-muted-foreground">{localIntensity}/10</span>
+                <span className="text-sm text-muted-foreground">{localIntensity}%</span>
               </div>
               <Slider
                 value={[localIntensity]}
                 onValueChange={handleIntensityChange}
                 min={0}
-                max={10}
-                step={1}
+                max={100}
+                step={5}
                 className="w-full"
               />
               <p className="text-xs text-muted-foreground">
-                Adjust how transparent and blurred cards appear
+                Adjust card opacity (0% = transparent glass, 100% = completely solid)
               </p>
             </div>
           )}

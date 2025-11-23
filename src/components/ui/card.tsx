@@ -6,9 +6,10 @@ import { useTheme } from "@/contexts/ThemeContext";
 const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => {
   const { isGlassTheme, glassIntensity } = useTheme();
   
-  // Calculate opacity based on intensity (0-10 scale to 0-10% opacity)
-  const opacity = isGlassTheme ? glassIntensity : 100;
-  const borderOpacity = isGlassTheme ? Math.max(10, glassIntensity * 1.5) : 100;
+  // Calculate opacity based on intensity (0-100 scale)
+  // 0 = very transparent (5% opacity), 100 = completely solid (100% opacity)
+  const opacity = isGlassTheme ? 5 + (glassIntensity * 0.95) : 100;
+  const borderOpacity = isGlassTheme ? 15 + (glassIntensity * 0.85) : 100;
   
   return (
     <div 
