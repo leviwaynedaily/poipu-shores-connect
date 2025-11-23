@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
+import { Footer } from "@/components/Footer";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import beachImage from "@/assets/condo-oceanfront.jpeg";
@@ -55,7 +55,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
       {/* Background Image */}
       <div 
         className="absolute inset-0 z-0"
@@ -70,7 +70,8 @@ const Auth = () => {
       {/* Overlay */}
       <div className="absolute inset-0 z-0 bg-gradient-to-br from-primary/20 via-background/60 to-secondary/20" />
       
-      <Card className="w-full max-w-md relative z-10 bg-background/5 backdrop-blur-2xl border border-border/30 shadow-2xl">
+      <div className="flex-1 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md relative z-10 bg-background/5 backdrop-blur-2xl border border-border/30 shadow-2xl">
         <CardHeader className="text-center pb-4">
           <CardTitle className="text-4xl font-bold text-foreground">
             Poipu Shores
@@ -110,6 +111,9 @@ const Auth = () => {
           </form>
         </CardContent>
       </Card>
+      </div>
+      
+      <Footer />
     </div>
   );
 };
