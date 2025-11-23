@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, Mail, Phone, Home } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Search, Phone, Home } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { formatPhoneNumber } from "@/lib/phoneUtils";
 
 interface Member {
   id: string;
@@ -11,6 +13,7 @@ interface Member {
   unit_number: string | null;
   phone: string | null;
   show_contact_info: boolean;
+  avatar_url: string | null;
 }
 
 const Members = () => {
@@ -31,7 +34,7 @@ const Members = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, full_name, unit_number, phone, show_contact_info")
+      .select("id, full_name, unit_number, phone, show_contact_info, avatar_url")
       .order("unit_number", { ascending: true, nullsFirst: false })
       .order("full_name", { ascending: true });
 
@@ -106,15 +109,23 @@ const Members = () => {
               {filteredMembers.map((member) => (
                 <Card key={member.id} className="border-2">
                   <CardHeader>
-                    <CardTitle className="text-xl flex items-center justify-between">
-                      <span>{member.full_name}</span>
-                      {member.unit_number && (
-                        <Badge variant="secondary" className="text-base">
-                          <Home className="h-4 w-4 mr-1" />
-                          Unit {member.unit_number}
-                        </Badge>
-                      )}
-                    </CardTitle>
+                    <div className="flex items-center gap-3 mb-2">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={member.avatar_url || ""} />
+                        <AvatarFallback>
+                          {member.full_name.split(" ").map(n => n[0]).join("").toUpperCase() || "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-xl truncate">{member.full_name}</CardTitle>
+                      </div>
+                    </div>
+                    {member.unit_number && (
+                      <Badge variant="secondary" className="text-base w-fit">
+                        <Home className="h-4 w-4 mr-1" />
+                        Unit {member.unit_number}
+                      </Badge>
+                    )}
                   </CardHeader>
                   <CardContent className="space-y-2">
                     {member.show_contact_info ? (
@@ -123,7 +134,7 @@ const Members = () => {
                           <div className="flex items-center gap-2 text-base text-muted-foreground">
                             <Phone className="h-4 w-4" />
                             <a href={`tel:${member.phone}`} className="hover:text-foreground transition-colors">
-                              {member.phone}
+                              {formatPhoneNumber(member.phone)}
                             </a>
                           </div>
                         )}
