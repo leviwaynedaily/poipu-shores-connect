@@ -82,9 +82,13 @@ export const LiveCamera = () => {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue={webcams[0]?.id} className="w-full">
-          <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${webcams.length}, minmax(0, 1fr))` }}>
+          <TabsList className="w-full h-auto flex-wrap justify-start gap-2 bg-muted p-1">
             {webcams.map((webcam) => (
-              <TabsTrigger key={webcam.id} value={webcam.id} className="text-xs">
+              <TabsTrigger 
+                key={webcam.id} 
+                value={webcam.id} 
+                className="text-xs px-3 py-2 whitespace-nowrap"
+              >
                 {webcam.name}
               </TabsTrigger>
             ))}
