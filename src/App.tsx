@@ -13,6 +13,7 @@ import Announcements from "./pages/Announcements";
 import Chat from "./pages/Chat";
 import Documents from "./pages/Documents";
 import Profile from "./pages/Profile";
+import Users from "./pages/Users";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -73,6 +74,16 @@ const App = () => (
                 <ProtectedRoute>
                   <Layout>
                     <Profile />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/users"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Users />
                   </Layout>
                 </ProtectedRoute>
               }
