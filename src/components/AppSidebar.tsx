@@ -27,6 +27,7 @@ const menuItems = [
   { title: "Community Chat", url: "/chat", icon: MessageSquare },
   { title: "Documents", url: "/documents", icon: FileText },
   { title: "Photos", url: "/photos", icon: Camera },
+  { title: "Members", url: "/members", icon: Users },
   { title: "My Profile", url: "/profile", icon: User },
 ];
 

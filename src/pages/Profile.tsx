@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
@@ -22,6 +23,7 @@ const Profile = () => {
   const [fullName, setFullName] = useState("");
   const [unitNumber, setUnitNumber] = useState("");
   const [phone, setPhone] = useState("");
+  const [showContactInfo, setShowContactInfo] = useState(true);
   const [loading, setLoading] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -44,6 +46,7 @@ const Profile = () => {
       setFullName(data.full_name || "");
       setUnitNumber(data.unit_number || "");
       setPhone(data.phone || "");
+      setShowContactInfo(data.show_contact_info ?? true);
     }
   };
 
@@ -59,6 +62,7 @@ const Profile = () => {
         full_name: fullName,
         unit_number: unitNumber,
         phone,
+        show_contact_info: showContactInfo,
       })
       .eq("id", user.id);
 
@@ -167,6 +171,22 @@ const Profile = () => {
                 onChange={(e) => setPhone(e.target.value)}
                 className="text-lg p-6"
               />
+            </div>
+            
+            <div className="space-y-3 border-t pt-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="showContact" className="text-lg">Show Contact Info in Members Directory</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Allow other members to see your phone number in the community directory
+                  </p>
+                </div>
+                <Switch
+                  id="showContact"
+                  checked={showContactInfo}
+                  onCheckedChange={setShowContactInfo}
+                />
+              </div>
             </div>
             
             <Button type="submit" className="w-full text-lg py-6" disabled={loading}>

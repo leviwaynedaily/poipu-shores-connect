@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Pin, MessageSquare, FileText, Users } from "lucide-react";
 import { format } from "date-fns";
+import { Link } from "react-router-dom";
 import { WeatherWidget } from "@/components/dashboard/WeatherWidget";
 import { BeachConditions } from "@/components/dashboard/BeachConditions";
 import { EmergencyContacts } from "@/components/dashboard/EmergencyContacts";
@@ -90,38 +91,44 @@ const Dashboard = () => {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Community Activity</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalMessages}</div>
-            <p className="text-xs text-muted-foreground">Total chat messages</p>
-          </CardContent>
-        </Card>
+        <Link to="/chat">
+          <Card className="cursor-pointer hover:border-primary transition-colors">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Community Activity</CardTitle>
+              <MessageSquare className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalMessages}</div>
+              <p className="text-xs text-muted-foreground">Total chat messages</p>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Documents</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalDocuments}</div>
-            <p className="text-xs text-muted-foreground">Shared documents</p>
-          </CardContent>
-        </Card>
+        <Link to="/documents">
+          <Card className="cursor-pointer hover:border-primary transition-colors">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Documents</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalDocuments}</div>
+              <p className="text-xs text-muted-foreground">Shared documents</p>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Community Members</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalUsers}</div>
-            <p className="text-xs text-muted-foreground">Registered users</p>
-          </CardContent>
-        </Card>
+        <Link to="/members">
+          <Card className="cursor-pointer hover:border-primary transition-colors">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Community Members</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalUsers}</div>
+              <p className="text-xs text-muted-foreground">Registered users</p>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -135,46 +142,48 @@ const Dashboard = () => {
       <div className="grid gap-4 md:grid-cols-2">
         <EmergencyContacts />
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">Recent Announcements</CardTitle>
-            <CardDescription className="text-lg">
-              Important updates from the board and administration
-            </CardDescription>
-          </CardHeader>
-        <CardContent className="space-y-4">
-          {announcements.length === 0 ? (
-            <p className="text-lg text-muted-foreground">No announcements yet.</p>
-          ) : (
-            announcements.map((announcement) => (
-              <Card key={announcement.id} className="border-2">
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        {announcement.is_pinned && (
-                          <Badge variant="secondary" className="text-base">
-                            <Pin className="h-4 w-4 mr-1" />
-                            Pinned
-                          </Badge>
-                        )}
+        <Link to="/announcements">
+          <Card className="cursor-pointer hover:border-primary transition-colors">
+            <CardHeader>
+              <CardTitle className="text-2xl">Recent Announcements</CardTitle>
+              <CardDescription className="text-lg">
+                Important updates from the board and administration
+              </CardDescription>
+            </CardHeader>
+          <CardContent className="space-y-4">
+            {announcements.length === 0 ? (
+              <p className="text-lg text-muted-foreground">No announcements yet.</p>
+            ) : (
+              announcements.map((announcement) => (
+                <Card key={announcement.id} className="border-2">
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          {announcement.is_pinned && (
+                            <Badge variant="secondary" className="text-base">
+                              <Pin className="h-4 w-4 mr-1" />
+                              Pinned
+                            </Badge>
+                          )}
+                        </div>
+                        <CardTitle className="text-xl">{announcement.title}</CardTitle>
+                        <CardDescription className="text-base mt-1">
+                          Posted by {announcement.profiles.full_name} on{" "}
+                          {format(new Date(announcement.created_at), "MMM dd, yyyy")}
+                        </CardDescription>
                       </div>
-                      <CardTitle className="text-xl">{announcement.title}</CardTitle>
-                      <CardDescription className="text-base mt-1">
-                        Posted by {announcement.profiles.full_name} on{" "}
-                        {format(new Date(announcement.created_at), "MMM dd, yyyy")}
-                      </CardDescription>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-base whitespace-pre-wrap">{announcement.content}</p>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </CardContent>
-        </Card>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-base whitespace-pre-wrap">{announcement.content}</p>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </CardContent>
+          </Card>
+        </Link>
       </div>
     </div>
   );
