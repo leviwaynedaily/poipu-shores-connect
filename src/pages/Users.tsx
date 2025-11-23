@@ -1,0 +1,317 @@
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { UserPlus, Shield, Trash2 } from "lucide-react";
+import { Navigate } from "react-router-dom";
+
+interface Profile {
+  id: string;
+  full_name: string;
+  unit_number: string | null;
+  phone: string | null;
+  created_at: string;
+}
+
+interface UserRole {
+  role: string;
+}
+
+interface UserWithRoles extends Profile {
+  roles: string[];
+}
+
+export default function Users() {
+  const { isAdmin, loading } = useAuth();
+  const { toast } = useToast();
+  const [users, setUsers] = useState<UserWithRoles[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteFullName, setInviteFullName] = useState("");
+  const [inviteUnitNumber, setInviteUnitNumber] = useState("");
+  const [inviteRole, setInviteRole] = useState<"admin" | "board">("board");
+  const [isInviting, setIsInviting] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (!loading && isAdmin) {
+      fetchUsers();
+    }
+  }, [loading, isAdmin]);
+
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    try {
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (profilesError) throw profilesError;
+
+      const { data: rolesData, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("user_id, role");
+
+      if (rolesError) throw rolesError;
+
+      const userRolesMap = new Map<string, string[]>();
+      rolesData?.forEach((role) => {
+        if (!userRolesMap.has(role.user_id)) {
+          userRolesMap.set(role.user_id, []);
+        }
+        userRolesMap.get(role.user_id)!.push(role.role);
+      });
+
+      const usersWithRoles = profiles?.map((profile) => ({
+        ...profile,
+        roles: userRolesMap.get(profile.id) || [],
+      })) || [];
+
+      setUsers(usersWithRoles);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleInviteUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsInviting(true);
+
+    try {
+      const response = await fetch(`https://rvqqnfsgovlxocjjugww.supabase.co/functions/v1/invite-user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify({
+          email: inviteEmail,
+          full_name: inviteFullName,
+          unit_number: inviteUnitNumber,
+          role: inviteRole,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to invite user");
+      }
+
+      toast({
+        title: "User invited",
+        description: `Invitation sent to ${inviteEmail}`,
+      });
+
+      setInviteEmail("");
+      setInviteFullName("");
+      setInviteUnitNumber("");
+      setInviteRole("board");
+      setIsDialogOpen(false);
+      fetchUsers();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsInviting(false);
+    }
+  };
+
+  const handleToggleRole = async (userId: string, role: "admin" | "board" | "owner", currentlyHas: boolean) => {
+    try {
+      if (currentlyHas) {
+        const { error } = await supabase
+          .from("user_roles")
+          .delete()
+          .eq("user_id", userId)
+          .eq("role", role);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("user_roles")
+          .insert({ user_id: userId, role });
+
+        if (error) throw error;
+      }
+
+      toast({
+        title: "Role updated",
+        description: `Role ${currentlyHas ? "removed" : "added"} successfully`,
+      });
+
+      fetchUsers();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return (
+    <div className="container mx-auto py-8 px-4">
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">User Management</h1>
+          <p className="text-muted-foreground">Invite and manage community members</p>
+        </div>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <UserPlus className="mr-2 h-4 w-4" />
+              Invite User
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Invite New User</DialogTitle>
+              <DialogDescription>
+                Send an invitation email to a new community member
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleInviteUser} className="space-y-4">
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="fullName">Full Name</Label>
+                <Input
+                  id="fullName"
+                  value={inviteFullName}
+                  onChange={(e) => setInviteFullName(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="unitNumber">Unit Number</Label>
+                <Input
+                  id="unitNumber"
+                  value={inviteUnitNumber}
+                  onChange={(e) => setInviteUnitNumber(e.target.value)}
+                  placeholder="Optional"
+                />
+              </div>
+              <div>
+                <Label htmlFor="role">Initial Role</Label>
+                <Select value={inviteRole} onValueChange={(value: any) => setInviteRole(value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="board">Board Member</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button type="submit" className="w-full" disabled={isInviting}>
+                {isInviting ? "Sending..." : "Send Invitation"}
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Community Members</CardTitle>
+          <CardDescription>Manage roles and permissions</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="text-center py-8">Loading users...</div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Unit</TableHead>
+                  <TableHead>Roles</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell className="font-medium">{user.full_name}</TableCell>
+                    <TableCell>{user.unit_number || "—"}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        {user.roles.length === 0 && (
+                          <Badge variant="outline">Resident</Badge>
+                        )}
+                        {user.roles.includes("admin") && (
+                          <Badge variant="default">Admin</Badge>
+                        )}
+                        {user.roles.includes("board") && (
+                          <Badge variant="secondary">Board</Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant={user.roles.includes("admin") ? "default" : "outline"}
+                          onClick={() => handleToggleRole(user.id, "admin", user.roles.includes("admin"))}
+                        >
+                          <Shield className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={user.roles.includes("board") ? "default" : "outline"}
+                          onClick={() => handleToggleRole(user.id, "board", user.roles.includes("board"))}
+                        >
+                          Board
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

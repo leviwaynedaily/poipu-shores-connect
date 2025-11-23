@@ -1,4 +1,4 @@
-import { Home, Megaphone, MessageSquare, FileText, User, LogOut } from "lucide-react";
+import { Home, Megaphone, MessageSquare, FileText, User, Users, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,7 +26,7 @@ const menuItems = [
 export function AppSidebar() {
   const { open } = useSidebar();
   const location = useLocation();
-  const { signOut } = useAuth();
+  const { signOut, isAdmin } = useAuth();
   const currentPath = location.pathname;
 
   const isActive = (path: string) => currentPath === path;
@@ -59,6 +59,29 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        
+        {isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-lg py-3">Admin</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to="/users"
+                      end
+                      className="flex items-center gap-3 py-4 text-base"
+                      activeClassName="bg-accent text-accent-foreground font-semibold"
+                    >
+                      <Users className="h-5 w-5" />
+                      {open && <span>User Management</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
         
         <div className="mt-auto p-4">
           <Button
