@@ -76,6 +76,9 @@ export type Database = {
           category: string
           created_at: string
           file_path: string
+          file_size: number | null
+          file_type: string | null
+          folder: string | null
           id: string
           title: string
           unit_number: string | null
@@ -85,6 +88,9 @@ export type Database = {
           category: string
           created_at?: string
           file_path: string
+          file_size?: number | null
+          file_type?: string | null
+          folder?: string | null
           id?: string
           title: string
           unit_number?: string | null
@@ -94,6 +100,9 @@ export type Database = {
           category?: string
           created_at?: string
           file_path?: string
+          file_size?: number | null
+          file_type?: string | null
+          folder?: string | null
           id?: string
           title?: string
           unit_number?: string | null
