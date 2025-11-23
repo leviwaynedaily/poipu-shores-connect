@@ -2,6 +2,7 @@ import { Home, Megaphone, MessageSquare, FileText, Camera, User, Users, LogOut }
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import {
   Sidebar,
   SidebarContent,
@@ -34,13 +35,18 @@ export function AppSidebar() {
   const { open } = useSidebar();
   const location = useLocation();
   const { signOut, isAdmin } = useAuth();
+  const { isGlassTheme } = useTheme();
   const currentPath = location.pathname;
 
   const isActive = (path: string) => currentPath === path;
 
   return (
     <Sidebar
-      className={!open ? "w-16" : "w-64"}
+      className={`${!open ? "w-16" : "w-64"} ${
+        isGlassTheme 
+          ? "bg-card/5 backdrop-blur-sm border-border/15" 
+          : "bg-sidebar border-sidebar-border"
+      }`}
       collapsible="icon"
     >
       <SidebarContent>
