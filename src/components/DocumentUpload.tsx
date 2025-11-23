@@ -32,7 +32,7 @@ export function DocumentUpload({ onUploadComplete, folders }: DocumentUploadProp
   const [isUploading, setIsUploading] = useState(false);
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("general");
-  const [folder, setFolder] = useState("");
+  const [folder, setFolder] = useState("none");
   const [newFolder, setNewFolder] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [unitNumber, setUnitNumber] = useState("");
@@ -48,7 +48,8 @@ export function DocumentUpload({ onUploadComplete, folders }: DocumentUploadProp
 
       const fileExt = file.name.split(".").pop();
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = folder || newFolder ? `${folder || newFolder}/${fileName}` : fileName;
+      const actualFolder = folder === "none" ? "" : folder;
+      const filePath = actualFolder || newFolder ? `${actualFolder || newFolder}/${fileName}` : fileName;
 
       const { error: uploadError } = await supabase.storage
         .from("documents")
@@ -61,7 +62,7 @@ export function DocumentUpload({ onUploadComplete, folders }: DocumentUploadProp
         .insert({
           title,
           category,
-          folder: folder || newFolder || null,
+          folder: (folder === "none" ? null : folder) || newFolder || null,
           file_path: filePath,
           file_size: file.size,
           file_type: file.type,
@@ -78,7 +79,7 @@ export function DocumentUpload({ onUploadComplete, folders }: DocumentUploadProp
 
       setTitle("");
       setCategory("general");
-      setFolder("");
+      setFolder("none");
       setNewFolder("");
       setFile(null);
       setUnitNumber("");
@@ -151,7 +152,7 @@ export function DocumentUpload({ onUploadComplete, folders }: DocumentUploadProp
                 <SelectValue placeholder="Select or create new" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="none">None</SelectItem>
                 {allFolders.map((f) => (
                   <SelectItem key={f} value={f}>{f}</SelectItem>
                 ))}
