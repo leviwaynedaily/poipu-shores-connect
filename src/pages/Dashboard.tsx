@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Pin } from "lucide-react";
+import { Pin, MessageSquare, FileText, Users } from "lucide-react";
 import { format } from "date-fns";
 
 interface Announcement {
@@ -21,10 +21,16 @@ const Dashboard = () => {
   const { user } = useAuth();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [profile, setProfile] = useState<any>(null);
+  const [stats, setStats] = useState({
+    totalMessages: 0,
+    totalDocuments: 0,
+    totalUsers: 0,
+  });
 
   useEffect(() => {
     fetchProfile();
     fetchAnnouncements();
+    fetchStats();
   }, [user]);
 
   const fetchProfile = async () => {
@@ -53,6 +59,20 @@ const Dashboard = () => {
     if (data) setAnnouncements(data as any);
   };
 
+  const fetchStats = async () => {
+    const [messagesResult, documentsResult, usersResult] = await Promise.all([
+      supabase.from("chat_messages").select("id", { count: "exact", head: true }),
+      supabase.from("documents").select("id", { count: "exact", head: true }),
+      supabase.from("profiles").select("id", { count: "exact", head: true }),
+    ]);
+
+    setStats({
+      totalMessages: messagesResult.count || 0,
+      totalDocuments: documentsResult.count || 0,
+      totalUsers: usersResult.count || 0,
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -62,6 +82,41 @@ const Dashboard = () => {
         <p className="text-xl text-muted-foreground">
           {profile?.unit_number && `Unit ${profile.unit_number}`}
         </p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Community Activity</CardTitle>
+            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalMessages}</div>
+            <p className="text-xs text-muted-foreground">Total chat messages</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Documents</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalDocuments}</div>
+            <p className="text-xs text-muted-foreground">Shared documents</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Community Members</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalUsers}</div>
+            <p className="text-xs text-muted-foreground">Registered users</p>
+          </CardContent>
+        </Card>
       </div>
 
       <Card>

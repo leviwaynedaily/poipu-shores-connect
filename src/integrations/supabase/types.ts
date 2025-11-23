@@ -44,9 +44,40 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_channels: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          is_private: boolean | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          is_private?: boolean | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_private?: boolean | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           author_id: string
+          channel_id: string
           content: string
           created_at: string
           id: string
@@ -55,6 +86,7 @@ export type Database = {
         }
         Insert: {
           author_id: string
+          channel_id: string
           content: string
           created_at?: string
           id?: string
@@ -63,13 +95,22 @@ export type Database = {
         }
         Update: {
           author_id?: string
+          channel_id?: string
           content?: string
           created_at?: string
           id?: string
           is_private?: boolean | null
           recipient_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "chat_channels"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       documents: {
         Row: {
