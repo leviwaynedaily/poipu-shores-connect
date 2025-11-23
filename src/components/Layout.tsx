@@ -3,6 +3,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { Footer } from "@/components/Footer";
 import { useTheme } from "@/contexts/ThemeContext";
 import beachImage from "@/assets/condo-oceanfront.jpeg";
+import headerLogo from "@/assets/header-logo.png";
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const { isGlassTheme, glassIntensity } = useTheme();
@@ -45,12 +46,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             }
           >
             <SidebarTrigger className="mr-4" />
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Poipu Shores
-              </h1>
-              <span className="text-xl">🌺</span>
-            </div>
+            <img src={headerLogo} alt="Poipu Shores - Kauai, Hawaii" className="h-12" />
           </header>
           <div className="p-6 flex-1">
             {children}
