@@ -4,7 +4,11 @@ import { cn } from "@/lib/utils";
 import { useTheme } from "@/contexts/ThemeContext";
 
 const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => {
-  const { isGlassTheme } = useTheme();
+  const { isGlassTheme, glassIntensity } = useTheme();
+  
+  // Calculate opacity based on intensity (0-10 scale to 0-10% opacity)
+  const opacity = isGlassTheme ? glassIntensity : 100;
+  const borderOpacity = isGlassTheme ? Math.max(10, glassIntensity * 1.5) : 100;
   
   return (
     <div 
@@ -12,10 +16,14 @@ const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElemen
       className={cn(
         "rounded-lg border text-card-foreground shadow-sm",
         isGlassTheme 
-          ? "bg-card/5 backdrop-blur-sm border-border/15" 
+          ? `backdrop-blur-sm` 
           : "bg-card border-border",
         className
-      )} 
+      )}
+      style={isGlassTheme ? {
+        backgroundColor: `hsl(var(--card) / ${opacity}%)`,
+        borderColor: `hsl(var(--border) / ${borderOpacity}%)`
+      } : undefined}
       {...props} 
     />
   );
