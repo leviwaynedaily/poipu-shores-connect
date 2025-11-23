@@ -2,62 +2,52 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { Maximize2, RefreshCw, Video } from "lucide-react";
+import { ExternalLink, Video } from "lucide-react";
 import { toast } from "sonner";
 
-interface CameraSettings {
+interface Webcam {
   id: string;
-  camera_name: string;
-  camera_url: string;
-  is_active: boolean;
+  name: string;
+  location: string;
+  url: string;
+  webcam_type: 'youtube' | 'external';
+  display_order: number;
 }
 
 export const LiveCamera = () => {
-  const [camera, setCamera] = useState<CameraSettings | null>(null);
+  const [webcams, setWebcams] = useState<Webcam[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  const fetchCameraSettings = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('live_camera_settings')
-        .select('*')
-        .eq('is_active', true)
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      setCamera(data);
-    } catch (error) {
-      console.error('Error fetching camera settings:', error);
-      toast.error('Failed to load camera settings');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
-    fetchCameraSettings();
+    const fetchWebcams = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('webcams')
+          .select('*')
+          .eq('is_active', true)
+          .order('display_order', { ascending: true });
+
+        if (error) throw error;
+
+        setWebcams((data || []) as Webcam[]);
+      } catch (error) {
+        console.error('Error fetching webcams:', error);
+        toast.error('Failed to load webcams');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWebcams();
   }, []);
-
-  const handleRefresh = () => {
-    setRefreshKey(prev => prev + 1);
-  };
-
-  const handleFullscreen = () => {
-    if (camera?.camera_url) {
-      window.open(camera.camera_url, '_blank');
-    }
-  };
 
   if (loading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Live Beach Cam</CardTitle>
+          <CardTitle>Live Beach Cams</CardTitle>
         </CardHeader>
         <CardContent>
           <Skeleton className="h-64 w-full" />
@@ -66,20 +56,17 @@ export const LiveCamera = () => {
     );
   }
 
-  if (!camera) {
+  if (webcams.length === 0) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Live Beach Cam</CardTitle>
+          <CardTitle className="text-lg">Live Beach Cams</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center justify-center h-64 text-center space-y-2">
             <Video className="h-12 w-12 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
-              Camera feed not configured yet
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Contact your administrator to set up the live camera
+              No webcams configured yet
             </p>
           </div>
         </CardContent>
@@ -89,44 +76,55 @@ export const LiveCamera = () => {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <div>
-          <CardTitle className="text-lg">Live Beach Cam</CardTitle>
-          <p className="text-xs text-muted-foreground">{camera.camera_name}</p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            className="h-8 w-8 p-0"
-          >
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleFullscreen}
-            className="h-8 w-8 p-0"
-          >
-            <Maximize2 className="h-4 w-4" />
-          </Button>
-        </div>
+      <CardHeader>
+        <CardTitle className="text-lg">Live Beach Cams</CardTitle>
+        <p className="text-xs text-muted-foreground">Multiple viewing locations</p>
       </CardHeader>
       <CardContent>
-        <div className="relative w-full aspect-video bg-muted rounded-lg overflow-hidden">
-          <iframe
-            key={refreshKey}
-            src={camera.camera_url}
-            className="absolute inset-0 w-full h-full"
-            allow="autoplay; fullscreen"
-            allowFullScreen
-            title={camera.camera_name}
-          />
-        </div>
-        <p className="text-xs text-muted-foreground mt-2">
-          Last updated: {new Date().toLocaleTimeString()}
-        </p>
+        <Tabs defaultValue={webcams[0]?.id} className="w-full">
+          <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${webcams.length}, minmax(0, 1fr))` }}>
+            {webcams.map((webcam) => (
+              <TabsTrigger key={webcam.id} value={webcam.id} className="text-xs">
+                {webcam.name}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {webcams.map((webcam) => (
+            <TabsContent key={webcam.id} value={webcam.id} className="mt-4">
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">{webcam.location}</p>
+                
+                {webcam.webcam_type === 'youtube' ? (
+                  <div className="relative w-full aspect-video bg-muted rounded-lg overflow-hidden">
+                    <iframe
+                      src={webcam.url}
+                      className="absolute inset-0 w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      title={webcam.name}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-64 bg-muted rounded-lg space-y-4">
+                    <Video className="h-16 w-16 text-muted-foreground" />
+                    <div className="text-center space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        This camera cannot be embedded
+                      </p>
+                      <Button
+                        onClick={() => window.open(webcam.url, '_blank')}
+                        variant="default"
+                      >
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        View on {webcam.name}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          ))}
+        </Tabs>
       </CardContent>
     </Card>
   );

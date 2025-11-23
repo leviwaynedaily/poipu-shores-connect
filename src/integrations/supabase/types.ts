@@ -187,41 +187,6 @@ export type Database = {
         }
         Relationships: []
       }
-      live_camera_settings: {
-        Row: {
-          camera_name: string
-          camera_url: string
-          id: string
-          is_active: boolean
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          camera_name: string
-          camera_url: string
-          id?: string
-          is_active?: boolean
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          camera_name?: string
-          camera_url?: string
-          id?: string
-          is_active?: boolean
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "live_camera_settings_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
           created_at: string
@@ -264,6 +229,42 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      webcams: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          location: string
+          name: string
+          updated_at: string
+          url: string
+          webcam_type: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          location: string
+          name: string
+          updated_at?: string
+          url: string
+          webcam_type: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          location?: string
+          name?: string
+          updated_at?: string
+          url?: string
+          webcam_type?: string
         }
         Relationships: []
       }
