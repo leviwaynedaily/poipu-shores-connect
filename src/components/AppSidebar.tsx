@@ -1,4 +1,4 @@
-import { Home, Megaphone, MessageSquare, FileText, User, Users, LogOut } from "lucide-react";
+import { Home, Megaphone, MessageSquare, FileText, Camera, User, Users, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,6 +26,7 @@ const menuItems = [
   { title: "Announcements", url: "/announcements", icon: Megaphone },
   { title: "Community Chat", url: "/chat", icon: MessageSquare },
   { title: "Documents", url: "/documents", icon: FileText },
+  { title: "Photos", url: "/photos", icon: Camera },
   { title: "My Profile", url: "/profile", icon: User },
 ];
 

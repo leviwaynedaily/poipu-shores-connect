@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Announcements from "./pages/Announcements";
 import Chat from "./pages/Chat";
 import Documents from "./pages/Documents";
+import Photos from "./pages/Photos";
 import Profile from "./pages/Profile";
 import Users from "./pages/Users";
 import NotFound from "./pages/NotFound";
@@ -68,6 +69,16 @@ const App = () => (
                 <ProtectedRoute>
                   <Layout>
                     <Documents />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/photos"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Photos />
                   </Layout>
                 </ProtectedRoute>
               }

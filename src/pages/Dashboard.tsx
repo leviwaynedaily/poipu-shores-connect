@@ -9,6 +9,7 @@ import { WeatherWidget } from "@/components/dashboard/WeatherWidget";
 import { BeachConditions } from "@/components/dashboard/BeachConditions";
 import { EmergencyContacts } from "@/components/dashboard/EmergencyContacts";
 import { LiveCamera } from "@/components/dashboard/LiveCamera";
+import { PhotoCarousel } from "@/components/photos/PhotoCarousel";
 
 interface Announcement {
   id: string;
@@ -129,6 +130,8 @@ const Dashboard = () => {
         <BeachConditions />
         <LiveCamera />
       </div>
+
+      <PhotoCarousel />
 
       <div className="grid gap-4 md:grid-cols-2">
         <EmergencyContacts />
