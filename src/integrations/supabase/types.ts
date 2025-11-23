@@ -235,6 +235,7 @@ export type Database = {
           full_name: string
           id: string
           phone: string | null
+          show_contact_info: boolean
           unit_number: string | null
           updated_at: string
         }
@@ -243,6 +244,7 @@ export type Database = {
           full_name: string
           id: string
           phone?: string | null
+          show_contact_info?: boolean
           unit_number?: string | null
           updated_at?: string
         }
@@ -251,6 +253,7 @@ export type Database = {
           full_name?: string
           id?: string
           phone?: string | null
+          show_contact_info?: boolean
           unit_number?: string | null
           updated_at?: string
         }
