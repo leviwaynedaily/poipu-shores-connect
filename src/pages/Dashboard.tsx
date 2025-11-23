@@ -6,10 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Pin, MessageSquare, FileText, Users } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
-import { WeatherWidget } from "@/components/dashboard/WeatherWidget";
-import { BeachConditions } from "@/components/dashboard/BeachConditions";
+import { WeatherAndBeachConditions } from "@/components/dashboard/WeatherAndBeachConditions";
 import { EmergencyContacts } from "@/components/dashboard/EmergencyContacts";
-import { LiveCameraDropdown } from "@/components/dashboard/LiveCameraDropdown";
+import { LiveCameraEmbed } from "@/components/dashboard/LiveCameraEmbed";
 import { PhotoCarousel } from "@/components/photos/PhotoCarousel";
 
 interface Announcement {
@@ -131,13 +130,9 @@ const Dashboard = () => {
         </Link>
       </div>
 
-      <div className="flex items-center gap-4 mb-4">
-        <LiveCameraDropdown />
-      </div>
-
       <div className="grid gap-4 md:grid-cols-2">
-        <BeachConditions />
-        <WeatherWidget />
+        <WeatherAndBeachConditions />
+        <LiveCameraEmbed />
       </div>
 
       <PhotoCarousel />
