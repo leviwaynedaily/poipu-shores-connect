@@ -17,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
@@ -40,18 +39,18 @@ export function AppSidebar() {
   const isActive = (path: string) => currentPath === path;
 
   return (
-    <TooltipProvider delayDuration={0}>
-      <Sidebar
-        className={!open ? "w-16" : "w-64"}
-        collapsible="icon"
-      >
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-lg py-3">Menu</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {menuItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
+    <Sidebar
+      className={!open ? "w-16" : "w-64"}
+      collapsible="icon"
+    >
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-lg py-3">Menu</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {menuItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  {!open ? (
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <SidebarMenuButton asChild>
@@ -62,28 +61,39 @@ export function AppSidebar() {
                             activeClassName="bg-accent text-accent-foreground font-semibold"
                           >
                             <item.icon className="h-5 w-5" />
-                            {open && <span>{item.title}</span>}
                           </NavLink>
                         </SidebarMenuButton>
                       </TooltipTrigger>
-                      {!open && (
-                        <TooltipContent side="right" className="font-medium">
-                          {item.title}
-                        </TooltipContent>
-                      )}
+                      <TooltipContent side="right" className="font-medium">
+                        {item.title}
+                      </TooltipContent>
                     </Tooltip>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-          
-          {isAdmin && (
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-lg py-3">Admin</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
+                  ) : (
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        end
+                        className="flex items-center gap-3 py-4 text-base"
+                        activeClassName="bg-accent text-accent-foreground font-semibold"
+                      >
+                        <item.icon className="h-5 w-5" />
+                        <span>{item.title}</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  )}
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        
+        {isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-lg py-3">Admin</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  {!open ? (
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <SidebarMenuButton asChild>
@@ -94,23 +104,34 @@ export function AppSidebar() {
                             activeClassName="bg-accent text-accent-foreground font-semibold"
                           >
                             <Users className="h-5 w-5" />
-                            {open && <span>User Management</span>}
                           </NavLink>
                         </SidebarMenuButton>
                       </TooltipTrigger>
-                      {!open && (
-                        <TooltipContent side="right" className="font-medium">
-                          User Management
-                        </TooltipContent>
-                      )}
+                      <TooltipContent side="right" className="font-medium">
+                        User Management
+                      </TooltipContent>
                     </Tooltip>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          )}
-          
-          <div className="mt-auto p-4">
+                  ) : (
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to="/users"
+                        end
+                        className="flex items-center gap-3 py-4 text-base"
+                        activeClassName="bg-accent text-accent-foreground font-semibold"
+                      >
+                        <Users className="h-5 w-5" />
+                        <span>User Management</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  )}
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+        
+        <div className="mt-auto p-4">
+          {!open ? (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -118,19 +139,25 @@ export function AppSidebar() {
                   variant="outline"
                   className="w-full text-base py-5"
                 >
-                  <LogOut className="h-5 w-5 mr-2" />
-                  {open && <span>Sign Out</span>}
+                  <LogOut className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
-              {!open && (
-                <TooltipContent side="right" className="font-medium">
-                  Sign Out
-                </TooltipContent>
-              )}
+              <TooltipContent side="right" className="font-medium">
+                Sign Out
+              </TooltipContent>
             </Tooltip>
-          </div>
-        </SidebarContent>
-      </Sidebar>
-    </TooltipProvider>
+          ) : (
+            <Button
+              onClick={signOut}
+              variant="outline"
+              className="w-full text-base py-5"
+            >
+              <LogOut className="h-5 w-5 mr-2" />
+              <span>Sign Out</span>
+            </Button>
+          )}
+        </div>
+      </SidebarContent>
+    </Sidebar>
   );
 }
