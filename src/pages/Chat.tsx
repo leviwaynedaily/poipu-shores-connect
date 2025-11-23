@@ -5,49 +5,92 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Send, Settings } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { ChannelManager } from "@/components/ChannelManager";
 
 interface Message {
   id: string;
   content: string;
   created_at: string;
   author_id: string;
+  channel_id: string;
   profiles: {
     full_name: string;
   };
 }
 
+interface Channel {
+  id: string;
+  name: string;
+  description: string | null;
+  is_private: boolean | null;
+}
+
 const Chat = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [channels, setChannels] = useState<Channel[]>([]);
+  const [selectedChannel, setSelectedChannel] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
+  const [showChannelManager, setShowChannelManager] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetchMessages();
-    
-    // Set up realtime subscription
-    const channel = supabase
-      .channel("chat-messages")
+    checkAdminStatus();
+    fetchChannels();
+  }, [user]);
+
+  useEffect(() => {
+    if (selectedChannel) {
+      fetchMessages();
+      
+      // Set up realtime subscription for messages
+      const messagesChannel = supabase
+        .channel(`chat-messages-${selectedChannel}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "chat_messages",
+            filter: `channel_id=eq.${selectedChannel}`,
+          },
+          () => {
+            fetchMessages();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(messagesChannel);
+      };
+    }
+  }, [selectedChannel]);
+
+  useEffect(() => {
+    // Set up realtime subscription for channels
+    const channelsChannel = supabase
+      .channel("chat-channels")
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*",
           schema: "public",
-          table: "chat_messages",
-          filter: "is_private=eq.false",
+          table: "chat_channels",
         },
-        (payload) => {
-          fetchMessages();
+        () => {
+          fetchChannels();
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(channelsChannel);
     };
   }, []);
 
@@ -55,20 +98,48 @@ const Chat = () => {
     scrollToBottom();
   }, [messages]);
 
+  const checkAdminStatus = async () => {
+    if (!user) return;
+    
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .in("role", ["admin", "board"]);
+    
+    setIsAdmin(!!data && data.length > 0);
+  };
+
   const scrollToBottom = () => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   };
 
+  const fetchChannels = async () => {
+    const { data } = await supabase
+      .from("chat_channels")
+      .select("*")
+      .order("name");
+
+    if (data) {
+      setChannels(data);
+      if (!selectedChannel && data.length > 0) {
+        setSelectedChannel(data[0].id);
+      }
+    }
+  };
+
   const fetchMessages = async () => {
+    if (!selectedChannel) return;
+
     const { data } = await supabase
       .from("chat_messages")
       .select(`
         *,
         profiles!chat_messages_author_id_fkey (full_name)
       `)
-      .eq("is_private", false)
+      .eq("channel_id", selectedChannel)
       .order("created_at", { ascending: true });
 
     if (data) setMessages(data as any);
@@ -77,13 +148,14 @@ const Chat = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user || !newMessage.trim()) return;
+    if (!user || !newMessage.trim() || !selectedChannel) return;
 
     const { error } = await supabase
       .from("chat_messages")
       .insert({
         content: newMessage.trim(),
         author_id: user.id,
+        channel_id: selectedChannel,
         is_private: false,
       });
 
@@ -98,21 +170,46 @@ const Chat = () => {
     }
   };
 
+  const currentChannel = channels.find(c => c.id === selectedChannel);
+
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-foreground">Community Chat</h2>
-        <p className="text-lg text-muted-foreground">
-          Connect with your neighbors and community
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold text-foreground">Community Chat</h2>
+          <p className="text-lg text-muted-foreground">
+            Connect with your neighbors and community
+          </p>
+        </div>
+        {isAdmin && (
+          <Button onClick={() => setShowChannelManager(!showChannelManager)}>
+            <Settings className="h-4 w-4 mr-2" />
+            Manage Channels
+          </Button>
+        )}
       </div>
+
+      {showChannelManager && isAdmin && (
+        <ChannelManager onClose={() => setShowChannelManager(false)} />
+      )}
 
       <Card className="h-[calc(100vh-16rem)]">
         <CardHeader className="border-b">
-          <CardTitle className="text-xl">General Discussion</CardTitle>
-          <p className="text-base text-muted-foreground">
-            Please keep conversations respectful and on-topic
-          </p>
+          <Tabs value={selectedChannel} onValueChange={setSelectedChannel}>
+            <TabsList className="h-auto flex-wrap">
+              {channels.map((channel) => (
+                <TabsTrigger key={channel.id} value={channel.id} className="flex-shrink-0">
+                  {channel.name}
+                  {channel.is_private && " 🔒"}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+          {currentChannel?.description && (
+            <p className="text-base text-muted-foreground mt-2">
+              {currentChannel.description}
+            </p>
+          )}
         </CardHeader>
         <CardContent className="p-0 flex flex-col h-[calc(100%-5rem)]">
           <ScrollArea className="flex-1 p-4" ref={scrollRef}>
