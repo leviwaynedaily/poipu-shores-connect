@@ -35,18 +35,26 @@ export function AppSidebar() {
   const { open } = useSidebar();
   const location = useLocation();
   const { signOut, isAdmin } = useAuth();
-  const { isGlassTheme } = useTheme();
+  const { isGlassTheme, glassIntensity } = useTheme();
   const currentPath = location.pathname;
 
   const isActive = (path: string) => currentPath === path;
+
+  // Calculate opacity based on intensity (0-100 scale)
+  const opacity = isGlassTheme ? 5 + (glassIntensity * 0.95) : 100;
+  const borderOpacity = isGlassTheme ? 15 + (glassIntensity * 0.85) : 100;
 
   return (
     <Sidebar
       className={`${!open ? "w-16" : "w-64"} ${
         isGlassTheme 
-          ? "bg-card/5 backdrop-blur-sm border-border/15" 
+          ? "backdrop-blur-sm" 
           : "bg-sidebar border-sidebar-border"
       }`}
+      style={isGlassTheme ? {
+        backgroundColor: `hsl(var(--card) / ${opacity}%)`,
+        borderColor: `hsl(var(--border) / ${borderOpacity}%)`
+      } : undefined}
       collapsible="icon"
     >
       <SidebarContent>
