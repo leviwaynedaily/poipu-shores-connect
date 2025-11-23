@@ -100,9 +100,6 @@ const Auth = () => {
           <div className="flex justify-center mb-4">
             <img src={logo} alt="Poipu Shores - Kauai, Hawaii" className="w-full max-w-md" />
           </div>
-          <CardDescription className="text-lg text-foreground/80">
-            🌺 Owner Portal 🌺
-          </CardDescription>
         </CardHeader>
         <CardContent>
           {!showResetPassword ? (
