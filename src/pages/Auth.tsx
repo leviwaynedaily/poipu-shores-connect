@@ -70,7 +70,7 @@ const Auth = () => {
       {/* Overlay */}
       <div className="absolute inset-0 z-0 bg-gradient-to-br from-primary/20 via-background/60 to-secondary/20" />
       
-      <Card className="w-full max-w-md relative z-10 shadow-2xl border-2">
+      <Card className="w-full max-w-md relative z-10 bg-background/40 backdrop-blur-2xl border border-border/40 shadow-2xl">
         <CardHeader className="text-center pb-4">
           <CardTitle className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             Poipu Shores
