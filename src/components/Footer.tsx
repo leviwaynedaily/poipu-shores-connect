@@ -10,7 +10,7 @@ export const Footer = () => {
           <div className="flex flex-col sm:flex-row items-center gap-2 text-sm text-muted-foreground">
             <span>© {currentYear} Poipu Shores</span>
             <span className="hidden sm:inline">•</span>
-            <span>Built by <span className="font-semibold text-foreground">Cook Solutions Group</span></span>
+            <span>Built by <a href="https://www.cooksolutionsgroup.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground hover:text-primary transition-colors">Cook Solutions Group</a></span>
           </div>
           
           <div className="flex items-center gap-4 text-sm">
