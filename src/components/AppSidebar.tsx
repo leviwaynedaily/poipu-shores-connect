@@ -14,6 +14,12 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home },
@@ -32,68 +38,97 @@ export function AppSidebar() {
   const isActive = (path: string) => currentPath === path;
 
   return (
-    <Sidebar
-      className={!open ? "w-16" : "w-64"}
-      collapsible="icon"
-    >
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-lg py-3">Menu</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      end
-                      className="flex items-center gap-3 py-4 text-base"
-                      activeClassName="bg-accent text-accent-foreground font-semibold"
-                    >
-                      <item.icon className="h-5 w-5" />
-                      {open && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        
-        {isAdmin && (
+    <TooltipProvider delayDuration={0}>
+      <Sidebar
+        className={!open ? "w-16" : "w-64"}
+        collapsible="icon"
+      >
+        <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel className="text-lg py-3">Admin</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-lg py-3">Menu</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to="/users"
-                      end
-                      className="flex items-center gap-3 py-4 text-base"
-                      activeClassName="bg-accent text-accent-foreground font-semibold"
-                    >
-                      <Users className="h-5 w-5" />
-                      {open && <span>User Management</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                {menuItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton asChild>
+                          <NavLink
+                            to={item.url}
+                            end
+                            className="flex items-center gap-3 py-4 text-base"
+                            activeClassName="bg-accent text-accent-foreground font-semibold"
+                          >
+                            <item.icon className="h-5 w-5" />
+                            {open && <span>{item.title}</span>}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      {!open && (
+                        <TooltipContent side="right" className="font-medium">
+                          {item.title}
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </SidebarMenuItem>
+                ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-        )}
-        
-        <div className="mt-auto p-4">
-          <Button
-            onClick={signOut}
-            variant="outline"
-            className="w-full text-base py-5"
-          >
-            <LogOut className="h-5 w-5 mr-2" />
-            {open && <span>Sign Out</span>}
-          </Button>
-        </div>
-      </SidebarContent>
-    </Sidebar>
+          
+          {isAdmin && (
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-lg py-3">Admin</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton asChild>
+                          <NavLink
+                            to="/users"
+                            end
+                            className="flex items-center gap-3 py-4 text-base"
+                            activeClassName="bg-accent text-accent-foreground font-semibold"
+                          >
+                            <Users className="h-5 w-5" />
+                            {open && <span>User Management</span>}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      {!open && (
+                        <TooltipContent side="right" className="font-medium">
+                          User Management
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )}
+          
+          <div className="mt-auto p-4">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={signOut}
+                  variant="outline"
+                  className="w-full text-base py-5"
+                >
+                  <LogOut className="h-5 w-5 mr-2" />
+                  {open && <span>Sign Out</span>}
+                </Button>
+              </TooltipTrigger>
+              {!open && (
+                <TooltipContent side="right" className="font-medium">
+                  Sign Out
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </div>
+        </SidebarContent>
+      </Sidebar>
+    </TooltipProvider>
   );
 }
