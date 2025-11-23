@@ -72,7 +72,7 @@ const Auth = () => {
       
       <Card className="w-full max-w-md relative z-10 bg-background/5 backdrop-blur-2xl border border-border/30 shadow-2xl">
         <CardHeader className="text-center pb-4">
-          <CardTitle className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          <CardTitle className="text-4xl font-bold text-foreground">
             Poipu Shores
           </CardTitle>
           <CardDescription className="text-xl mt-2 text-foreground/80">
