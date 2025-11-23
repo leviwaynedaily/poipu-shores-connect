@@ -10,6 +10,7 @@ import { WeatherAndBeachConditions } from "@/components/dashboard/WeatherAndBeac
 import { EmergencyContacts } from "@/components/dashboard/EmergencyContacts";
 import { LiveCameraEmbed } from "@/components/dashboard/LiveCameraEmbed";
 import { PhotoCarousel } from "@/components/photos/PhotoCarousel";
+import { WelcomeDialog } from "@/components/WelcomeDialog";
 
 interface Announcement {
   id: string;
@@ -80,6 +81,7 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
+      <WelcomeDialog />
       <div>
         <h2 className="text-3xl font-bold text-foreground mb-2">
           Welcome back, {profile?.full_name || "Owner"}!
