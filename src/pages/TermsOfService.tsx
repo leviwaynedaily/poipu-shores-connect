@@ -146,8 +146,8 @@ const TermsOfService = () => {
                 For questions about these Terms of Service, please contact:
               </p>
               <p className="text-muted-foreground font-semibold mt-2">
-                Cook Solutions Group<br />
-                Email: support@cooksolutionsgroup.com
+                Poipu Shores<br />
+                Email: support@poipu-shores.com
               </p>
             </section>
           </CardContent>
