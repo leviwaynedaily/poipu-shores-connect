@@ -10,6 +10,8 @@ export const Footer = () => {
           <div className="flex flex-col sm:flex-row items-center gap-2 text-sm text-muted-foreground">
             <span>© {currentYear} Poipu Shores</span>
             <span className="hidden sm:inline">•</span>
+            <span>1775 Pe'e Rd, Poipu, HI 96756</span>
+            <span className="hidden sm:inline">•</span>
             <span>Built by <a href="https://www.cooksolutionsgroup.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground hover:text-primary transition-colors">Cook Solutions Group</a></span>
           </div>
           
