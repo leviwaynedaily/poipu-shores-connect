@@ -9,6 +9,7 @@ import { Footer } from "@/components/Footer";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import beachImage from "@/assets/condo-oceanfront.jpeg";
+import logo from "@/assets/logo.png";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -96,13 +97,12 @@ const Auth = () => {
       <div className="flex-1 flex items-center justify-center p-4">
         <Card className="w-full max-w-md relative z-10 bg-background/5 backdrop-blur-sm border border-border/15 shadow-xl">
         <CardHeader className="text-center pb-4">
-          <CardTitle className="text-4xl font-bold text-foreground">
-            Poipu Shores
-          </CardTitle>
-          <CardDescription className="text-xl mt-2 text-foreground/80">
+          <div className="flex justify-center mb-4">
+            <img src={logo} alt="Poipu Shores - Kauai, Hawaii" className="w-full max-w-md" />
+          </div>
+          <CardDescription className="text-lg text-foreground/80">
             🌺 Owner Portal 🌺
           </CardDescription>
-          <p className="text-sm text-muted-foreground mt-1">Kauai, Hawaii</p>
         </CardHeader>
         <CardContent>
           {!showResetPassword ? (
