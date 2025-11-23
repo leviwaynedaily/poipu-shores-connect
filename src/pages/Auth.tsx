@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
-import beachImage from "@/assets/poipu-beach-sunset.jpg";
+import beachImage from "@/assets/condo-oceanfront.jpeg";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
