@@ -13,8 +13,21 @@ interface DocumentUploadProps {
   folders: string[];
 }
 
+const PREDEFINED_FOLDERS = [
+  "Board Meeting Minutes",
+  "Annual Meeting Minutes",
+  "House Rules & Special Rules",
+  "Financials & Reserve Study",
+  "Insurance",
+  "Maintenance & Property Projects",
+  "Compliance & Legal",
+];
+
 export function DocumentUpload({ onUploadComplete, folders }: DocumentUploadProps) {
   const { toast } = useToast();
+  
+  // Merge predefined folders with existing folders
+  const allFolders = Array.from(new Set([...PREDEFINED_FOLDERS, ...folders]));
   const [isOpen, setIsOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [title, setTitle] = useState("");
@@ -139,7 +152,7 @@ export function DocumentUpload({ onUploadComplete, folders }: DocumentUploadProp
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">None</SelectItem>
-                {folders.map((f) => (
+                {allFolders.map((f) => (
                   <SelectItem key={f} value={f}>{f}</SelectItem>
                 ))}
                 <SelectItem value="__new__">+ Create New Folder</SelectItem>
