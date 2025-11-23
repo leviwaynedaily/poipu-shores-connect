@@ -6,6 +6,10 @@ import { toast } from 'sonner';
 interface ThemeContextType {
   isGlassTheme: boolean;
   toggleGlassTheme: () => Promise<void>;
+  glassIntensity: number;
+  setGlassIntensity: (intensity: number) => Promise<void>;
+  showThemeDialog: boolean;
+  setShowThemeDialog: (show: boolean) => void;
   loading: boolean;
 }
 
@@ -13,6 +17,8 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const [isGlassTheme, setIsGlassTheme] = useState(false);
+  const [glassIntensity, setGlassIntensityState] = useState(5);
+  const [showThemeDialog, setShowThemeDialog] = useState(false);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
@@ -27,12 +33,13 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('glass_theme_enabled')
+          .select('glass_theme_enabled, glass_intensity')
           .eq('id', user.id)
           .single();
 
         if (error) throw error;
         setIsGlassTheme(data?.glass_theme_enabled ?? false);
+        setGlassIntensityState(data?.glass_intensity ?? 5);
       } catch (error) {
         console.error('Error loading theme preference:', error);
       } finally {
@@ -62,15 +69,36 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) throw error;
 
       toast.success(
-        newValue ? '✨ Glass Theme Enabled' : 'Glass Theme Disabled',
-        {
-          description: 'Press Cmd+J (or Ctrl+J) to toggle anytime',
-        }
+        newValue ? '✨ Glass Theme Enabled' : 'Glass Theme Disabled'
       );
     } catch (error) {
       console.error('Error saving theme preference:', error);
-      setIsGlassTheme(!newValue); // Revert on error
+      setIsGlassTheme(!newValue);
       toast.error('Failed to save theme preference');
+    }
+  };
+
+  // Set glass intensity
+  const setGlassIntensity = async (intensity: number) => {
+    if (!user) {
+      toast.error('Please sign in to use theme preferences');
+      return;
+    }
+
+    setGlassIntensityState(intensity);
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ glass_intensity: intensity })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      toast.success('Glass intensity updated');
+    } catch (error) {
+      console.error('Error saving glass intensity:', error);
+      toast.error('Failed to save intensity preference');
     }
   };
 
@@ -80,16 +108,24 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
       // Cmd+J on Mac, Ctrl+J on Windows/Linux
       if ((e.metaKey || e.ctrlKey) && e.key === 'j') {
         e.preventDefault();
-        toggleGlassTheme();
+        setShowThemeDialog(true);
       }
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [isGlassTheme, user]);
+  }, [user]);
 
   return (
-    <ThemeContext.Provider value={{ isGlassTheme, toggleGlassTheme, loading }}>
+    <ThemeContext.Provider value={{ 
+      isGlassTheme, 
+      toggleGlassTheme, 
+      glassIntensity,
+      setGlassIntensity,
+      showThemeDialog,
+      setShowThemeDialog,
+      loading 
+    }}>
       {children}
     </ThemeContext.Provider>
   );
