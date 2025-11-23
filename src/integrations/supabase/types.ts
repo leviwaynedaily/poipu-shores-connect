@@ -234,6 +234,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           full_name: string
+          glass_theme_enabled: boolean
           id: string
           phone: string | null
           show_contact_info: boolean
@@ -244,6 +245,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           full_name: string
+          glass_theme_enabled?: boolean
           id: string
           phone?: string | null
           show_contact_info?: boolean
@@ -254,6 +256,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           full_name?: string
+          glass_theme_enabled?: boolean
           id?: string
           phone?: string | null
           show_contact_info?: boolean
