@@ -138,7 +138,7 @@ export function DocumentUpload({ onUploadComplete, folders: _folders, currentFol
 
       setTitle("");
       setCategory("general");
-      setFolderId(null);
+      setFolderId(currentFolderId); // Keep the current folder instead of resetting to null
       setNewFolderName("");
       setFiles(null);
       setUnitNumber("");

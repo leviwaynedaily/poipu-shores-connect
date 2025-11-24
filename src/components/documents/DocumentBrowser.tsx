@@ -83,9 +83,10 @@ interface DocumentItem {
 interface DocumentBrowserProps {
   canManage: boolean;
   refreshTrigger?: number;
+  onFolderChange?: (folderId: string | null) => void;
 }
 
-export function DocumentBrowser({ canManage, refreshTrigger }: DocumentBrowserProps) {
+export function DocumentBrowser({ canManage, refreshTrigger, onFolderChange }: DocumentBrowserProps) {
   const { toast } = useToast();
   const [folders, setFolders] = useState<FolderItem[]>([]);
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
@@ -112,6 +113,9 @@ export function DocumentBrowser({ canManage, refreshTrigger }: DocumentBrowserPr
   useEffect(() => {
     fetchData();
     setSelectedDocuments(new Set());
+    if (onFolderChange) {
+      onFolderChange(currentFolderId);
+    }
   }, [currentFolderId, refreshTrigger]);
 
   const fetchData = async () => {

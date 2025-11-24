@@ -12,6 +12,7 @@ import { PageHeader } from "@/components/PageHeader";
 export default function Documents() {
   const { isAdmin, isBoard } = useAuth();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
 
   const canManage = isAdmin || isBoard;
 
@@ -25,6 +26,7 @@ export default function Documents() {
             <DocumentUpload
               onUploadComplete={() => setRefreshTrigger((k) => k + 1)}
               folders={[]}
+              currentFolderId={currentFolderId}
             />
           )
         }
@@ -48,6 +50,7 @@ export default function Documents() {
               <DocumentBrowser
                 canManage={canManage}
                 refreshTrigger={refreshTrigger}
+                onFolderChange={setCurrentFolderId}
               />
             </CardContent>
           </Card>
