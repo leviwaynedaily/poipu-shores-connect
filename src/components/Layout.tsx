@@ -1,40 +1,15 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Footer } from "@/components/Footer";
 import { FloatingChatAssistant } from "@/components/FloatingChatAssistant";
 import { CommunityAssistantDialog } from "@/components/CommunityAssistantDialog";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useBackground } from "@/contexts/BackgroundContext";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import beachImage from "@/assets/condo-oceanfront.jpeg";
-import chickenIcon from "@/assets/chicken-assistant.jpeg";
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
-  const { isGlassTheme, glassIntensity } = useTheme();
+  const { isGlassTheme } = useTheme();
   const { appBackground } = useBackground();
-  const { user } = useAuth();
-  const [profile, setProfile] = useState<any>(null);
-  const [isAssistantOpen, setIsAssistantOpen] = useState(false);
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (!user) return;
-      
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-      
-      if (data) setProfile(data);
-    };
-
-    fetchProfile();
-  }, [user]);
 
   const getBackgroundStyle = () => {
     switch (appBackground.type) {
@@ -97,59 +72,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
         <AppSidebar />
         <main className="flex-1 flex flex-col relative z-10">
-          <header 
-            className="sticky top-0 z-10 flex h-16 items-center justify-between border-b px-4 shadow-sm backdrop-blur-sm"
-            style={
-              isGlassTheme
-                ? {
-                    backgroundColor: `hsl(var(--card) / ${glassIntensity / 100})`,
-                    borderColor: `hsl(var(--border) / ${Math.max(0.15, glassIntensity / 100)})`,
-                  }
-                : {
-                    backgroundColor: 'hsl(var(--card) / 0.95)',
-                    borderColor: 'hsl(var(--border))',
-                  }
-            }
-          >
-            <div className="flex items-center gap-3">
-              <SidebarTrigger />
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-10 w-10 rounded-full p-0 overflow-hidden hover:ring-2 hover:ring-primary"
-                      onClick={() => setIsAssistantOpen(true)}
-                    >
-                      <img
-                        src={chickenIcon}
-                        alt="Ask the Chicken"
-                        className="h-full w-full object-cover"
-                      />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Ask the Chicken</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-            {profile && (
-              <div className="flex items-center gap-3">
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-foreground">
-                    {profile.full_name}
-                  </p>
-                  {profile.unit_number && (
-                    <p className="text-xs text-muted-foreground">
-                      Unit {profile.unit_number}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-          </header>
           <div className="p-6 flex-1">
             {children}
           </div>
@@ -157,7 +79,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         </main>
       </div>
       <FloatingChatAssistant />
-      <CommunityAssistantDialog open={isAssistantOpen} onOpenChange={setIsAssistantOpen} />
+      <CommunityAssistantDialog />
     </SidebarProvider>
   );
 };
