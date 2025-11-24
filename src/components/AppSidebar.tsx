@@ -41,7 +41,6 @@ const menuItems = [
   { title: "Documents", url: "/documents", icon: FileText },
   { title: "Photos", url: "/photos", icon: Camera },
   { title: "Members", url: "/members", icon: Users },
-  { title: "My Profile", url: "/profile", icon: User },
 ];
 
 export function AppSidebar() {
