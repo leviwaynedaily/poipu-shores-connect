@@ -344,31 +344,31 @@ export function PhotoGallery() {
               <DialogHeader>
                 <div className="flex items-center justify-between">
                   <DialogTitle>{selectedPhoto.title}</DialogTitle>
-                  <div className="flex gap-2">
+                  <div className="flex items-center gap-1">
                     {canEditPhoto(selectedPhoto) && (
                       <Button
-                        variant="outline"
-                        size="sm"
+                        variant="ghost"
+                        size="icon"
                         onClick={() => {
                           handleEditPhoto(selectedPhoto);
                           setSelectedPhoto(null);
                         }}
+                        className="h-8 w-8"
                       >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit
+                        <Edit className="h-4 w-4" />
                       </Button>
                     )}
                     {canDeletePhoto(selectedPhoto) && (
                       <Button
-                        variant="destructive"
-                        size="sm"
+                        variant="ghost"
+                        size="icon"
                         onClick={() => {
                           setDeletePhotoId(selectedPhoto.id);
                           setSelectedPhoto(null);
                         }}
+                        className="h-8 w-8 text-destructive hover:text-destructive"
                       >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
                   </div>
@@ -377,20 +377,20 @@ export function PhotoGallery() {
               <div className="relative">
                 {/* Navigation buttons */}
                 <Button
-                  variant="ghost"
+                  variant="secondary"
                   size="icon"
-                  className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full shadow-lg"
                   onClick={() => navigatePhoto('prev')}
                 >
-                  <ChevronLeft className="h-6 w-6" />
+                  <ChevronLeft className="h-5 w-5" />
                 </Button>
                 <Button
-                  variant="ghost"
+                  variant="secondary"
                   size="icon"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full shadow-lg"
                   onClick={() => navigatePhoto('next')}
                 >
-                  <ChevronRight className="h-6 w-6" />
+                  <ChevronRight className="h-5 w-5" />
                 </Button>
 
                 <div className="space-y-4">
