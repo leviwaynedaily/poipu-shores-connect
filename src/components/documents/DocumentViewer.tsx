@@ -93,7 +93,7 @@ export function DocumentViewer({
 
   return (
     <Dialog open={!!documentId} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl h-[90vh] flex flex-col">
+      <DialogContent className="max-w-6xl h-[90vh] flex flex-col" hideClose>
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="truncate pr-4">{documentTitle}</DialogTitle>
