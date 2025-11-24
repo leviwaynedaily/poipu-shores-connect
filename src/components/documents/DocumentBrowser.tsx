@@ -44,6 +44,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   FileText,
   Folder,
@@ -92,6 +93,9 @@ export function DocumentBrowser({ canManage, refreshTrigger }: DocumentBrowserPr
   const [breadcrumbs, setBreadcrumbs] = useState<FolderItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
+  // Selection state
+  const [selectedDocuments, setSelectedDocuments] = useState<Set<string>>(new Set());
+  
   // Dialogs
   const [showNewFolderDialog, setShowNewFolderDialog] = useState(false);
   const [showRenameDialog, setShowRenameDialog] = useState(false);
@@ -107,6 +111,7 @@ export function DocumentBrowser({ canManage, refreshTrigger }: DocumentBrowserPr
 
   useEffect(() => {
     fetchData();
+    setSelectedDocuments(new Set());
   }, [currentFolderId, refreshTrigger]);
 
   const fetchData = async () => {
@@ -465,6 +470,65 @@ export function DocumentBrowser({ canManage, refreshTrigger }: DocumentBrowserPr
     }
   };
 
+  const handleBulkDelete = async () => {
+    if (selectedDocuments.size === 0) return;
+    
+    if (!confirm(`Are you sure you want to delete ${selectedDocuments.size} document(s)?`)) return;
+
+    setIsDeleting(true);
+    try {
+      const docsToDelete = documents.filter(doc => selectedDocuments.has(doc.id));
+      const filePaths = docsToDelete.map(doc => doc.file_path);
+
+      const { error: storageError } = await supabase.storage
+        .from("documents")
+        .remove(filePaths);
+
+      if (storageError) throw storageError;
+
+      const { error: dbError } = await supabase
+        .from("documents")
+        .delete()
+        .in("id", Array.from(selectedDocuments));
+
+      if (dbError) throw dbError;
+
+      toast({
+        title: "Success",
+        description: `${selectedDocuments.size} document(s) deleted successfully`,
+      });
+
+      setSelectedDocuments(new Set());
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleSelectAll = () => {
+    if (selectedDocuments.size === documents.length) {
+      setSelectedDocuments(new Set());
+    } else {
+      setSelectedDocuments(new Set(documents.map(doc => doc.id)));
+    }
+  };
+
+  const handleToggleDocument = (docId: string) => {
+    const newSelected = new Set(selectedDocuments);
+    if (newSelected.has(docId)) {
+      newSelected.delete(docId);
+    } else {
+      newSelected.add(docId);
+    }
+    setSelectedDocuments(newSelected);
+  };
+
   const handleDownload = async (filePath: string, title: string) => {
     try {
       const { data, error } = await supabase.storage
@@ -570,12 +634,24 @@ export function DocumentBrowser({ canManage, refreshTrigger }: DocumentBrowserPr
           </BreadcrumbList>
         </Breadcrumb>
 
-        {canManage && (
-          <Button onClick={() => setShowNewFolderDialog(true)}>
-            <FolderPlus className="mr-2 h-4 w-4" />
-            New Folder
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {canManage && selectedDocuments.size > 0 && (
+            <Button 
+              variant="destructive" 
+              onClick={handleBulkDelete}
+              disabled={isDeleting}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete {selectedDocuments.size} Selected
+            </Button>
+          )}
+          {canManage && (
+            <Button onClick={() => setShowNewFolderDialog(true)}>
+              <FolderPlus className="mr-2 h-4 w-4" />
+              New Folder
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Files and Folders Table */}
@@ -590,6 +666,14 @@ export function DocumentBrowser({ canManage, refreshTrigger }: DocumentBrowserPr
           <Table>
           <TableHeader>
             <TableRow>
+              {canManage && documents.length > 0 && (
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={selectedDocuments.size === documents.length && documents.length > 0}
+                    onCheckedChange={handleSelectAll}
+                  />
+                </TableHead>
+              )}
               <TableHead>Name</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Size</TableHead>
@@ -608,6 +692,7 @@ export function DocumentBrowser({ canManage, refreshTrigger }: DocumentBrowserPr
                 onDragOver={canManage ? handleDragOver : undefined}
                 onDrop={canManage ? (e) => handleDrop(e, folder.id) : undefined}
               >
+                {canManage && documents.length > 0 && <TableCell />}
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
                     <Folder className="h-5 w-5 text-primary" />
@@ -674,6 +759,14 @@ export function DocumentBrowser({ canManage, refreshTrigger }: DocumentBrowserPr
                 onDragStart={canManage ? (e) => handleDragStart(e, doc.id) : undefined}
                 className={canManage ? "cursor-move" : ""}
               >
+                {canManage && (
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    <Checkbox
+                      checked={selectedDocuments.has(doc.id)}
+                      onCheckedChange={() => handleToggleDocument(doc.id)}
+                    />
+                  </TableCell>
+                )}
                 <TableCell className="font-medium">
                   <div 
                     className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors"
@@ -749,7 +842,7 @@ export function DocumentBrowser({ canManage, refreshTrigger }: DocumentBrowserPr
 
             {folders.length === 0 && documents.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={canManage ? 6 : 5} className="text-center text-muted-foreground py-8">
                   This folder is empty
                 </TableCell>
               </TableRow>
