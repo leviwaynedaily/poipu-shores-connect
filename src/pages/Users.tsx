@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { UserPlus, Shield, Trash2 } from "lucide-react";
+import { UserPlus, Shield, Clock, Activity } from "lucide-react";
 import { Navigate } from "react-router-dom";
 
 interface Profile {
@@ -20,6 +20,7 @@ interface Profile {
   unit_number: string | null;
   phone: string | null;
   created_at: string;
+  last_sign_in_at: string | null;
 }
 
 interface UserRole {
@@ -265,48 +266,87 @@ export default function Users() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Unit</TableHead>
+                  <TableHead>Last Sign In</TableHead>
                   <TableHead>Roles</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.full_name}</TableCell>
-                    <TableCell>{user.unit_number || "—"}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        {user.roles.length === 0 && (
-                          <Badge variant="outline">Resident</Badge>
-                        )}
-                        {user.roles.includes("admin") && (
-                          <Badge variant="default">Admin</Badge>
-                        )}
-                        {user.roles.includes("board") && (
-                          <Badge variant="secondary">Board</Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant={user.roles.includes("admin") ? "default" : "outline"}
-                          onClick={() => handleToggleRole(user.id, "admin", user.roles.includes("admin"))}
-                        >
-                          <Shield className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant={user.roles.includes("board") ? "default" : "outline"}
-                          onClick={() => handleToggleRole(user.id, "board", user.roles.includes("board"))}
-                        >
-                          Board
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {users.map((user) => {
+                  const isActive = user.last_sign_in_at 
+                    ? new Date(user.last_sign_in_at).getTime() > Date.now() - 24 * 60 * 60 * 1000
+                    : false;
+                  
+                  const formatLastSignIn = (timestamp: string | null) => {
+                    if (!timestamp) return "Never";
+                    const date = new Date(timestamp);
+                    const now = new Date();
+                    const diffMs = now.getTime() - date.getTime();
+                    const diffMins = Math.floor(diffMs / 60000);
+                    const diffHours = Math.floor(diffMs / 3600000);
+                    const diffDays = Math.floor(diffMs / 86400000);
+                    
+                    if (diffMins < 1) return "Just now";
+                    if (diffMins < 60) return `${diffMins}m ago`;
+                    if (diffHours < 24) return `${diffHours}h ago`;
+                    if (diffDays < 7) return `${diffDays}d ago`;
+                    return date.toLocaleDateString();
+                  };
+                  
+                  return (
+                    <TableRow key={user.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {user.full_name}
+                          {isActive && (
+                            <Badge variant="default" className="gap-1">
+                              <Activity className="h-3 w-3" />
+                              Active
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{user.unit_number || "—"}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Clock className="h-4 w-4" />
+                          {formatLastSignIn(user.last_sign_in_at)}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          {user.roles.length === 0 && (
+                            <Badge variant="outline">Resident</Badge>
+                          )}
+                          {user.roles.includes("admin") && (
+                            <Badge variant="default">Admin</Badge>
+                          )}
+                          {user.roles.includes("board") && (
+                            <Badge variant="secondary">Board</Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant={user.roles.includes("admin") ? "default" : "outline"}
+                            onClick={() => handleToggleRole(user.id, "admin", user.roles.includes("admin"))}
+                          >
+                            <Shield className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant={user.roles.includes("board") ? "default" : "outline"}
+                            onClick={() => handleToggleRole(user.id, "board", user.roles.includes("board"))}
+                          >
+                            Board
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}
