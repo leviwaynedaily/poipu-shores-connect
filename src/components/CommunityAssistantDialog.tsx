@@ -19,11 +19,14 @@ interface Message {
 }
 
 interface CommunityAssistantDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function CommunityAssistantDialog({ open, onOpenChange }: CommunityAssistantDialogProps) {
+export function CommunityAssistantDialog({ 
+  open = false, 
+  onOpenChange = () => {} 
+}: CommunityAssistantDialogProps) {
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
