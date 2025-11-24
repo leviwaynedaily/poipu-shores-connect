@@ -247,9 +247,19 @@ const Chat = () => {
     });
 
     setMessages(messagesWithProfiles as any);
+    
+    // Clear replyingTo if the message no longer exists
+    if (replyingTo && !messagesData.find(m => m.id === replyingTo.id)) {
+      setReplyingTo(null);
+    }
   };
 
   const handleDeleteMessage = async (messageId: string) => {
+    // Clear reply state if deleting the message being replied to
+    if (replyingTo?.id === messageId) {
+      setReplyingTo(null);
+    }
+
     const { error } = await supabase
       .from("chat_messages")
       .delete()
