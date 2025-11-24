@@ -214,21 +214,31 @@ const Chat = () => {
       )}
 
       <Card className="h-[calc(100vh-16rem)]">
-        <CardHeader className="border-b">
-          <Tabs value={selectedChannel} onValueChange={setSelectedChannel}>
-            <TabsList className="h-auto flex-wrap">
-              {channels.map((channel) => (
-                <TabsTrigger key={channel.id} value={channel.id} className="flex-shrink-0">
-                  {channel.name}
-                  {channel.is_private && " 🔒"}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
+        <CardHeader className="border-b space-y-3">
+          <CardTitle className="text-xl">
+            {currentChannel?.name || "Select a Channel"}
+            {currentChannel?.is_private && " 🔒"}
+          </CardTitle>
           {currentChannel?.description && (
-            <p className="text-base text-muted-foreground mt-2">
+            <p className="text-base text-muted-foreground">
               {currentChannel.description}
             </p>
+          )}
+          {channels.length > 1 && (
+            <Tabs value={selectedChannel} onValueChange={setSelectedChannel} className="w-full">
+              <TabsList className="w-full h-auto grid grid-cols-2 md:grid-cols-4 gap-2">
+                {channels.map((channel) => (
+                  <TabsTrigger 
+                    key={channel.id} 
+                    value={channel.id} 
+                    className="text-base px-4 py-2"
+                  >
+                    {channel.name}
+                    {channel.is_private && " 🔒"}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
           )}
         </CardHeader>
         <CardContent className="p-0 flex flex-col h-[calc(100%-5rem)]">
