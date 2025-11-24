@@ -33,6 +33,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import {
   FileText,
@@ -92,6 +102,8 @@ export function DocumentBrowser({ canManage, refreshTrigger }: DocumentBrowserPr
   const [targetFolderId, setTargetFolderId] = useState<string | null>(null);
   const [viewingDocument, setViewingDocument] = useState<{ id: string; title: string; filePath: string; fileType: string | null } | null>(null);
   const [draggedDocument, setDraggedDocument] = useState<string | null>(null);
+  const [deleteFolderConfirm, setDeleteFolderConfirm] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -327,19 +339,44 @@ export function DocumentBrowser({ canManage, refreshTrigger }: DocumentBrowserPr
   };
 
   const handleDeleteFolder = async (folderId: string) => {
-    if (!confirm("Are you sure? This will delete the folder and all its contents."))
-      return;
-
+    setIsDeleting(true);
     try {
+      // First, get all documents in this folder and subfolders
+      const documentsToDelete = await getAllDocumentsInFolder(folderId);
+      
+      // Delete all files from storage
+      if (documentsToDelete.length > 0) {
+        const filePaths = documentsToDelete.map(doc => doc.file_path);
+        const { error: storageError } = await supabase.storage
+          .from("documents")
+          .remove(filePaths);
+
+        if (storageError) throw storageError;
+
+        // Delete all documents from database
+        const docIds = documentsToDelete.map(doc => doc.id);
+        const { error: docsError } = await supabase
+          .from("documents")
+          .delete()
+          .in("id", docIds);
+
+        if (docsError) throw docsError;
+      }
+
+      // Delete all subfolders recursively
+      await deleteSubfolders(folderId);
+
+      // Finally, delete the folder itself
       const { error } = await supabase.from("folders").delete().eq("id", folderId);
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: "Folder deleted successfully",
+        description: "Folder and all its contents deleted successfully",
       });
 
+      setDeleteFolderConfirm(null);
       fetchData();
     } catch (error: any) {
       toast({
@@ -347,6 +384,52 @@ export function DocumentBrowser({ canManage, refreshTrigger }: DocumentBrowserPr
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const getAllDocumentsInFolder = async (folderId: string): Promise<any[]> => {
+    // Get documents directly in this folder
+    const { data: docs } = await supabase
+      .from("documents")
+      .select("*")
+      .eq("folder_id", folderId);
+
+    let allDocs: any[] = docs || [];
+
+    // Get all subfolders
+    const { data: subfolders } = await supabase
+      .from("folders")
+      .select("*")
+      .eq("parent_folder_id", folderId);
+
+    // Recursively get documents from subfolders
+    if (subfolders && subfolders.length > 0) {
+      for (const subfolder of subfolders) {
+        const subDocs = await getAllDocumentsInFolder(subfolder.id);
+        allDocs = [...allDocs, ...subDocs];
+      }
+    }
+
+    return allDocs;
+  };
+
+  const deleteSubfolders = async (folderId: string) => {
+    // Get all subfolders
+    const { data: subfolders } = await supabase
+      .from("folders")
+      .select("*")
+      .eq("parent_folder_id", folderId);
+
+    if (subfolders && subfolders.length > 0) {
+      for (const subfolder of subfolders) {
+        // Recursively delete subfolders
+        await deleteSubfolders(subfolder.id);
+        
+        // Delete the subfolder
+        await supabase.from("folders").delete().eq("id", subfolder.id);
+      }
     }
   };
 
@@ -572,7 +655,7 @@ export function DocumentBrowser({ canManage, refreshTrigger }: DocumentBrowserPr
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive"
-                          onClick={() => handleDeleteFolder(folder.id)}
+                          onClick={() => setDeleteFolderConfirm({ id: folder.id, name: folder.name })}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete
@@ -757,6 +840,29 @@ export function DocumentBrowser({ canManage, refreshTrigger }: DocumentBrowserPr
           onClose={() => setViewingDocument(null)}
         />
       )}
+
+      {/* Delete Folder Confirmation */}
+      <AlertDialog open={!!deleteFolderConfirm} onOpenChange={(open) => !open && setDeleteFolderConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Folder "{deleteFolderConfirm?.name}"?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the folder and all files and subfolders within it. 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteFolderConfirm && handleDeleteFolder(deleteFolderConfirm.id)}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete Folder"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
