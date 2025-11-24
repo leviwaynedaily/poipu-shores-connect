@@ -215,11 +215,17 @@ export type Database = {
       }
       community_photos: {
         Row: {
+          camera_make: string | null
+          camera_model: string | null
           caption: string | null
           category: string
           created_at: string
+          date_taken: string | null
+          exif_data: Json | null
           file_path: string
           file_size: number | null
+          gps_latitude: number | null
+          gps_longitude: number | null
           id: string
           is_approved: boolean
           likes_count: number
@@ -228,11 +234,17 @@ export type Database = {
           uploaded_by: string
         }
         Insert: {
+          camera_make?: string | null
+          camera_model?: string | null
           caption?: string | null
           category?: string
           created_at?: string
+          date_taken?: string | null
+          exif_data?: Json | null
           file_path: string
           file_size?: number | null
+          gps_latitude?: number | null
+          gps_longitude?: number | null
           id?: string
           is_approved?: boolean
           likes_count?: number
@@ -241,11 +253,17 @@ export type Database = {
           uploaded_by: string
         }
         Update: {
+          camera_make?: string | null
+          camera_model?: string | null
           caption?: string | null
           category?: string
           created_at?: string
+          date_taken?: string | null
+          exif_data?: Json | null
           file_path?: string
           file_size?: number | null
+          gps_latitude?: number | null
+          gps_longitude?: number | null
           id?: string
           is_approved?: boolean
           likes_count?: number

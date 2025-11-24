@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, X } from "lucide-react";
 import { toast } from "sonner";
+import exifr from "exifr";
 
 interface PhotoUploadProps {
   onUploadComplete?: () => void;
@@ -49,6 +50,34 @@ export function PhotoUpload({ onUploadComplete }: PhotoUploadProps) {
       // Use the original filename (without extension) as title
       const photoTitle = file.name.replace(/\.[^/.]+$/, "");
 
+      // Extract EXIF data
+      let exifData: any = {};
+      let dateTaken = null;
+      let cameraMake = null;
+      let cameraModel = null;
+      let gpsLatitude = null;
+      let gpsLongitude = null;
+
+      try {
+        exifData = await exifr.parse(file, {
+          tiff: true,
+          exif: true,
+          gps: true,
+          iptc: true,
+          icc: true
+        });
+
+        if (exifData) {
+          dateTaken = exifData.DateTimeOriginal || exifData.CreateDate || null;
+          cameraMake = exifData.Make || null;
+          cameraModel = exifData.Model || null;
+          gpsLatitude = exifData.latitude || null;
+          gpsLongitude = exifData.longitude || null;
+        }
+      } catch (exifError) {
+        console.log("No EXIF data found or error reading EXIF:", exifError);
+      }
+
       const { error: uploadError } = await supabase.storage
         .from("community-photos")
         .upload(fileName, file);
@@ -63,12 +92,18 @@ export function PhotoUpload({ onUploadComplete }: PhotoUploadProps) {
         category: tags || "general",
         location: null,
         uploaded_by: user.id,
+        date_taken: dateTaken,
+        camera_make: cameraMake,
+        camera_model: cameraModel,
+        gps_latitude: gpsLatitude,
+        gps_longitude: gpsLongitude,
+        exif_data: exifData || null,
       });
 
       if (dbError) throw dbError;
 
       toast.success("Photo uploaded successfully!");
-      
+
       // Reset form
       setFile(null);
       setPreview(null);

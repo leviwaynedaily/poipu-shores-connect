@@ -8,10 +8,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Search, Calendar, User, Trash2 } from "lucide-react";
+import { Search, Calendar, User, Trash2, Camera, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useEffect as useKeyboardEffect } from "react";
 
 interface Photo {
   id: string;
@@ -22,6 +23,12 @@ interface Photo {
   location: string | null;
   uploaded_by: string;
   created_at: string;
+  date_taken: string | null;
+  camera_make: string | null;
+  camera_model: string | null;
+  gps_latitude: number | null;
+  gps_longitude: number | null;
+  exif_data: any | null;
   profiles: {
     full_name: string;
   };
@@ -133,6 +140,41 @@ export function PhotoGallery() {
     }
   };
 
+  const handlePhotoClick = (photo: Photo) => {
+    setSelectedPhoto(photo);
+  };
+
+  const navigatePhoto = (direction: 'prev' | 'next') => {
+    if (!selectedPhoto) return;
+    
+    const currentIndex = filteredPhotos.findIndex(p => p.id === selectedPhoto.id);
+    if (currentIndex === -1) return;
+
+    const newIndex = direction === 'next' 
+      ? (currentIndex + 1) % filteredPhotos.length
+      : (currentIndex - 1 + filteredPhotos.length) % filteredPhotos.length;
+
+    setSelectedPhoto(filteredPhotos[newIndex]);
+  };
+
+  // Keyboard navigation
+  useKeyboardEffect(() => {
+    if (!selectedPhoto) return;
+
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        navigatePhoto('prev');
+      } else if (e.key === 'ArrowRight') {
+        navigatePhoto('next');
+      } else if (e.key === 'Escape') {
+        setSelectedPhoto(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [selectedPhoto, filteredPhotos]);
+
   if (loading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -188,7 +230,7 @@ export function PhotoGallery() {
               <Card
                 key={photo.id}
                 className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => setSelectedPhoto(photo)}
+                onClick={() => handlePhotoClick(photo)}
               >
                 <CardContent className="p-0">
                   <div className="relative group">
@@ -249,57 +291,125 @@ export function PhotoGallery() {
               <DialogHeader>
                 <div className="flex items-center justify-between">
                   <DialogTitle>{selectedPhoto.title}</DialogTitle>
-                  {canDeletePhoto(selectedPhoto) && (
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => {
-                        setDeletePhotoId(selectedPhoto.id);
-                        setSelectedPhoto(null);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete Photo
-                    </Button>
-                  )}
+                  <div className="flex gap-2">
+                    {canDeletePhoto(selectedPhoto) && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => {
+                          setDeletePhotoId(selectedPhoto.id);
+                          setSelectedPhoto(null);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </DialogHeader>
-              <div className="space-y-4">
-                <img
-                  src={getPhotoUrl(selectedPhoto.file_path)}
-                  alt={selectedPhoto.title}
-                  className="w-full max-h-[60vh] object-contain rounded-lg"
-                />
-                
-                {selectedPhoto.caption && (
-                  <div>
-                    <span className="font-semibold text-sm">Tags:</span>
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {selectedPhoto.caption.split(',').map((tag, idx) => (
-                        <Badge key={idx} variant="secondary">
-                          {tag.trim()}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                <div className="flex flex-wrap gap-6 text-sm">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
+              <div className="relative">
+                {/* Navigation buttons */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background"
+                  onClick={() => navigatePhoto('prev')}
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background"
+                  onClick={() => navigatePhoto('next')}
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </Button>
+
+                <div className="space-y-4">
+                  <img
+                    src={getPhotoUrl(selectedPhoto.file_path)}
+                    alt={selectedPhoto.title}
+                    className="w-full max-h-[60vh] object-contain rounded-lg"
+                  />
+                  
+                  {selectedPhoto.caption && (
                     <div>
-                      <span className="font-semibold">Uploaded by:</span>{" "}
-                      <span className="text-muted-foreground">{selectedPhoto.profiles.full_name}</span>
+                      <span className="font-semibold text-sm">Tags:</span>
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {selectedPhoto.caption.split(',').map((tag, idx) => (
+                          <Badge key={idx} variant="secondary">
+                            {tag.trim()}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
+                  )}
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <span className="font-semibold">Uploaded by:</span>{" "}
+                        <span className="text-muted-foreground">{selectedPhoto.profiles.full_name}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <span className="font-semibold">Upload date:</span>{" "}
+                        <span className="text-muted-foreground">
+                          {format(new Date(selectedPhoto.created_at), 'PPP')}
+                        </span>
+                      </div>
+                    </div>
+
+                    {selectedPhoto.date_taken && (
+                      <div className="flex items-center gap-2">
+                        <Camera className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <span className="font-semibold">Photo taken:</span>{" "}
+                          <span className="text-muted-foreground">
+                            {format(new Date(selectedPhoto.date_taken), 'PPP')}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {(selectedPhoto.camera_make || selectedPhoto.camera_model) && (
+                      <div className="flex items-center gap-2">
+                        <Camera className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <span className="font-semibold">Camera:</span>{" "}
+                          <span className="text-muted-foreground">
+                            {selectedPhoto.camera_make} {selectedPhoto.camera_model}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedPhoto.gps_latitude && selectedPhoto.gps_longitude && (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <span className="font-semibold">Location:</span>{" "}
+                          <a
+                            href={`https://www.google.com/maps?q=${selectedPhoto.gps_latitude},${selectedPhoto.gps_longitude}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline"
+                          >
+                            View on map
+                          </a>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <span className="font-semibold">Upload date:</span>{" "}
-                      <span className="text-muted-foreground">
-                        {format(new Date(selectedPhoto.created_at), 'PPP')} ({formatDistanceToNow(new Date(selectedPhoto.created_at), { addSuffix: true })})
-                      </span>
-                    </div>
+                  
+                  <div className="text-xs text-muted-foreground text-center">
+                    Use arrow keys ← → to navigate between photos
                   </div>
                 </div>
               </div>
