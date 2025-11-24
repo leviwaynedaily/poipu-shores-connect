@@ -18,11 +18,10 @@ serve(async (req) => {
 
     console.log("Starting batch document content extraction");
 
-    // Find all documents with placeholder content or no content
+    // Fetch all documents
     const { data: documents, error: fetchError } = await supabase
       .from("documents")
-      .select("id, file_path, title, content, file_type")
-      .or("content.is.null,content.like.[%Document%]");
+      .select("id, file_path, title, file_type");
 
     if (fetchError) {
       console.error("Error fetching documents:", fetchError);
@@ -32,16 +31,18 @@ serve(async (req) => {
       );
     }
 
-    // Filter to only PDF files that need processing
-    const pdfsToProcess = documents?.filter(doc => 
-      doc.file_type?.includes('pdf') || doc.file_path?.toLowerCase().endsWith('.pdf')
-    ) || [];
+    // Filter to only PDF files
+    const pdfsToProcess = documents?.filter(doc => {
+      const filePath = doc.file_path?.toLowerCase() || '';
+      const fileType = doc.file_type?.toLowerCase() || '';
+      return filePath.endsWith('.pdf') || fileType.includes('pdf');
+    }) || [];
 
     if (pdfsToProcess.length === 0) {
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: "No PDF documents need content extraction",
+          message: "No PDF documents found to extract",
           processed: 0
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
