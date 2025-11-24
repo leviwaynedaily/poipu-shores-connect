@@ -18,11 +18,12 @@ export const PageHeader = ({ title, description, actions }: PageHeaderProps) => 
       className="rounded-lg p-6 mb-6 backdrop-blur-sm"
       style={{
         backgroundColor: `hsl(var(--card) / ${backdropOpacity}%)`,
+        textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
       }}
     >
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-foreground">{title}</h2>
+          <h2 className="text-3xl font-bold text-foreground font-heading">{title}</h2>
           {description && (
             <p className="text-lg text-muted-foreground mt-2">
               {description}
