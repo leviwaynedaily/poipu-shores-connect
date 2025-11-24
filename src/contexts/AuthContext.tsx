@@ -13,7 +13,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<{ error: any }>;
   updatePassword: (newPassword: string) => Promise<{ error: any }>;
   isAdmin: boolean;
-  isBoard: boolean;
+  isOwner: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isBoard, setIsBoard] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }, 0);
         } else {
           setIsAdmin(false);
-          setIsBoard(false);
+          setIsOwner(false);
         }
       }
     );
@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     if (data) {
       setIsAdmin(data.some(r => r.role === "admin"));
-      setIsBoard(data.some(r => r.role === "board"));
+      setIsOwner(data.some(r => r.role === "owner"));
     }
   };
 
@@ -126,7 +126,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signOut = async () => {
     await supabase.auth.signOut();
     setIsAdmin(false);
-    setIsBoard(false);
+    setIsOwner(false);
     toast({
       title: "Signed out",
       description: "You've been successfully signed out.",
@@ -189,7 +189,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         resetPassword,
         updatePassword,
         isAdmin,
-        isBoard,
+        isOwner,
       }}
     >
       {children}

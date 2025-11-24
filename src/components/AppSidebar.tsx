@@ -173,7 +173,7 @@ export function AppSidebar() {
                     </SidebarMenuButton>
                   )}
                 </SidebarMenuItem>
-                <SidebarMenuItem>
+                 <SidebarMenuItem>
                   {!open ? (
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -189,7 +189,7 @@ export function AppSidebar() {
                         </SidebarMenuButton>
                       </TooltipTrigger>
                       <TooltipContent side="right" className="font-medium">
-                        Theme Settings
+                        Settings
                       </TooltipContent>
                     </Tooltip>
                   ) : (
@@ -201,7 +201,7 @@ export function AppSidebar() {
                         activeClassName="bg-accent text-accent-foreground font-semibold"
                       >
                         <Settings className="h-5 w-5" />
-                        <span>Theme Settings</span>
+                        <span>Settings</span>
                       </NavLink>
                     </SidebarMenuButton>
                   )}

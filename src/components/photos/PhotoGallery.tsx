@@ -35,7 +35,7 @@ interface Photo {
 }
 
 export function PhotoGallery() {
-  const { user, isAdmin, isBoard } = useAuth();
+  const { user, isAdmin, isOwner } = useAuth();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [filteredPhotos, setFilteredPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -104,11 +104,11 @@ export function PhotoGallery() {
   };
 
   const canDeletePhoto = (photo: Photo) => {
-    return user && (photo.uploaded_by === user.id || isAdmin || isBoard);
+    return user && (photo.uploaded_by === user.id || isAdmin || isOwner);
   };
 
   const canEditPhoto = (photo: Photo) => {
-    return user && (photo.uploaded_by === user.id || isAdmin || isBoard);
+    return user && (photo.uploaded_by === user.id || isAdmin || isOwner);
   };
 
   const handleEditPhoto = (photo: Photo) => {
