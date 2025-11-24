@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -11,31 +11,45 @@ import { Upload } from "lucide-react";
 interface DocumentUploadProps {
   onUploadComplete: () => void;
   folders: string[];
+  currentFolderId?: string | null;
 }
 
-const PREDEFINED_FOLDERS = [
-  "Board Meeting Minutes",
-  "Annual Meeting Minutes",
-  "House Rules & Special Rules",
-  "Financials & Reserve Study",
-  "Insurance",
-  "Maintenance & Property Projects",
-  "Compliance & Legal",
-];
+interface Folder {
+  id: string;
+  name: string;
+  parent_folder_id: string | null;
+}
 
-export function DocumentUpload({ onUploadComplete, folders }: DocumentUploadProps) {
+export function DocumentUpload({ onUploadComplete, folders: _folders, currentFolderId }: DocumentUploadProps) {
   const { toast } = useToast();
-  
-  // Merge predefined folders with existing folders
-  const allFolders = Array.from(new Set([...PREDEFINED_FOLDERS, ...folders]));
+  const [allFolders, setAllFolders] = useState<Folder[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("general");
-  const [folder, setFolder] = useState("none");
-  const [newFolder, setNewFolder] = useState("");
+  const [folderId, setFolderId] = useState<string | null>(currentFolderId || null);
+  const [newFolderName, setNewFolderName] = useState("");
   const [files, setFiles] = useState<FileList | null>(null);
   const [unitNumber, setUnitNumber] = useState("");
+
+  useEffect(() => {
+    fetchFolders();
+  }, []);
+
+  useEffect(() => {
+    if (currentFolderId) {
+      setFolderId(currentFolderId);
+    }
+  }, [currentFolderId]);
+
+  const fetchFolders = async () => {
+    const { data } = await supabase
+      .from("folders")
+      .select("*")
+      .order("name");
+    
+    setAllFolders(data || []);
+  };
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,14 +64,30 @@ export function DocumentUpload({ onUploadComplete, folders }: DocumentUploadProp
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Create new folder if needed
+      let targetFolderId = folderId;
+      if (folderId === "__new__" && newFolderName) {
+        const { data: newFolder, error: folderError } = await supabase
+          .from("folders")
+          .insert({
+            name: newFolderName.trim(),
+            parent_folder_id: null,
+            created_by: user.id,
+          })
+          .select()
+          .single();
+
+        if (folderError) throw folderError;
+        targetFolderId = newFolder.id;
+      }
+
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         
         try {
           const fileExt = file.name.split(".").pop();
           const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-          const actualFolder = folder === "none" ? "" : folder;
-          const filePath = actualFolder || newFolder ? `${actualFolder || newFolder}/${fileName}` : fileName;
+          const filePath = fileName;
 
           const { error: uploadError } = await supabase.storage
             .from("documents")
@@ -74,7 +104,7 @@ export function DocumentUpload({ onUploadComplete, folders }: DocumentUploadProp
             .insert({
               title: documentTitle,
               category,
-              folder: (folder === "none" ? null : folder) || newFolder || null,
+              folder_id: targetFolderId === "none" ? null : targetFolderId,
               file_path: filePath,
               file_size: file.size,
               file_type: file.type,
@@ -107,8 +137,8 @@ export function DocumentUpload({ onUploadComplete, folders }: DocumentUploadProp
 
       setTitle("");
       setCategory("general");
-      setFolder("none");
-      setNewFolder("");
+      setFolderId(null);
+      setNewFolderName("");
       setFiles(null);
       setUnitNumber("");
       setIsOpen(false);
@@ -132,7 +162,7 @@ export function DocumentUpload({ onUploadComplete, folders }: DocumentUploadProp
           Upload Document
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Upload Document</DialogTitle>
           <DialogDescription>
@@ -188,27 +218,28 @@ export function DocumentUpload({ onUploadComplete, folders }: DocumentUploadProp
           </div>
           <div>
             <Label htmlFor="folder">Folder (Optional)</Label>
-            <Select value={folder} onValueChange={setFolder}>
+            <Select value={folderId || "none"} onValueChange={setFolderId}>
               <SelectTrigger>
                 <SelectValue placeholder="Select or create new" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">None</SelectItem>
                 {allFolders.map((f) => (
-                  <SelectItem key={f} value={f}>{f}</SelectItem>
+                  <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
                 ))}
                 <SelectItem value="__new__">+ Create New Folder</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          {folder === "__new__" && (
+          {folderId === "__new__" && (
             <div>
               <Label htmlFor="newFolder">New Folder Name</Label>
               <Input
                 id="newFolder"
-                value={newFolder}
-                onChange={(e) => setNewFolder(e.target.value)}
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
                 placeholder="Enter folder name"
+                required
               />
             </div>
           )}
