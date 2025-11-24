@@ -212,12 +212,17 @@ export default function Settings() {
                   </>
                 )}
               </Button>
-              {homeBackground.url && (
+              {homeBackground.url && homeBackground.url.trim() !== "" && (
                 <div className="mt-4">
+                  <p className="text-sm text-muted-foreground mb-2">Preview:</p>
                   <img
                     src={homeBackground.url}
                     alt="Home background preview"
                     className="w-full h-48 object-cover rounded-lg"
+                    onError={(e) => {
+                      console.error("Failed to load image:", homeBackground.url);
+                      e.currentTarget.style.display = 'none';
+                    }}
                   />
                 </div>
               )}
@@ -230,24 +235,31 @@ export default function Settings() {
               <CardDescription>Select from community photos</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {photos.map((photo) => (
-                  <div
-                    key={photo.id}
-                    className="relative cursor-pointer group"
-                    onClick={() => selectPhoto(photo.file_path, "home")}
-                  >
-                    <img
-                      src={supabase.storage.from("community_photos").getPublicUrl(photo.file_path).data.publicUrl}
-                      alt={photo.title}
-                      className="w-full h-32 object-cover rounded-lg group-hover:opacity-75 transition-opacity"
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Upload className="h-8 w-8 text-white" />
+              {photos.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">No community photos available yet</p>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {photos.map((photo) => (
+                    <div
+                      key={photo.id}
+                      className="relative cursor-pointer group"
+                      onClick={() => selectPhoto(photo.file_path, "home")}
+                    >
+                      <img
+                        src={supabase.storage.from("community_photos").getPublicUrl(photo.file_path).data.publicUrl}
+                        alt={photo.title}
+                        className="w-full h-32 object-cover rounded-lg group-hover:opacity-75 transition-opacity"
+                        onError={(e) => {
+                          e.currentTarget.src = "https://placehold.co/400x300?text=Image+Not+Found";
+                        }}
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Upload className="h-8 w-8 text-white" />
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -307,12 +319,17 @@ export default function Settings() {
                   </>
                 )}
               </Button>
-              {appBackground.url && (
+              {appBackground.url && appBackground.url.trim() !== "" && (
                 <div className="mt-4">
+                  <p className="text-sm text-muted-foreground mb-2">Preview:</p>
                   <img
                     src={appBackground.url}
                     alt="App background preview"
                     className="w-full h-48 object-cover rounded-lg"
+                    onError={(e) => {
+                      console.error("Failed to load image:", appBackground.url);
+                      e.currentTarget.style.display = 'none';
+                    }}
                   />
                 </div>
               )}
@@ -325,24 +342,31 @@ export default function Settings() {
               <CardDescription>Select from community photos</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {photos.map((photo) => (
-                  <div
-                    key={photo.id}
-                    className="relative cursor-pointer group"
-                    onClick={() => selectPhoto(photo.file_path, "app")}
-                  >
-                    <img
-                      src={supabase.storage.from("community_photos").getPublicUrl(photo.file_path).data.publicUrl}
-                      alt={photo.title}
-                      className="w-full h-32 object-cover rounded-lg group-hover:opacity-75 transition-opacity"
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Upload className="h-8 w-8 text-white" />
+              {photos.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">No community photos available yet</p>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {photos.map((photo) => (
+                    <div
+                      key={photo.id}
+                      className="relative cursor-pointer group"
+                      onClick={() => selectPhoto(photo.file_path, "app")}
+                    >
+                      <img
+                        src={supabase.storage.from("community_photos").getPublicUrl(photo.file_path).data.publicUrl}
+                        alt={photo.title}
+                        className="w-full h-32 object-cover rounded-lg group-hover:opacity-75 transition-opacity"
+                        onError={(e) => {
+                          e.currentTarget.src = "https://placehold.co/400x300?text=Image+Not+Found";
+                        }}
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Upload className="h-8 w-8 text-white" />
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
