@@ -71,10 +71,10 @@ interface DocumentItem {
 
 interface DocumentBrowserProps {
   canManage: boolean;
-  onRefresh?: () => void;
+  refreshTrigger?: number;
 }
 
-export function DocumentBrowser({ canManage, onRefresh }: DocumentBrowserProps) {
+export function DocumentBrowser({ canManage, refreshTrigger }: DocumentBrowserProps) {
   const { toast } = useToast();
   const [folders, setFolders] = useState<FolderItem[]>([]);
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
@@ -95,7 +95,7 @@ export function DocumentBrowser({ canManage, onRefresh }: DocumentBrowserProps) 
 
   useEffect(() => {
     fetchData();
-  }, [currentFolderId]);
+  }, [currentFolderId, refreshTrigger]);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -202,7 +202,6 @@ export function DocumentBrowser({ canManage, onRefresh }: DocumentBrowserProps) 
       setNewFolderName("");
       setShowNewFolderDialog(false);
       fetchData();
-      onRefresh?.();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -241,7 +240,6 @@ export function DocumentBrowser({ canManage, onRefresh }: DocumentBrowserProps) 
       setRenameTarget(null);
       setShowRenameDialog(false);
       fetchData();
-      onRefresh?.();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -280,7 +278,6 @@ export function DocumentBrowser({ canManage, onRefresh }: DocumentBrowserProps) 
       setTargetFolderId(null);
       setShowMoveDialog(false);
       fetchData();
-      onRefresh?.();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -318,7 +315,6 @@ export function DocumentBrowser({ canManage, onRefresh }: DocumentBrowserProps) 
       });
 
       fetchData();
-      onRefresh?.();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -345,7 +341,6 @@ export function DocumentBrowser({ canManage, onRefresh }: DocumentBrowserProps) 
       });
 
       fetchData();
-      onRefresh?.();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -378,7 +373,6 @@ export function DocumentBrowser({ canManage, onRefresh }: DocumentBrowserProps) 
       });
 
       fetchData();
-      onRefresh?.();
     } catch (error: any) {
       toast({
         title: "Error",

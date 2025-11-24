@@ -10,7 +10,7 @@ import chickenIcon from "@/assets/chicken-assistant.jpeg";
 
 export default function Documents() {
   const { isAdmin, isBoard } = useAuth();
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const canManage = isAdmin || isBoard;
 
@@ -25,7 +25,7 @@ export default function Documents() {
         </div>
         {canManage && (
           <DocumentUpload
-            onUploadComplete={() => setRefreshKey((k) => k + 1)}
+            onUploadComplete={() => setRefreshTrigger((k) => k + 1)}
             folders={[]}
           />
         )}
@@ -47,9 +47,8 @@ export default function Documents() {
           <Card>
             <CardContent className="pt-6">
               <DocumentBrowser
-                key={refreshKey}
                 canManage={canManage}
-                onRefresh={() => setRefreshKey((k) => k + 1)}
+                refreshTrigger={refreshTrigger}
               />
             </CardContent>
           </Card>
