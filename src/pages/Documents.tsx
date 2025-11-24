@@ -7,6 +7,7 @@ import { DocumentChat } from "@/components/DocumentChat";
 import { DocumentBrowser } from "@/components/documents/DocumentBrowser";
 import { FileText } from "lucide-react";
 import chickenIcon from "@/assets/chicken-assistant.jpeg";
+import { PageHeader } from "@/components/PageHeader";
 
 export default function Documents() {
   const { isAdmin, isBoard } = useAuth();
@@ -16,20 +17,18 @@ export default function Documents() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold">Document Library</h2>
-          <p className="text-muted-foreground">
-            Navigate folders, manage documents, and ask questions with AI
-          </p>
-        </div>
-        {canManage && (
-          <DocumentUpload
-            onUploadComplete={() => setRefreshTrigger((k) => k + 1)}
-            folders={[]}
-          />
-        )}
-      </div>
+      <PageHeader
+        title="Poipu Documents"
+        description="Navigate folders, manage documents, and ask questions with AI"
+        actions={
+          canManage && (
+            <DocumentUpload
+              onUploadComplete={() => setRefreshTrigger((k) => k + 1)}
+              folders={[]}
+            />
+          )
+        }
+      />
 
       <Tabs defaultValue="browse" className="w-full">
         <TabsList>
