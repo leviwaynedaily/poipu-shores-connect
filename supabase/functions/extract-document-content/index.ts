@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
-import { decode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
+import * as pdfjsLib from "https://esm.sh/pdfjs-dist@4.9.155/build/pdf.mjs";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -50,11 +50,32 @@ serve(async (req) => {
       // Plain text files
       extractedText = await fileData.text();
     } else if (extension === "pdf") {
-      // For PDF, we'll use a simple approach - in production you'd want a proper PDF parser
-      // For now, we'll mark it as PDF and store basic info
-      extractedText = `[PDF Document - ${filePath}]\nContent extraction for PDF files requires additional processing. This document has been uploaded and can be downloaded for viewing.`;
+      // Extract text from PDF
+      try {
+        const arrayBuffer = await fileData.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+        
+        const loadingTask = pdfjsLib.getDocument({ data: uint8Array });
+        const pdf = await loadingTask.promise;
+        
+        const numPages = pdf.numPages;
+        const textParts: string[] = [];
+        
+        for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+          const page = await pdf.getPage(pageNum);
+          const textContent = await page.getTextContent();
+          const pageText = textContent.items.map((item: any) => item.str).join(" ");
+          textParts.push(`\n--- Page ${pageNum} ---\n${pageText}`);
+        }
+        
+        extractedText = textParts.join("\n");
+        console.log(`Extracted ${extractedText.length} characters from PDF with ${numPages} pages`);
+      } catch (pdfError) {
+        console.error("Error extracting PDF content:", pdfError);
+        extractedText = `[PDF Document - ${filePath}]\nError extracting content: ${pdfError instanceof Error ? pdfError.message : 'Unknown error'}`;
+      }
     } else if (extension === "doc" || extension === "docx") {
-      // For Word docs, similar approach
+      // For Word docs, mark as requiring processing
       extractedText = `[Word Document - ${filePath}]\nContent extraction for Word documents requires additional processing. This document has been uploaded and can be downloaded for viewing.`;
     } else {
       extractedText = `[${extension?.toUpperCase() || 'Unknown'} Document - ${filePath}]\nThis document type requires specialized processing for content extraction.`;
