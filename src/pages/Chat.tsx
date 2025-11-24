@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Send, Settings, Trash2, Image as ImageIcon, X, Smile, Reply } from "lucide-react";
+import { Send, Settings, Trash2, X, Smile, Reply, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ChannelManager } from "@/components/ChannelManager";
 
 interface Message {
@@ -55,6 +56,7 @@ const Chat = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null);
+  const [showAttachMenu, setShowAttachMenu] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -642,15 +644,33 @@ const Chat = () => {
                 className="hidden"
                 onChange={handleImageSelect}
               />
-              <Button
-                type="button"
-                variant="outline"
-                className="h-11 w-11"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploadingImage}
-              >
-                <ImageIcon className="h-5 w-5" />
-              </Button>
+              <Popover open={showAttachMenu} onOpenChange={setShowAttachMenu}>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-11 w-11"
+                    disabled={uploadingImage}
+                  >
+                    <Plus className="h-5 w-5" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-48 p-2" align="start">
+                  <div className="flex flex-col gap-1">
+                    <Button
+                      variant="ghost"
+                      className="justify-start"
+                      onClick={() => {
+                        fileInputRef.current?.click();
+                        setShowAttachMenu(false);
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Upload Photo
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
               <Input
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
