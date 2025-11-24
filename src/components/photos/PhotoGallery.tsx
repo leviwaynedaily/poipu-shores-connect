@@ -5,8 +5,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { Badge } from "@/components/ui/badge";
+import { Search, Calendar, User } from "lucide-react";
+import { formatDistanceToNow, format } from "date-fns";
 
 interface Photo {
   id: string;
@@ -147,16 +148,28 @@ export function PhotoGallery() {
                     alt={photo.title}
                     className="w-full h-64 object-cover"
                   />
-                  <div className="p-4">
-                    <h3 className="font-semibold text-lg mb-1">{photo.title}</h3>
+                  <div className="p-4 space-y-2">
+                    <h3 className="font-semibold text-lg">{photo.title}</h3>
+                    
                     {photo.caption && (
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                        {photo.caption}
-                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {photo.caption.split(',').map((tag, idx) => (
+                          <Badge key={idx} variant="secondary" className="text-xs">
+                            {tag.trim()}
+                          </Badge>
+                        ))}
+                      </div>
                     )}
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>By {photo.profiles.full_name}</span>
-                      <span>{formatDistanceToNow(new Date(photo.created_at), { addSuffix: true })}</span>
+                    
+                    <div className="flex flex-col gap-1 text-xs text-muted-foreground pt-1">
+                      <div className="flex items-center gap-1.5">
+                        <User className="h-3 w-3" />
+                        <span>{photo.profiles.full_name}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="h-3 w-3" />
+                        <span>Uploaded {formatDistanceToNow(new Date(photo.created_at), { addSuffix: true })}</span>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -179,29 +192,36 @@ export function PhotoGallery() {
                   alt={selectedPhoto.title}
                   className="w-full max-h-[60vh] object-contain rounded-lg"
                 />
+                
                 {selectedPhoto.caption && (
-                  <p className="text-muted-foreground">{selectedPhoto.caption}</p>
-                )}
-                <div className="flex flex-wrap gap-4 text-sm">
                   <div>
-                    <span className="font-semibold">Category:</span>{" "}
-                    <span className="text-muted-foreground capitalize">{selectedPhoto.category}</span>
-                  </div>
-                  {selectedPhoto.location && (
-                    <div>
-                      <span className="font-semibold">Location:</span>{" "}
-                      <span className="text-muted-foreground">{selectedPhoto.location}</span>
+                    <span className="font-semibold text-sm">Tags:</span>
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {selectedPhoto.caption.split(',').map((tag, idx) => (
+                        <Badge key={idx} variant="secondary">
+                          {tag.trim()}
+                        </Badge>
+                      ))}
                     </div>
-                  )}
-                  <div>
-                    <span className="font-semibold">Uploaded by:</span>{" "}
-                    <span className="text-muted-foreground">{selectedPhoto.profiles.full_name}</span>
                   </div>
-                  <div>
-                    <span className="font-semibold">Date:</span>{" "}
-                    <span className="text-muted-foreground">
-                      {formatDistanceToNow(new Date(selectedPhoto.created_at), { addSuffix: true })}
-                    </span>
+                )}
+                
+                <div className="flex flex-wrap gap-6 text-sm">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <span className="font-semibold">Uploaded by:</span>{" "}
+                      <span className="text-muted-foreground">{selectedPhoto.profiles.full_name}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <span className="font-semibold">Upload date:</span>{" "}
+                      <span className="text-muted-foreground">
+                        {format(new Date(selectedPhoto.created_at), 'PPP')} ({formatDistanceToNow(new Date(selectedPhoto.created_at), { addSuffix: true })})
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
