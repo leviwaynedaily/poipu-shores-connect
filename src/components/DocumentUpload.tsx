@@ -31,6 +31,7 @@ export function DocumentUpload({ onUploadComplete, folders: _folders, currentFol
   const [newFolderName, setNewFolderName] = useState("");
   const [files, setFiles] = useState<FileList | null>(null);
   const [unitNumber, setUnitNumber] = useState("");
+  const [uploadMode, setUploadMode] = useState<"files" | "folder">("files");
 
   useEffect(() => {
     fetchFolders();
@@ -141,6 +142,7 @@ export function DocumentUpload({ onUploadComplete, folders: _folders, currentFol
       setNewFolderName("");
       setFiles(null);
       setUnitNumber("");
+      setUploadMode("files");
       setIsOpen(false);
       onUploadComplete();
     } catch (error: any) {
@@ -171,14 +173,45 @@ export function DocumentUpload({ onUploadComplete, folders: _folders, currentFol
         </DialogHeader>
         <form onSubmit={handleUpload} className="space-y-4">
           <div>
-            <Label htmlFor="file">File(s)</Label>
+            <Label>Upload Type</Label>
+            <div className="flex gap-2 mt-2">
+              <Button
+                type="button"
+                variant={uploadMode === "files" ? "default" : "outline"}
+                onClick={() => {
+                  setUploadMode("files");
+                  setFiles(null);
+                }}
+                className="flex-1"
+              >
+                Files
+              </Button>
+              <Button
+                type="button"
+                variant={uploadMode === "folder" ? "default" : "outline"}
+                onClick={() => {
+                  setUploadMode("folder");
+                  setFiles(null);
+                }}
+                className="flex-1"
+              >
+                Folder
+              </Button>
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="file">{uploadMode === "folder" ? "Select Folder" : "File(s)"}</Label>
             <Input
               id="file"
               type="file"
               onChange={(e) => setFiles(e.target.files)}
               required
-              multiple
-              accept=".pdf,.doc,.docx,.txt,.xlsx,.xls,.pptx,.ppt"
+              multiple={uploadMode === "files"}
+              {...(uploadMode === "folder" ? { 
+                webkitdirectory: "" as any, 
+                directory: "" as any 
+              } : {})}
+              accept={uploadMode === "files" ? ".pdf,.doc,.docx,.txt,.xlsx,.xls,.pptx,.ppt" : undefined}
             />
             {files && files.length > 1 && (
               <p className="text-sm text-muted-foreground mt-1">
