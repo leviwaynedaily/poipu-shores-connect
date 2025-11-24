@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Document, Page, pdfjs } from "react-pdf";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -8,7 +9,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Download, X } from "lucide-react";
+import { Download, X, ChevronLeft, ChevronRight } from "lucide-react";
+import "react-pdf/dist/esm/Page/AnnotationLayer.css";
+import "react-pdf/dist/esm/Page/TextLayer.css";
+
+// Set up PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 interface DocumentViewerProps {
   documentId: string | null;
@@ -28,6 +34,8 @@ export function DocumentViewer({
   const { toast } = useToast();
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [numPages, setNumPages] = useState<number>(0);
+  const [pageNumber, setPageNumber] = useState(1);
 
   useEffect(() => {
     if (!documentId) return;
@@ -75,6 +83,11 @@ export function DocumentViewer({
     document.body.removeChild(a);
   };
 
+  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+    setNumPages(numPages);
+    setPageNumber(1);
+  };
+
   const isPDF = fileType === "application/pdf" || documentTitle.toLowerCase().endsWith(".pdf");
   const isImage = fileType?.startsWith("image/") || /\.(jpg|jpeg|png|gif|webp)$/i.test(documentTitle);
 
@@ -83,8 +96,8 @@ export function DocumentViewer({
       <DialogContent className="max-w-6xl h-[90vh] flex flex-col">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle>{documentTitle}</DialogTitle>
-            <div className="flex gap-2">
+            <DialogTitle className="truncate pr-4">{documentTitle}</DialogTitle>
+            <div className="flex gap-2 flex-shrink-0">
               <Button
                 variant="outline"
                 size="sm"
@@ -105,7 +118,7 @@ export function DocumentViewer({
           </div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden rounded-lg border bg-background">
+        <div className="flex-1 overflow-auto rounded-lg border bg-muted/20">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
               <p className="text-muted-foreground">Loading document...</p>
@@ -113,11 +126,57 @@ export function DocumentViewer({
           ) : fileUrl ? (
             <>
               {isPDF ? (
-                <iframe
-                  src={fileUrl}
-                  className="w-full h-full"
-                  title={documentTitle}
-                />
+                <div className="flex flex-col items-center gap-4 p-4">
+                  <Document
+                    file={fileUrl}
+                    onLoadSuccess={onDocumentLoadSuccess}
+                    onLoadError={(error) => {
+                      console.error("Error loading PDF:", error);
+                      toast({
+                        title: "Error",
+                        description: "Failed to load PDF document",
+                        variant: "destructive",
+                      });
+                    }}
+                    loading={
+                      <div className="flex items-center justify-center py-8">
+                        <p className="text-muted-foreground">Loading PDF...</p>
+                      </div>
+                    }
+                  >
+                    <Page
+                      pageNumber={pageNumber}
+                      renderTextLayer={true}
+                      renderAnnotationLayer={true}
+                      className="shadow-lg"
+                      width={Math.min(window.innerWidth * 0.7, 900)}
+                    />
+                  </Document>
+                  
+                  {numPages > 1 && (
+                    <div className="flex items-center gap-4 bg-background rounded-lg p-2 shadow-md">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPageNumber(page => Math.max(1, page - 1))}
+                        disabled={pageNumber <= 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <span className="text-sm font-medium">
+                        Page {pageNumber} of {numPages}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPageNumber(page => Math.min(numPages, page + 1))}
+                        disabled={pageNumber >= numPages}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
               ) : isImage ? (
                 <div className="flex items-center justify-center h-full p-4">
                   <img
