@@ -3,12 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Search, Calendar, User, Trash2, Camera, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Calendar, User, Trash2, Camera, MapPin, ChevronLeft, ChevronRight, Edit } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -43,6 +44,10 @@ export function PhotoGallery() {
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [deletePhotoId, setDeletePhotoId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [editingPhoto, setEditingPhoto] = useState<Photo | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editTags, setEditTags] = useState("");
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     fetchPhotos();
@@ -100,6 +105,55 @@ export function PhotoGallery() {
 
   const canDeletePhoto = (photo: Photo) => {
     return user && (photo.uploaded_by === user.id || isAdmin || isBoard);
+  };
+
+  const canEditPhoto = (photo: Photo) => {
+    return user && (photo.uploaded_by === user.id || isAdmin || isBoard);
+  };
+
+  const handleEditPhoto = (photo: Photo) => {
+    setEditingPhoto(photo);
+    setEditTitle(photo.title);
+    setEditTags(photo.caption || "");
+  };
+
+  const handleUpdatePhoto = async () => {
+    if (!editingPhoto) return;
+
+    setUpdating(true);
+    try {
+      const { error } = await supabase
+        .from("community_photos")
+        .update({
+          title: editTitle.trim(),
+          caption: editTags.trim() || null,
+          category: editTags.trim() || "general",
+        })
+        .eq("id", editingPhoto.id);
+
+      if (error) throw error;
+
+      toast.success("Photo updated successfully");
+      
+      // Update local state
+      const updatedPhotos = photos.map(p => 
+        p.id === editingPhoto.id 
+          ? { ...p, title: editTitle.trim(), caption: editTags.trim() || null, category: editTags.trim() || "general" }
+          : p
+      );
+      setPhotos(updatedPhotos);
+      
+      if (selectedPhoto?.id === editingPhoto.id) {
+        setSelectedPhoto({ ...selectedPhoto, title: editTitle.trim(), caption: editTags.trim() || null });
+      }
+      
+      setEditingPhoto(null);
+    } catch (error) {
+      console.error("Error updating photo:", error);
+      toast.error("Failed to update photo");
+    } finally {
+      setUpdating(false);
+    }
   };
 
   const handleDeletePhoto = async () => {
@@ -291,6 +345,19 @@ export function PhotoGallery() {
                 <div className="flex items-center justify-between">
                   <DialogTitle>{selectedPhoto.title}</DialogTitle>
                   <div className="flex gap-2">
+                    {canEditPhoto(selectedPhoto) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          handleEditPhoto(selectedPhoto);
+                          setSelectedPhoto(null);
+                        }}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </Button>
+                    )}
                     {canDeletePhoto(selectedPhoto) && (
                       <Button
                         variant="destructive"
@@ -414,6 +481,49 @@ export function PhotoGallery() {
               </div>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editingPhoto} onOpenChange={() => setEditingPhoto(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Photo</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="edit-title">Title</Label>
+              <Input
+                id="edit-title"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                placeholder="Photo title"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-tags">Tags (Optional)</Label>
+              <Input
+                id="edit-tags"
+                value={editTags}
+                onChange={(e) => setEditTags(e.target.value)}
+                placeholder="beach, sunset, wildlife, etc."
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setEditingPhoto(null)}
+                disabled={updating}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleUpdatePhoto}
+                disabled={updating || !editTitle.trim()}
+              >
+                {updating ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
