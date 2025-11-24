@@ -38,7 +38,7 @@ const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home },
   { title: "Announcements", url: "/announcements", icon: Megaphone },
   { title: "Community Chat", url: "/chat", icon: MessageSquare },
-  { title: "Documents", url: "/documents", icon: FileText },
+  { title: "Poipu Shores Documents", url: "/documents", icon: FileText },
   { title: "Community Photos", url: "/photos", icon: Camera },
   { title: "Poipu Members", url: "/members", icon: Users },
 ];
