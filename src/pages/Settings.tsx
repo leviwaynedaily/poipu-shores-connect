@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBackground } from "@/contexts/BackgroundContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,16 +32,16 @@ interface CommunityPhoto {
 export default function Settings() {
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
-  const [homeBackground, setHomeBackground] = useState<BackgroundSetting>({
-    type: "default",
-    url: null,
-    opacity: 100,
-  });
-  const [appBackground, setAppBackground] = useState<BackgroundSetting>({
-    type: "default",
-    url: null,
-    opacity: 100,
-  });
+  const {
+    homeBackground: contextHomeBackground,
+    appBackground: contextAppBackground,
+    setHomeBackground: setContextHomeBackground,
+    setAppBackground: setContextAppBackground,
+    refreshBackgrounds,
+  } = useBackground();
+  
+  const [homeBackground, setHomeBackground] = useState(contextHomeBackground);
+  const [appBackground, setAppBackground] = useState(contextAppBackground);
   const [homePrompt, setHomePrompt] = useState("");
   const [appPrompt, setAppPrompt] = useState("");
   const [isGeneratingHome, setIsGeneratingHome] = useState(false);
@@ -60,6 +61,14 @@ export default function Settings() {
     fetchSettings();
     fetchPhotos();
   }, [isAdmin, navigate]);
+
+  useEffect(() => {
+    setContextHomeBackground(homeBackground);
+  }, [homeBackground]);
+
+  useEffect(() => {
+    setContextAppBackground(appBackground);
+  }, [appBackground]);
 
   const fetchSettings = async () => {
     const { data: homeData } = await supabase
@@ -170,6 +179,7 @@ export default function Settings() {
       setInitialHomeBackground(homeBackground);
       setInitialAppBackground(appBackground);
       setHasChanges(false);
+      await refreshBackgrounds();
       toast.success("Settings saved successfully!");
     } catch (error) {
       console.error("Error saving settings:", error);
