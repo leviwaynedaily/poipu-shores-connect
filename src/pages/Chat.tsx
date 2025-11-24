@@ -435,8 +435,8 @@ const Chat = () => {
         <ChannelManager onClose={() => setShowChannelManager(false)} />
       )}
 
-      <Card className="h-[calc(100vh-16rem)]">
-        <CardHeader className="border-b space-y-3">
+      <Card className="h-[calc(100vh-16rem)] flex flex-col">
+        <CardHeader className="border-b space-y-3 flex-shrink-0">
           <CardTitle className="text-xl">
             {currentChannel?.name || "Select a Channel"}
             {currentChannel?.is_private && " 🔒"}
@@ -463,7 +463,7 @@ const Chat = () => {
             </Tabs>
           )}
         </CardHeader>
-        <CardContent className="p-0 flex flex-col h-[calc(100%-5rem)]">
+        <CardContent className="p-0 flex flex-col flex-1 min-h-0">
           <ScrollArea className="flex-1 p-4" ref={scrollRef}>
             <div className="space-y-3">
               {messages.map((message) => {
