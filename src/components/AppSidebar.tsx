@@ -62,8 +62,8 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <div className={`flex items-center justify-center border-b border-border/20 ${open ? "gap-3 px-4 py-6" : "px-2 py-6"}`}>
-            <img src={logoIcon} alt="Poipu Shores Logo" className={open ? "h-12 w-12" : "h-10 w-10"} />
-            {open && <img src={logoText} alt="Poipu Shores" className="h-8" />}
+            <img src={logoIcon} alt="Poipu Shores Logo" className={open ? "h-12 w-auto" : "h-10 w-auto"} />
+            {open && <img src={logoText} alt="Poipu Shores" className="h-8 w-auto" />}
           </div>
           <SidebarGroupContent>
             <SidebarMenu>
