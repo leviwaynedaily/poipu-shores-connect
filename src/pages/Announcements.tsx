@@ -19,9 +19,8 @@ interface Announcement {
   content: string;
   is_pinned: boolean;
   created_at: string;
-  profiles: {
-    full_name: string;
-  };
+  author_id: string;
+  author_name?: string;
 }
 
 const Announcements = () => {
@@ -42,14 +41,28 @@ const Announcements = () => {
   const fetchAnnouncements = async () => {
     const { data } = await supabase
       .from("announcements")
-      .select(`
-        *,
-        profiles!announcements_author_id_fkey (full_name)
-      `)
+      .select("id, title, content, is_pinned, created_at, author_id")
       .order("is_pinned", { ascending: false })
       .order("created_at", { ascending: false });
 
-    if (data) setAnnouncements(data as any);
+    if (data) {
+      // Fetch author names separately
+      const announcementsWithAuthors = await Promise.all(
+        data.map(async (announcement) => {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", announcement.author_id)
+            .single();
+          
+          return {
+            ...announcement,
+            author_name: profile?.full_name || "Unknown",
+          };
+        })
+      );
+      setAnnouncements(announcementsWithAuthors);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -169,7 +182,7 @@ const Announcements = () => {
                     </div>
                     <CardTitle className="text-2xl">{announcement.title}</CardTitle>
                     <CardDescription className="text-base mt-1">
-                      Posted by {announcement.profiles.full_name} on{" "}
+                      Posted by {announcement.author_name} on{" "}
                       {format(new Date(announcement.created_at), "MMM dd, yyyy 'at' h:mm a")}
                     </CardDescription>
                   </div>
