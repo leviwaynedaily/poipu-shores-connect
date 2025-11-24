@@ -89,13 +89,20 @@ export function AppSidebar() {
     >
       <SidebarContent>
         <SidebarGroup>
-          <div className="flex items-center justify-between h-12 border-b border-border/20 px-3">
-            <div className="flex items-center gap-2 min-w-0">
-              <img src={logoIcon} alt="Poipu Shores Logo" className="h-8 w-8 object-contain flex-shrink-0" />
-              {open && <img src={logoText} alt="Poipu Shores" className="h-5 w-auto" />}
+          {open ? (
+            <div className="flex items-center justify-between gap-2 h-12 border-b border-border/20 px-3">
+              <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
+                <img src={logoIcon} alt="Poipu Shores Logo" className="h-8 w-8 object-contain flex-shrink-0" />
+                <img src={logoText} alt="Poipu Shores" className="h-5 w-auto flex-shrink-0" />
+              </div>
+              <SidebarTrigger className="h-8 w-8 flex-shrink-0 ml-2" />
             </div>
-            <SidebarTrigger className="h-8 w-8 flex-shrink-0" />
-          </div>
+          ) : (
+            <div className="flex flex-col items-center border-b border-border/20 py-2">
+              <SidebarTrigger className="h-8 w-8 mb-2" />
+              <img src={logoIcon} alt="Poipu Shores Logo" className="h-10 w-10 object-contain" />
+            </div>
+          )}
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
