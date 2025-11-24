@@ -102,6 +102,34 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // Load saved favicon
+  useEffect(() => {
+    const loadFavicon = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('app_settings')
+          .select('setting_value')
+          .eq('setting_key', 'favicon_url')
+          .single();
+
+        if (!error && data?.setting_value) {
+          const faviconUrl = data.setting_value as string;
+          const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement || document.createElement('link');
+          link.type = 'image/x-icon';
+          link.rel = 'icon';
+          link.href = faviconUrl;
+          if (!document.querySelector("link[rel*='icon']")) {
+            document.head.appendChild(link);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading favicon:', error);
+      }
+    };
+
+    loadFavicon();
+  }, []);
+
   // Global keyboard shortcut
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
