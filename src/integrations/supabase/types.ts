@@ -461,6 +461,7 @@ export type Database = {
           glass_intensity: number | null
           glass_theme_enabled: boolean
           id: string
+          last_sign_in_at: string | null
           phone: string | null
           show_contact_info: boolean
           unit_number: string | null
@@ -473,6 +474,7 @@ export type Database = {
           glass_intensity?: number | null
           glass_theme_enabled?: boolean
           id: string
+          last_sign_in_at?: string | null
           phone?: string | null
           show_contact_info?: boolean
           unit_number?: string | null
@@ -485,6 +487,7 @@ export type Database = {
           glass_intensity?: number | null
           glass_theme_enabled?: boolean
           id?: string
+          last_sign_in_at?: string | null
           phone?: string | null
           show_contact_info?: boolean
           unit_number?: string | null

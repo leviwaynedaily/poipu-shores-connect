@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -83,6 +83,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         variant: "destructive",
       });
     } else {
+      // Update last sign-in timestamp
+      if (data.user) {
+        await supabase
+          .from("profiles")
+          .update({ last_sign_in_at: new Date().toISOString() })
+          .eq("id", data.user.id);
+      }
+      
       toast({
         title: "Welcome back!",
         description: "You've successfully signed in.",
