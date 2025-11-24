@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { Send, Loader2 } from "lucide-react";
 
 interface Message {
@@ -20,13 +21,64 @@ export function DocumentChat({ documentIds = [] }: DocumentChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Load chat history on mount
+  useEffect(() => {
+    loadChatHistory();
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  const loadChatHistory = async () => {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return;
+
+      const { data, error } = await supabase
+        .from("document_chat_messages")
+        .select("*")
+        .eq("user_id", user.user.id)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+
+      if (data) {
+        setMessages(data.map((msg) => ({
+          role: msg.role as "user" | "assistant",
+          content: msg.content,
+        })));
+      }
+    } catch (error: any) {
+      console.error("Error loading chat history:", error);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+
+  const saveMessage = async (role: "user" | "assistant", content: string) => {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return;
+
+      const { error } = await supabase
+        .from("document_chat_messages")
+        .insert({
+          user_id: user.user.id,
+          role,
+          content,
+        });
+
+      if (error) throw error;
+    } catch (error: any) {
+      console.error("Error saving message:", error);
+    }
+  };
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -35,6 +87,9 @@ export function DocumentChat({ documentIds = [] }: DocumentChatProps) {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
+
+    // Save user message
+    await saveMessage("user", userMessage.content);
 
     try {
       const response = await fetch(`https://rvqqnfsgovlxocjjugww.supabase.co/functions/v1/document-chat`, {
@@ -104,6 +159,11 @@ export function DocumentChat({ documentIds = [] }: DocumentChatProps) {
           }
         }
       }
+
+      // Save complete assistant message
+      if (assistantContent) {
+        await saveMessage("assistant", assistantContent);
+      }
     } catch (error: any) {
       console.error("Chat error:", error);
       toast({
@@ -116,6 +176,14 @@ export function DocumentChat({ documentIds = [] }: DocumentChatProps) {
       setIsLoading(false);
     }
   };
+
+  if (isLoadingHistory) {
+    return (
+      <Card className="h-[600px] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </Card>
+    );
+  }
 
   return (
     <Card className="h-[600px] flex flex-col">
