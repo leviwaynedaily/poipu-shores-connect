@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, X } from "lucide-react";
+import { Upload, X, Save, User, Lock } from "lucide-react";
 import { formatPhoneInput } from "@/lib/phoneUtils";
 import { z } from "zod";
 
@@ -34,6 +35,15 @@ const Profile = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
+  
+  // Track initial state for change detection
+  const [initialState, setInitialState] = useState({
+    fullName: "",
+    unitNumber: "",
+    phone: "",
+    showContactInfo: true,
+  });
+  const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -49,13 +59,32 @@ const Profile = () => {
       .single();
     
     if (data) {
-      setFullName(data.full_name || "");
-      setUnitNumber(data.unit_number || "");
-      setPhone(data.phone || "");
-      setShowContactInfo(data.show_contact_info ?? true);
+      const state = {
+        fullName: data.full_name || "",
+        unitNumber: data.unit_number || "",
+        phone: data.phone || "",
+        showContactInfo: data.show_contact_info ?? true,
+      };
+      
+      setFullName(state.fullName);
+      setUnitNumber(state.unitNumber);
+      setPhone(state.phone);
+      setShowContactInfo(state.showContactInfo);
       setAvatarUrl(data.avatar_url || null);
+      setInitialState(state);
     }
   };
+
+  // Detect changes
+  useEffect(() => {
+    const changed = 
+      fullName !== initialState.fullName ||
+      unitNumber !== initialState.unitNumber ||
+      phone !== initialState.phone ||
+      showContactInfo !== initialState.showContactInfo ||
+      avatarFile !== null;
+    setHasChanges(changed);
+  }, [fullName, unitNumber, phone, showContactInfo, avatarFile, initialState]);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -137,8 +166,8 @@ const Profile = () => {
     setPhone(formatted);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!user) return;
     
     setLoading(true);
@@ -182,6 +211,14 @@ const Profile = () => {
       setAvatarUrl(uploadedAvatarUrl);
       setAvatarFile(null);
       setAvatarPreview(null);
+      
+      // Update initial state
+      setInitialState({
+        fullName,
+        unitNumber,
+        phone,
+        showContactInfo,
+      });
 
       toast({
         title: "Success",
@@ -224,184 +261,205 @@ const Profile = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-2xl">
-      <div>
-        <h2 className="text-3xl font-bold text-foreground">My Profile</h2>
-        <p className="text-lg text-muted-foreground">
-          Manage your personal information
-        </p>
+    <div className="space-y-6 max-w-4xl">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold text-foreground">My Profile</h2>
+          <p className="text-lg text-muted-foreground">
+            Manage your personal information and security
+          </p>
+        </div>
+        {hasChanges && (
+          <Button onClick={() => handleSubmit()} disabled={loading} size="lg">
+            {loading ? (
+              "Saving..."
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Save Changes
+              </>
+            )}
+          </Button>
+        )}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Profile Information</CardTitle>
-          <CardDescription className="text-lg">
-            Update your personal details
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <Label className="text-lg">Profile Photo</Label>
-              <div className="flex items-center gap-4">
-                <Avatar className="h-24 w-24">
-                  <AvatarImage src={avatarPreview || avatarUrl || ""} />
-                  <AvatarFallback className="text-2xl">
-                    {fullName.split(" ").map(n => n[0]).join("").toUpperCase() || "?"}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="avatar" className="cursor-pointer">
-                    <div className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
-                      <Upload className="h-4 w-4" />
-                      <span>Upload Photo</span>
-                    </div>
-                    <Input
-                      id="avatar"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleAvatarChange}
-                    />
-                  </Label>
-                  {(avatarUrl || avatarPreview) && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={removeAvatar}
-                      disabled={loading}
-                    >
-                      <X className="h-4 w-4 mr-2" />
-                      Remove
-                    </Button>
-                  )}
-                </div>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Max size: 5MB. Supported formats: JPG, PNG, WEBP, GIF
-              </p>
-            </div>
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="profile">
+            <User className="mr-2 h-4 w-4" />
+            Profile Information
+          </TabsTrigger>
+          <TabsTrigger value="password">
+            <Lock className="mr-2 h-4 w-4" />
+            Change Password
+          </TabsTrigger>
+        </TabsList>
 
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-lg">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={user?.email || ""}
-                disabled
-                className="text-lg p-6"
-              />
-              <p className="text-base text-muted-foreground">
-                Email cannot be changed
-              </p>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="fullName" className="text-lg">Full Name</Label>
-              <Input
-                id="fullName"
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-                className="text-lg p-6"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="unitNumber" className="text-lg">Unit Number</Label>
-              <Input
-                id="unitNumber"
-                type="text"
-                value={unitNumber}
-                onChange={(e) => setUnitNumber(e.target.value)}
-                className="text-lg p-6"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="text-lg">Phone Number</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={phone}
-                onChange={handlePhoneChange}
-                placeholder="(808) 555-1234"
-                className="text-lg p-6"
-              />
-              <p className="text-sm text-muted-foreground">
-                Format: (XXX) XXX-XXXX
-              </p>
-            </div>
-            
-            <div className="space-y-3 border-t pt-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="showContact" className="text-lg">Show Contact Info in Members Directory</Label>
+        <TabsContent value="profile">
+          <Card>
+            <CardHeader>
+              <CardTitle>Profile Information</CardTitle>
+              <CardDescription>
+                Update your personal details and contact information
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="space-y-2">
+                  <Label>Profile Photo</Label>
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-20 w-20">
+                      <AvatarImage src={avatarPreview || avatarUrl || ""} />
+                      <AvatarFallback className="text-xl">
+                        {fullName.split(" ").map(n => n[0]).join("").toUpperCase() || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col gap-2">
+                      <Label htmlFor="avatar" className="cursor-pointer">
+                        <div className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
+                          <Upload className="h-4 w-4" />
+                          <span>Upload Photo</span>
+                        </div>
+                        <Input
+                          id="avatar"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleAvatarChange}
+                        />
+                      </Label>
+                      {(avatarUrl || avatarPreview) && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={removeAvatar}
+                          disabled={loading}
+                        >
+                          <X className="h-4 w-4 mr-2" />
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                   <p className="text-sm text-muted-foreground">
-                    Allow other members to see your phone number in the community directory
+                    Max size: 5MB. Supported formats: JPG, PNG, WEBP, GIF
                   </p>
                 </div>
-                <Switch
-                  id="showContact"
-                  checked={showContactInfo}
-                  onCheckedChange={setShowContactInfo}
-                />
-              </div>
-            </div>
-            
-            <Button type="submit" className="w-full text-lg py-6" disabled={loading}>
-              {loading ? "Saving..." : "Save Changes"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Change Password</CardTitle>
-          <CardDescription className="text-lg">
-            Update your password to keep your account secure
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handlePasswordChange} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="newPassword" className="text-lg">New Password</Label>
-              <Input
-                id="newPassword"
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-                className="text-lg p-6"
-                placeholder="Enter new password"
-              />
-              <p className="text-sm text-muted-foreground">
-                Must be at least 6 characters
-              </p>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-lg">Confirm New Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                className="text-lg p-6"
-                placeholder="Confirm new password"
-              />
-            </div>
-            
-            <Button type="submit" className="w-full text-lg py-6" disabled={passwordLoading}>
-              {passwordLoading ? "Updating..." : "Update Password"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={user?.email || ""}
+                    disabled
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Email cannot be changed
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Full Name</Label>
+                  <Input
+                    id="fullName"
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="unitNumber">Unit Number</Label>
+                  <Input
+                    id="unitNumber"
+                    type="text"
+                    value={unitNumber}
+                    onChange={(e) => setUnitNumber(e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={phone}
+                    onChange={handlePhoneChange}
+                    placeholder="(808) 555-1234"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Format: (XXX) XXX-XXXX
+                  </p>
+                </div>
+                
+                <div className="space-y-3 border-t pt-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="showContact">Show Contact Info in Members Directory</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Allow other members to see your phone number
+                      </p>
+                    </div>
+                    <Switch
+                      id="showContact"
+                      checked={showContactInfo}
+                      onCheckedChange={setShowContactInfo}
+                    />
+                  </div>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="password">
+          <Card>
+            <CardHeader>
+              <CardTitle>Change Password</CardTitle>
+              <CardDescription>
+                Update your password to keep your account secure
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handlePasswordChange} className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">New Password</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    placeholder="Enter new password"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Must be at least 6 characters
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    placeholder="Confirm new password"
+                  />
+                </div>
+                
+                <Button type="submit" className="w-full" disabled={passwordLoading}>
+                  {passwordLoading ? "Updating..." : "Update Password"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
