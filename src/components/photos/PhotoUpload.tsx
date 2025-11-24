@@ -3,9 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, X } from "lucide-react";
 import { toast } from "sonner";
@@ -19,10 +17,7 @@ export function PhotoUpload({ onUploadComplete }: PhotoUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
-  const [title, setTitle] = useState("");
-  const [caption, setCaption] = useState("");
-  const [category, setCategory] = useState("general");
-  const [location, setLocation] = useState("");
+  const [tags, setTags] = useState("");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -41,8 +36,8 @@ export function PhotoUpload({ onUploadComplete }: PhotoUploadProps) {
   };
 
   const handleUpload = async () => {
-    if (!file || !title || !user) {
-      toast.error("Please fill in all required fields");
+    if (!file || !user) {
+      toast.error("Please select a photo to upload");
       return;
     }
 
@@ -50,6 +45,9 @@ export function PhotoUpload({ onUploadComplete }: PhotoUploadProps) {
     try {
       const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      
+      // Use the original filename (without extension) as title
+      const photoTitle = file.name.replace(/\.[^/.]+$/, "");
 
       const { error: uploadError } = await supabase.storage
         .from("community-photos")
@@ -58,12 +56,12 @@ export function PhotoUpload({ onUploadComplete }: PhotoUploadProps) {
       if (uploadError) throw uploadError;
 
       const { error: dbError } = await supabase.from("community_photos").insert({
-        title,
-        caption: caption || null,
+        title: photoTitle,
+        caption: tags || null,
         file_path: fileName,
         file_size: file.size,
-        category,
-        location: location || null,
+        category: tags || "general",
+        location: null,
         uploaded_by: user.id,
       });
 
@@ -74,10 +72,7 @@ export function PhotoUpload({ onUploadComplete }: PhotoUploadProps) {
       // Reset form
       setFile(null);
       setPreview(null);
-      setTitle("");
-      setCaption("");
-      setCategory("general");
-      setLocation("");
+      setTags("");
       
       if (onUploadComplete) {
         onUploadComplete();
@@ -102,7 +97,7 @@ export function PhotoUpload({ onUploadComplete }: PhotoUploadProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <Label htmlFor="photo-upload">Photo *</Label>
+          <Label htmlFor="photo-upload">Select Photo</Label>
           {!preview ? (
             <div className="mt-2">
               <label
@@ -141,56 +136,18 @@ export function PhotoUpload({ onUploadComplete }: PhotoUploadProps) {
         </div>
 
         <div>
-          <Label htmlFor="title">Title *</Label>
+          <Label htmlFor="tags">Tags (Optional)</Label>
           <Input
-            id="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Beautiful sunset at Poipu Beach"
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="caption">Caption</Label>
-          <Textarea
-            id="caption"
-            value={caption}
-            onChange={(e) => setCaption(e.target.value)}
-            placeholder="Add a description..."
-            rows={3}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="category">Category *</Label>
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="general">General</SelectItem>
-              <SelectItem value="beach">Beach</SelectItem>
-              <SelectItem value="wildlife">Wildlife</SelectItem>
-              <SelectItem value="sunset">Sunset</SelectItem>
-              <SelectItem value="events">Events</SelectItem>
-              <SelectItem value="property">Property</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label htmlFor="location">Location</Label>
-          <Input
-            id="location"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder="Poipu Beach, Building A, etc."
+            id="tags"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            placeholder="beach, sunset, wildlife, etc."
           />
         </div>
 
         <Button
           onClick={handleUpload}
-          disabled={uploading || !file || !title}
+          disabled={uploading || !file}
           className="w-full"
         >
           {uploading ? "Uploading..." : "Upload Photo"}
