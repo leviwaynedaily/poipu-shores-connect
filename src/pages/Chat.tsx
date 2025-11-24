@@ -58,6 +58,7 @@ const Chat = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null);
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const documentInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     checkAdminStatus();
@@ -644,6 +645,13 @@ const Chat = () => {
                 className="hidden"
                 onChange={handleImageSelect}
               />
+              <input
+                ref={documentInputRef}
+                type="file"
+                accept=".pdf,.doc,.docx,.txt"
+                className="hidden"
+                onChange={handleImageSelect}
+              />
               <Popover open={showAttachMenu} onOpenChange={setShowAttachMenu}>
                 <PopoverTrigger asChild>
                   <Button
@@ -666,7 +674,18 @@ const Chat = () => {
                       }}
                     >
                       <Plus className="h-4 w-4 mr-2" />
-                      Upload Photo
+                      Photo
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="justify-start"
+                      onClick={() => {
+                        documentInputRef.current?.click();
+                        setShowAttachMenu(false);
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      File
                     </Button>
                   </div>
                 </PopoverContent>
