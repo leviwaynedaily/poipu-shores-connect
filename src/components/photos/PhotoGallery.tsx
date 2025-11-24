@@ -6,8 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Search, Calendar, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Search, Calendar, User, Trash2 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 interface Photo {
   id: string;
@@ -24,12 +28,15 @@ interface Photo {
 }
 
 export function PhotoGallery() {
+  const { user, isAdmin, isBoard } = useAuth();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [filteredPhotos, setFilteredPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
+  const [deletePhotoId, setDeletePhotoId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchPhotos();
@@ -83,6 +90,47 @@ export function PhotoGallery() {
   const getPhotoUrl = (path: string) => {
     const { data } = supabase.storage.from("community-photos").getPublicUrl(path);
     return data.publicUrl;
+  };
+
+  const canDeletePhoto = (photo: Photo) => {
+    return user && (photo.uploaded_by === user.id || isAdmin || isBoard);
+  };
+
+  const handleDeletePhoto = async () => {
+    if (!deletePhotoId) return;
+
+    setDeleting(true);
+    try {
+      const photoToDelete = photos.find(p => p.id === deletePhotoId);
+      if (!photoToDelete) throw new Error("Photo not found");
+
+      // Delete from storage
+      const { error: storageError } = await supabase.storage
+        .from("community-photos")
+        .remove([photoToDelete.file_path]);
+
+      if (storageError) throw storageError;
+
+      // Delete from database
+      const { error: dbError } = await supabase
+        .from("community_photos")
+        .delete()
+        .eq("id", deletePhotoId);
+
+      if (dbError) throw dbError;
+
+      toast.success("Photo deleted successfully");
+      setPhotos(photos.filter(p => p.id !== deletePhotoId));
+      setDeletePhotoId(null);
+      if (selectedPhoto?.id === deletePhotoId) {
+        setSelectedPhoto(null);
+      }
+    } catch (error) {
+      console.error("Error deleting photo:", error);
+      toast.error("Failed to delete photo");
+    } finally {
+      setDeleting(false);
+    }
   };
 
   if (loading) {
@@ -143,11 +191,26 @@ export function PhotoGallery() {
                 onClick={() => setSelectedPhoto(photo)}
               >
                 <CardContent className="p-0">
-                  <img
-                    src={getPhotoUrl(photo.file_path)}
-                    alt={photo.title}
-                    className="w-full h-64 object-cover"
-                  />
+                  <div className="relative group">
+                    <img
+                      src={getPhotoUrl(photo.file_path)}
+                      alt={photo.title}
+                      className="w-full h-64 object-cover"
+                    />
+                    {canDeletePhoto(photo) && (
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeletePhotoId(photo.id);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                   <div className="p-4 space-y-2">
                     <h3 className="font-semibold text-lg">{photo.title}</h3>
                     
@@ -184,7 +247,22 @@ export function PhotoGallery() {
           {selectedPhoto && (
             <>
               <DialogHeader>
-                <DialogTitle>{selectedPhoto.title}</DialogTitle>
+                <div className="flex items-center justify-between">
+                  <DialogTitle>{selectedPhoto.title}</DialogTitle>
+                  {canDeletePhoto(selectedPhoto) && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
+                        setDeletePhotoId(selectedPhoto.id);
+                        setSelectedPhoto(null);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Photo
+                    </Button>
+                  )}
+                </div>
               </DialogHeader>
               <div className="space-y-4">
                 <img
@@ -229,6 +307,27 @@ export function PhotoGallery() {
           )}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!deletePhotoId} onOpenChange={() => setDeletePhotoId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Photo</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this photo? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeletePhoto}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
