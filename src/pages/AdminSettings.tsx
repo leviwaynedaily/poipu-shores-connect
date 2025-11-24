@@ -1,8 +1,9 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings, Palette, Webcam, Phone } from "lucide-react";
+import { Settings, Palette, Webcam, Phone, Users } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { ThemeSettingsDialog } from "@/components/ThemeSettingsDialog";
+import { UserManagement } from "@/components/settings/UserManagement";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -16,8 +17,12 @@ export default function AdminSettings() {
         description="Manage app settings, theme, and system configuration"
       />
 
-      <Tabs defaultValue="theme" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="users" className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="users">
+            <Users className="mr-2 h-4 w-4" />
+            Users
+          </TabsTrigger>
           <TabsTrigger value="theme">
             <Palette className="mr-2 h-4 w-4" />
             Theme
@@ -35,6 +40,10 @@ export default function AdminSettings() {
             General
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="users" className="space-y-4">
+          <UserManagement />
+        </TabsContent>
 
         <TabsContent value="theme" className="space-y-4">
           <Card>

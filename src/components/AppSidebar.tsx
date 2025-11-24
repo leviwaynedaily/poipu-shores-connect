@@ -1,4 +1,4 @@
-import { Home, Megaphone, MessageSquare, FileText, Camera, User, Users, LogOut, Settings, Edit } from "lucide-react";
+import { Home, Megaphone, MessageSquare, FileText, Camera, Users, User, LogOut, Settings, Edit } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -141,39 +141,6 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  {!open ? (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton asChild>
-                          <NavLink
-                            to="/users"
-                            end
-                            className="flex items-center gap-3 py-4 text-base"
-                            activeClassName="bg-accent text-accent-foreground font-semibold"
-                          >
-                            <Users className="h-5 w-5" />
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      <TooltipContent side="right" className="font-medium">
-                        User Management
-                      </TooltipContent>
-                    </Tooltip>
-                  ) : (
-                    <SidebarMenuButton asChild>
-                      <NavLink
-                        to="/users"
-                        end
-                        className="flex items-center gap-3 py-4 text-base"
-                        activeClassName="bg-accent text-accent-foreground font-semibold"
-                      >
-                        <Users className="h-5 w-5" />
-                        <span>User Management</span>
-                      </NavLink>
-                    </SidebarMenuButton>
-                  )}
-                </SidebarMenuItem>
-                 <SidebarMenuItem>
                   {!open ? (
                     <Tooltip>
                       <TooltipTrigger asChild>
