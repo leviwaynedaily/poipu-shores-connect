@@ -190,7 +190,7 @@ export function FloatingChatAssistant() {
 
       <Button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-4 right-4 h-16 w-16 rounded-full shadow-lg z-50 p-0 overflow-hidden"
+        className="fixed bottom-4 right-4 h-12 w-12 rounded-full shadow-md z-40 p-0 overflow-hidden opacity-80 hover:opacity-100"
         size="icon"
       >
         <img

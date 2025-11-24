@@ -2,18 +2,23 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Footer } from "@/components/Footer";
 import { FloatingChatAssistant } from "@/components/FloatingChatAssistant";
+import { CommunityAssistantDialog } from "@/components/CommunityAssistantDialog";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useBackground } from "@/contexts/BackgroundContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import beachImage from "@/assets/condo-oceanfront.jpeg";
+import chickenIcon from "@/assets/chicken-assistant.jpeg";
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const { isGlassTheme, glassIntensity } = useTheme();
   const { appBackground } = useBackground();
   const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
+  const [isAssistantOpen, setIsAssistantOpen] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -106,7 +111,30 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                   }
             }
           >
-            <SidebarTrigger />
+            <div className="flex items-center gap-3">
+              <SidebarTrigger />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-10 w-10 rounded-full p-0 overflow-hidden hover:ring-2 hover:ring-primary"
+                      onClick={() => setIsAssistantOpen(true)}
+                    >
+                      <img
+                        src={chickenIcon}
+                        alt="Ask the Chicken"
+                        className="h-full w-full object-cover"
+                      />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Ask the Chicken</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             {profile && (
               <div className="flex items-center gap-3">
                 <div className="text-right">
@@ -129,6 +157,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         </main>
       </div>
       <FloatingChatAssistant />
+      <CommunityAssistantDialog open={isAssistantOpen} onOpenChange={setIsAssistantOpen} />
     </SidebarProvider>
   );
 };
