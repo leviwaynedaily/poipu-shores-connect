@@ -14,6 +14,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -61,9 +62,12 @@ export function AppSidebar() {
     >
       <SidebarContent>
         <SidebarGroup>
-          <div className={`flex items-center justify-center border-b border-border/20 ${open ? "gap-3 px-4 py-6" : "py-6"}`}>
-            <img src={logoIcon} alt="Poipu Shores Logo" className={open ? "h-8 w-auto" : "h-8 w-auto"} />
-            {open && <img src={logoText} alt="Poipu Shores" className="h-6 w-auto" />}
+          <div className={`flex items-center border-b border-border/20 ${open ? "justify-between px-4 py-6" : "justify-center py-6"}`}>
+            <div className="flex items-center gap-3">
+              <img src={logoIcon} alt="Poipu Shores Logo" className="h-8 w-auto" />
+              {open && <img src={logoText} alt="Poipu Shores" className="h-6 w-auto" />}
+            </div>
+            {open && <SidebarTrigger />}
           </div>
           <SidebarGroupContent>
             <SidebarMenu>
