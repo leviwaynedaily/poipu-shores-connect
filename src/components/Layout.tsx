@@ -85,6 +85,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                   }
             }
           >
+            <SidebarTrigger />
           </header>
           <div className="p-6 flex-1">
             {children}
