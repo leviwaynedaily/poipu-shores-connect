@@ -44,8 +44,10 @@ import {
   Edit,
   FolderInput,
   Home,
+  Eye,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { DocumentViewer } from "./DocumentViewer";
 
 interface FolderItem {
   id: string;
@@ -88,6 +90,7 @@ export function DocumentBrowser({ canManage, onRefresh }: DocumentBrowserProps) 
   const [renameTarget, setRenameTarget] = useState<{ id: string; name: string; type: "folder" | "document" } | null>(null);
   const [moveTarget, setMoveTarget] = useState<{ id: string; type: "folder" | "document" } | null>(null);
   const [targetFolderId, setTargetFolderId] = useState<string | null>(null);
+  const [viewingDocument, setViewingDocument] = useState<{ id: string; title: string; filePath: string; fileType: string | null } | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -557,6 +560,13 @@ export function DocumentBrowser({ canManage, onRefresh }: DocumentBrowserProps) 
                     <Button
                       size="sm"
                       variant="outline"
+                      onClick={() => setViewingDocument({ id: doc.id, title: doc.title, filePath: doc.file_path, fileType: doc.file_type })}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
                       onClick={() => handleDownload(doc.file_path, doc.title)}
                     >
                       <Download className="h-4 w-4" />
@@ -690,6 +700,17 @@ export function DocumentBrowser({ canManage, onRefresh }: DocumentBrowserProps) 
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Document Viewer */}
+      {viewingDocument && (
+        <DocumentViewer
+          documentId={viewingDocument.id}
+          documentTitle={viewingDocument.title}
+          filePath={viewingDocument.filePath}
+          fileType={viewingDocument.fileType}
+          onClose={() => setViewingDocument(null)}
+        />
+      )}
     </div>
   );
 }
