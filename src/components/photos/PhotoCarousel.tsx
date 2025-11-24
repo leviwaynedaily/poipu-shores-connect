@@ -54,7 +54,7 @@ export function PhotoCarousel() {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-4 gap-4">
         {[1, 2, 3, 4].map((i) => (
           <Skeleton key={i} className="w-full h-48" />
         ))}
@@ -71,7 +71,7 @@ export function PhotoCarousel() {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       {photos.map((photo) => (
         <div
           key={photo.id}
@@ -83,14 +83,11 @@ export function PhotoCarousel() {
             alt={photo.title}
             className="w-full h-48 object-cover transition-transform group-hover:scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent">
             <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
-              <h4 className="font-semibold text-sm">{photo.title}</h4>
-              {photo.caption && (
-                <p className="text-xs opacity-90 line-clamp-1">{photo.caption}</p>
-              )}
-              <p className="text-xs opacity-75 mt-1">
-                By {photo.profiles.full_name}
+              <h4 className="font-semibold text-sm line-clamp-1">{photo.title}</h4>
+              <p className="text-xs opacity-90 mt-0.5">
+                by {photo.profiles.full_name}
               </p>
             </div>
           </div>
