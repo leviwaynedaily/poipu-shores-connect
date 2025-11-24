@@ -1,8 +1,10 @@
-import { Home, Megaphone, MessageSquare, FileText, Camera, User, Users, LogOut, Settings } from "lucide-react";
+import { Home, Megaphone, MessageSquare, FileText, Camera, User, Users, LogOut, Settings, Edit } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import logoIcon from "@/assets/poipu-logo-icon.png";
 import logoText from "@/assets/poipu-text.png";
 import {
@@ -23,6 +25,14 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home },
@@ -37,9 +47,27 @@ const menuItems = [
 export function AppSidebar() {
   const { open } = useSidebar();
   const location = useLocation();
-  const { signOut, isAdmin } = useAuth();
+  const navigate = useNavigate();
+  const { user, signOut, isAdmin } = useAuth();
   const { isGlassTheme, glassIntensity } = useTheme();
   const currentPath = location.pathname;
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) return;
+      
+      const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+      
+      if (data) setProfile(data);
+    };
+
+    fetchProfile();
+  }, [user]);
 
   const isActive = (path: string) => currentPath === path;
 
@@ -184,33 +212,52 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
         
-        <div className="mt-auto p-4">
-          {!open ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={signOut}
-                  variant="outline"
-                  className="w-full text-base py-5"
-                >
-                  <LogOut className="h-5 w-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right" className="font-medium">
-                Sign Out
-              </TooltipContent>
-            </Tooltip>
-          ) : (
-            <Button
-              onClick={signOut}
-              variant="outline"
-              className="w-full text-base py-5"
-            >
-              <LogOut className="h-5 w-5 mr-2" />
-              <span>Sign Out</span>
-            </Button>
-          )}
-        </div>
+        {profile && (
+          <div className="mt-auto border-t border-border/20">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="w-full p-4 hover:bg-accent/50 transition-colors focus:outline-none">
+                  {!open ? (
+                    <div className="flex justify-center">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={profile.avatar_url || ""} />
+                        <AvatarFallback>
+                          {profile.full_name.split(" ").map((n: string) => n[0]).join("").toUpperCase() || "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={profile.avatar_url || ""} />
+                        <AvatarFallback>
+                          {profile.full_name.split(" ").map((n: string) => n[0]).join("").toUpperCase() || "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0 text-left">
+                        <p className="text-sm font-semibold text-foreground truncate">{profile.full_name}</p>
+                        {profile.unit_number && (
+                          <p className="text-xs text-muted-foreground">Unit {profile.unit_number}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={() => navigate("/profile")}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Profile
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={signOut}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
       </SidebarContent>
     </Sidebar>
   );
