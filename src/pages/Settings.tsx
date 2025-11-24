@@ -10,7 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Loader2, Sparkles, Upload, Save } from "lucide-react";
+import { Loader2, Sparkles, Upload, Save, X } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 
@@ -154,6 +154,16 @@ export default function Settings() {
     toast.success("Photo selected!");
   };
 
+  const clearBackground = (type: "home" | "app") => {
+    const setBackground = type === "home" ? setHomeBackground : setAppBackground;
+    setBackground({
+      type: "default",
+      url: null,
+      opacity: 100,
+    });
+    toast.success("Background cleared!");
+  };
+
   const saveSettings = async () => {
     setIsSaving(true);
     try {
@@ -263,8 +273,18 @@ export default function Settings() {
               )}
             </Button>
             {background.url && background.url.trim() !== "" && background.type === "generated" && (
-              <div className="mt-4">
-                <p className="text-sm text-muted-foreground mb-2">Preview:</p>
+              <div className="mt-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Generated Preview</Label>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => clearBackground(type)}
+                  >
+                    <X className="mr-2 h-4 w-4" />
+                    Clear
+                  </Button>
+                </div>
                 <img
                   src={background.url}
                   alt="Background preview"
@@ -284,32 +304,60 @@ export default function Settings() {
         <Card>
           <CardHeader>
             <CardTitle>Choose from Uploaded Photos</CardTitle>
-            <CardDescription>Select from community photos</CardDescription>
+            <CardDescription>Select from community photos or clear current background</CardDescription>
           </CardHeader>
-          <CardContent>
-            {photos.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">No community photos available yet</p>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {photos.map((photo) => (
-                  <div
-                    key={photo.id}
-                    className="relative cursor-pointer group"
-                    onClick={() => selectPhoto(photo.file_path, type)}
+          <CardContent className="space-y-4">
+            {(background.type === "uploaded" || background.type === "generated") && background.url && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Current Background</Label>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => clearBackground(type)}
                   >
-                    <img
-                      src={supabase.storage.from("community_photos").getPublicUrl(photo.file_path).data.publicUrl}
-                      alt={photo.title}
-                      className="w-full h-32 object-cover rounded-lg group-hover:opacity-75 transition-opacity"
-                      onError={(e) => {
-                        e.currentTarget.src = "https://placehold.co/400x300?text=Image+Not+Found";
-                      }}
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Upload className="h-8 w-8 text-white" />
+                    <X className="mr-2 h-4 w-4" />
+                    Clear
+                  </Button>
+                </div>
+                <div className="relative">
+                  <img
+                    src={background.url}
+                    alt="Current background"
+                    className="w-full h-32 object-cover rounded-lg"
+                    onError={(e) => {
+                      e.currentTarget.src = "https://placehold.co/400x300?text=Image+Not+Found";
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+            {photos.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">No community photos available yet. Upload photos in the Photos section.</p>
+            ) : (
+              <div className="space-y-2">
+                <Label>Select a Photo</Label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {photos.map((photo) => (
+                    <div
+                      key={photo.id}
+                      className="relative cursor-pointer group"
+                      onClick={() => selectPhoto(photo.file_path, type)}
+                    >
+                      <img
+                        src={supabase.storage.from("community_photos").getPublicUrl(photo.file_path).data.publicUrl}
+                        alt={photo.title}
+                        className="w-full h-32 object-cover rounded-lg group-hover:opacity-75 transition-opacity"
+                        onError={(e) => {
+                          e.currentTarget.src = "https://placehold.co/400x300?text=Image+Not+Found";
+                        }}
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 rounded-lg">
+                        <Upload className="h-8 w-8 text-white" />
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
           </CardContent>
@@ -324,7 +372,19 @@ export default function Settings() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Select Color</Label>
+              <div className="flex items-center justify-between">
+                <Label>Select Color</Label>
+                {background.type === "color" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => clearBackground(type)}
+                  >
+                    <X className="mr-2 h-4 w-4" />
+                    Clear
+                  </Button>
+                )}
+              </div>
               <Input
                 type="color"
                 value={background.color || "#ffffff"}
@@ -351,6 +411,18 @@ export default function Settings() {
             <CardDescription>Create a gradient background</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {background.type === "gradient" && (
+              <div className="flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => clearBackground(type)}
+                >
+                  <X className="mr-2 h-4 w-4" />
+                  Clear
+                </Button>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Start Color</Label>
