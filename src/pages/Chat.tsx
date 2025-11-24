@@ -646,7 +646,7 @@ const Chat = () => {
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Type your message..."
                 className="text-lg resize-none"
-                rows={2}
+                rows={1}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
