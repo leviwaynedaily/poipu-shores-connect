@@ -253,7 +253,15 @@ export type Database = {
           title?: string
           uploaded_by?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "community_photos_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       document_chat_messages: {
         Row: {
