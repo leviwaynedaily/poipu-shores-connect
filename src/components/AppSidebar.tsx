@@ -39,8 +39,8 @@ const menuItems = [
   { title: "Announcements", url: "/announcements", icon: Megaphone },
   { title: "Community Chat", url: "/chat", icon: MessageSquare },
   { title: "Documents", url: "/documents", icon: FileText },
-  { title: "Photos", url: "/photos", icon: Camera },
-  { title: "Members", url: "/members", icon: Users },
+  { title: "Community Photos", url: "/photos", icon: Camera },
+  { title: "Poipu Members", url: "/members", icon: Users },
 ];
 
 export function AppSidebar() {
