@@ -4,7 +4,6 @@ import { Footer } from "@/components/Footer";
 import { FloatingChatAssistant } from "@/components/FloatingChatAssistant";
 import { useTheme } from "@/contexts/ThemeContext";
 import beachImage from "@/assets/condo-oceanfront.jpeg";
-import headerLogo from "@/assets/header-logo.png";
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const { isGlassTheme, glassIntensity } = useTheme();
@@ -47,7 +46,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             }
           >
             <SidebarTrigger className="mr-4" />
-            <img src={headerLogo} alt="Poipu Shores - Kauai, Hawaii" className="h-12" />
           </header>
           <div className="p-6 flex-1">
             {children}
