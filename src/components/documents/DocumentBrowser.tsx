@@ -543,7 +543,10 @@ export function DocumentBrowser({ canManage, onRefresh }: DocumentBrowserProps) 
             {documents.map((doc) => (
               <TableRow key={doc.id}>
                 <TableCell className="font-medium">
-                  <div className="flex items-center gap-2">
+                  <div 
+                    className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors"
+                    onClick={() => setViewingDocument({ id: doc.id, title: doc.title, filePath: doc.file_path, fileType: doc.file_type })}
+                  >
                     <FileText className="h-5 w-5" />
                     {doc.title}
                   </div>
@@ -557,13 +560,6 @@ export function DocumentBrowser({ canManage, onRefresh }: DocumentBrowserProps) 
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setViewingDocument({ id: doc.id, title: doc.title, filePath: doc.file_path, fileType: doc.file_type })}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
                     <Button
                       size="sm"
                       variant="outline"
