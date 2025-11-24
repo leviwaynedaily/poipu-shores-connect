@@ -77,30 +77,30 @@ const Dashboard = () => {
         className="cursor-pointer hover:border-primary transition-all hover:shadow-lg bg-gradient-to-r from-card to-card/80"
         onClick={() => setIsAssistantOpen(true)}
       >
-        <CardHeader>
-          <div className="flex items-center gap-4">
+        <CardHeader className="p-4 md:p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 md:gap-4">
             <img
               src={chickenIcon}
               alt="Community Assistant"
-              className="h-20 w-20 rounded-full object-cover ring-2 ring-primary/20"
+              className="h-16 w-16 sm:h-20 sm:w-20 rounded-full object-cover ring-2 ring-primary/20 flex-shrink-0"
             />
-            <div className="flex-1">
-              <CardTitle className="text-3xl mb-2">Ask the Chicken</CardTitle>
-              <CardDescription className="text-lg">
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-xl sm:text-2xl md:text-3xl mb-1 md:mb-2">Ask the Chicken</CardTitle>
+              <CardDescription className="text-sm sm:text-base md:text-lg">
                 Your AI assistant for documents, announcements, emergency info, and more!
               </CardDescription>
             </div>
-            <Button size="lg" className="h-12 px-6">
-              <MessageCircle className="mr-2 h-5 w-5" />
+            <Button size="lg" className="h-10 sm:h-12 px-4 sm:px-6 w-full sm:w-auto shrink-0">
+              <MessageCircle className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
               Start Chat
             </Button>
           </div>
         </CardHeader>
       </Card>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
         <Link to="/chat">
-          <Card className="cursor-pointer hover:border-primary transition-colors">
+          <Card className="cursor-pointer hover:border-primary transition-colors h-full">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Community Activity</CardTitle>
               <MessageSquare className="h-4 w-4 text-muted-foreground" />
@@ -113,7 +113,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/documents">
-          <Card className="cursor-pointer hover:border-primary transition-colors">
+          <Card className="cursor-pointer hover:border-primary transition-colors h-full">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Documents</CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
@@ -126,7 +126,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/members">
-          <Card className="cursor-pointer hover:border-primary transition-colors">
+          <Card className="cursor-pointer hover:border-primary transition-colors h-full">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Community Members</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
@@ -139,66 +139,66 @@ const Dashboard = () => {
         </Link>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
         <LiveCameraEmbed />
         <WeatherAndBeachConditions />
       </div>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0 p-4 sm:p-6">
           <div>
-            <CardTitle className="text-2xl">Community Photos</CardTitle>
-            <CardDescription className="text-lg">Recent photos from Poipu Shores</CardDescription>
+            <CardTitle className="text-xl sm:text-2xl">Community Photos</CardTitle>
+            <CardDescription className="text-sm sm:text-base md:text-lg">Recent photos from Poipu Shores</CardDescription>
           </div>
           <Link to="/photos">
-            <button className="text-sm text-primary hover:underline font-medium">
+            <button className="text-sm text-primary hover:underline font-medium whitespace-nowrap">
               View All Photos →
             </button>
           </Link>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6">
           <PhotoCarousel />
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
         <EmergencyContacts />
 
         <Link to="/announcements">
-          <Card className="cursor-pointer hover:border-primary transition-colors">
-            <CardHeader>
-              <CardTitle className="text-2xl">Recent Announcements</CardTitle>
-              <CardDescription className="text-lg">
+          <Card className="cursor-pointer hover:border-primary transition-colors h-full">
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-xl sm:text-2xl">Recent Announcements</CardTitle>
+              <CardDescription className="text-sm sm:text-base md:text-lg">
                 Important updates from the board and administration
               </CardDescription>
             </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
             {announcements.length === 0 ? (
-              <p className="text-lg text-muted-foreground">No announcements yet.</p>
+              <p className="text-sm sm:text-base text-muted-foreground">No announcements yet.</p>
             ) : (
               announcements.map((announcement) => (
                 <Card key={announcement.id} className="border-2">
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
+                  <CardHeader className="p-3 sm:p-4 md:p-6">
+                    <div className="flex items-start justify-between gap-2 sm:gap-4">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
                           {announcement.is_pinned && (
-                            <Badge variant="secondary" className="text-base">
-                              <Pin className="h-4 w-4 mr-1" />
+                            <Badge variant="secondary" className="text-xs sm:text-sm">
+                              <Pin className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                               Pinned
                             </Badge>
                           )}
                         </div>
-                        <CardTitle className="text-xl">{announcement.title}</CardTitle>
-                        <CardDescription className="text-base mt-1">
+                        <CardTitle className="text-base sm:text-lg md:text-xl break-words">{announcement.title}</CardTitle>
+                        <CardDescription className="text-xs sm:text-sm md:text-base mt-1">
                           Posted by {announcement.profiles.full_name} on{" "}
                           {format(new Date(announcement.created_at), "MMM dd, yyyy")}
                         </CardDescription>
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-base whitespace-pre-wrap">{announcement.content}</p>
+                  <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
+                    <p className="text-sm sm:text-base whitespace-pre-wrap break-words">{announcement.content}</p>
                   </CardContent>
                 </Card>
               ))
