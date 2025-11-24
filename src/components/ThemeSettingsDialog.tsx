@@ -3,8 +3,11 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { useTheme } from '@/contexts/ThemeContext';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Upload } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface ThemeSettingsDialogProps {
   open: boolean;
@@ -14,6 +17,8 @@ interface ThemeSettingsDialogProps {
 export const ThemeSettingsDialog = ({ open, onOpenChange }: ThemeSettingsDialogProps) => {
   const { isGlassTheme, toggleGlassTheme, glassIntensity, setGlassIntensity } = useTheme();
   const [localIntensity, setLocalIntensity] = useState(glassIntensity);
+  const [uploading, setUploading] = useState(false);
+  const { toast } = useToast();
 
   const handleToggleTheme = async () => {
     await toggleGlassTheme();
@@ -26,6 +31,74 @@ export const ThemeSettingsDialog = ({ open, onOpenChange }: ThemeSettingsDialogP
   const handleSaveIntensity = async () => {
     await setGlassIntensity(localIntensity);
     onOpenChange(false);
+  };
+
+  const handleFaviconUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file (PNG, ICO, SVG, etc.)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const filePath = `favicon-${Date.now()}.${fileExt}`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Save to app_settings
+      const { error: settingsError } = await supabase
+        .from('app_settings')
+        .upsert({
+          setting_key: 'favicon_url',
+          setting_value: publicUrl,
+        }, {
+          onConflict: 'setting_key',
+        });
+
+      if (settingsError) throw settingsError;
+
+      // Update favicon in document head
+      const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement || document.createElement('link');
+      link.type = 'image/x-icon';
+      link.rel = 'icon';
+      link.href = publicUrl;
+      if (!document.querySelector("link[rel*='icon']")) {
+        document.head.appendChild(link);
+      }
+
+      toast({
+        title: "Success",
+        description: "Favicon updated successfully",
+      });
+    } catch (error: any) {
+      console.error('Error uploading favicon:', error);
+      toast({
+        title: "Upload failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -76,6 +149,26 @@ export const ThemeSettingsDialog = ({ open, onOpenChange }: ThemeSettingsDialogP
               </p>
             </div>
           )}
+
+          {/* Favicon Upload */}
+          <div className="space-y-3">
+            <Label>Custom Favicon</Label>
+            <div className="flex items-center gap-3">
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleFaviconUpload}
+                disabled={uploading}
+                className="flex-1"
+              />
+              {uploading && (
+                <span className="text-sm text-muted-foreground">Uploading...</span>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Upload a custom favicon (PNG, ICO, SVG). Recommended size: 32x32 or 64x64 pixels.
+            </p>
+          </div>
         </div>
 
         <div className="flex justify-end gap-2">
