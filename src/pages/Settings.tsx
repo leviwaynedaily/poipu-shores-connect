@@ -55,6 +55,7 @@ export default function Settings() {
   const [initialHomeBackground, setInitialHomeBackground] = useState<BackgroundSetting | null>(null);
   const [initialAppBackground, setInitialAppBackground] = useState<BackgroundSetting | null>(null);
   const [useSameBackground, setUseSameBackground] = useState(false);
+  const [initialUseSameBackground, setInitialUseSameBackground] = useState(false);
   const [initialGlassIntensity, setInitialGlassIntensity] = useState(glassIntensity);
 
   const handleGlassIntensityChange = (value: number[]) => {
@@ -92,6 +93,12 @@ export default function Settings() {
       .eq("setting_key", "app_background")
       .single();
 
+    const { data: toggleData } = await supabase
+      .from("app_settings")
+      .select("setting_value")
+      .eq("setting_key", "use_same_background")
+      .single();
+
     if (homeData?.setting_value) {
       const value = homeData.setting_value as any;
       setHomeBackground(value);
@@ -101,6 +108,11 @@ export default function Settings() {
       const value = appData.setting_value as any;
       setAppBackground(value);
       setInitialAppBackground(value);
+    }
+    if (toggleData?.setting_value !== undefined) {
+      const value = toggleData.setting_value as boolean;
+      setUseSameBackground(value);
+      setInitialUseSameBackground(value);
     }
   };
 
@@ -217,6 +229,12 @@ export default function Settings() {
         updated_by: user?.id,
       };
 
+      const toggleUpdate = {
+        setting_key: "use_same_background",
+        setting_value: useSameBackground,
+        updated_by: user?.id,
+      };
+
       const { error: homeError } = await supabase
         .from("app_settings")
         .update(homeUpdate)
@@ -231,8 +249,16 @@ export default function Settings() {
 
       if (appError) throw appError;
 
+      // Upsert the toggle setting (it may not exist yet)
+      const { error: toggleError } = await supabase
+        .from("app_settings")
+        .upsert(toggleUpdate, { onConflict: "setting_key" });
+
+      if (toggleError) throw toggleError;
+
       setInitialHomeBackground(homeBackground);
       setInitialAppBackground(appBackground);
+      setInitialUseSameBackground(useSameBackground);
       setInitialGlassIntensity(localGlassIntensity);
       setHasChanges(false);
       await refreshBackgrounds();
@@ -249,8 +275,9 @@ export default function Settings() {
     const homeChanged = JSON.stringify(homeBackground) !== JSON.stringify(initialHomeBackground);
     const appChanged = JSON.stringify(appBackground) !== JSON.stringify(initialAppBackground);
     const intensityChanged = localGlassIntensity !== initialGlassIntensity;
-    setHasChanges(homeChanged || appChanged || intensityChanged);
-  }, [homeBackground, appBackground, initialHomeBackground, initialAppBackground, localGlassIntensity, initialGlassIntensity]);
+    const toggleChanged = useSameBackground !== initialUseSameBackground;
+    setHasChanges(homeChanged || appChanged || intensityChanged || toggleChanged);
+  }, [homeBackground, appBackground, initialHomeBackground, initialAppBackground, localGlassIntensity, initialGlassIntensity, useSameBackground, initialUseSameBackground]);
 
   useEffect(() => {
     if (useSameBackground) {
