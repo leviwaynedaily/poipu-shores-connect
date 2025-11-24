@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBackground } from "@/contexts/BackgroundContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +33,7 @@ interface CommunityPhoto {
 export default function Settings() {
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
+  const { isGlassTheme, toggleGlassTheme, glassIntensity, setGlassIntensity } = useTheme();
   const {
     homeBackground: contextHomeBackground,
     appBackground: contextAppBackground,
@@ -42,6 +44,7 @@ export default function Settings() {
   
   const [homeBackground, setHomeBackground] = useState(contextHomeBackground);
   const [appBackground, setAppBackground] = useState(contextAppBackground);
+  const [localGlassIntensity, setLocalGlassIntensity] = useState(glassIntensity);
   const [homePrompt, setHomePrompt] = useState("");
   const [appPrompt, setAppPrompt] = useState("");
   const [isGeneratingHome, setIsGeneratingHome] = useState(false);
@@ -52,6 +55,12 @@ export default function Settings() {
   const [initialHomeBackground, setInitialHomeBackground] = useState<BackgroundSetting | null>(null);
   const [initialAppBackground, setInitialAppBackground] = useState<BackgroundSetting | null>(null);
   const [useSameBackground, setUseSameBackground] = useState(false);
+  const [initialGlassIntensity, setInitialGlassIntensity] = useState(glassIntensity);
+
+  const handleGlassIntensityChange = (value: number[]) => {
+    setLocalGlassIntensity(value[0]);
+    setGlassIntensity(value[0]);
+  };
 
   useEffect(() => {
     if (!isAdmin) {
@@ -178,6 +187,7 @@ export default function Settings() {
 
       setInitialHomeBackground(homeBackground);
       setInitialAppBackground(appBackground);
+      setInitialGlassIntensity(localGlassIntensity);
       setHasChanges(false);
       await refreshBackgrounds();
       toast.success("Settings saved successfully!");
@@ -192,8 +202,9 @@ export default function Settings() {
   useEffect(() => {
     const homeChanged = JSON.stringify(homeBackground) !== JSON.stringify(initialHomeBackground);
     const appChanged = JSON.stringify(appBackground) !== JSON.stringify(initialAppBackground);
-    setHasChanges(homeChanged || appChanged);
-  }, [homeBackground, appBackground, initialHomeBackground, initialAppBackground]);
+    const intensityChanged = localGlassIntensity !== initialGlassIntensity;
+    setHasChanges(homeChanged || appChanged || intensityChanged);
+  }, [homeBackground, appBackground, initialHomeBackground, initialAppBackground, localGlassIntensity, initialGlassIntensity]);
 
   useEffect(() => {
     if (useSameBackground) {
@@ -437,8 +448,8 @@ export default function Settings() {
     <div className="container mx-auto py-8 px-4 max-w-6xl">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold mb-2">Background Settings</h1>
-          <p className="text-muted-foreground">Customize the backgrounds for your application</p>
+          <h1 className="text-4xl font-bold mb-2">Theme Settings</h1>
+          <p className="text-muted-foreground">Customize your app's theme and backgrounds</p>
         </div>
         {hasChanges && (
           <Button onClick={saveSettings} disabled={isSaving} size="lg">
@@ -469,10 +480,66 @@ export default function Settings() {
       </div>
 
       <Tabs defaultValue="home" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="theme">Theme Mode</TabsTrigger>
           <TabsTrigger value="home">Home Screen</TabsTrigger>
           <TabsTrigger value="app" disabled={useSameBackground}>App Background</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="theme">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5" />
+                Theme Mode
+              </CardTitle>
+              <CardDescription>
+                Choose between Classic and Glass theme modes
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-3">
+                <Label>Current Mode</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    onClick={toggleGlassTheme}
+                    variant={!isGlassTheme ? "default" : "outline"}
+                    className="w-full"
+                  >
+                    Classic Mode
+                  </Button>
+                  <Button
+                    onClick={toggleGlassTheme}
+                    variant={isGlassTheme ? "default" : "outline"}
+                    className="w-full"
+                  >
+                    ✨ Glass Mode
+                  </Button>
+                </div>
+              </div>
+
+              {isGlassTheme && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label>Glass Effect Intensity</Label>
+                    <span className="text-sm text-muted-foreground">{localGlassIntensity}%</span>
+                  </div>
+                  <Slider
+                    value={[localGlassIntensity]}
+                    onValueChange={handleGlassIntensityChange}
+                    min={0}
+                    max={100}
+                    step={5}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Adjust card opacity (0% = transparent glass, 100% = completely solid)
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="home">
           {renderBackgroundTabs(
