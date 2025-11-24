@@ -11,7 +11,7 @@ export const Footer = () => {
           <span>•</span>
           <span>1775 Pe'e Rd, Poipu, HI 96756</span>
           <span>•</span>
-          <span>Built by <a href="https://www.cooksolutionsgroup.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground hover:text-primary transition-colors">Cook Solutions Group</a></span>
+          <span>Built by <a href="https://www.cooksolutionsgroup.com" target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-primary transition-colors">Cook Solutions Group</a></span>
           <span>•</span>
           <Link 
             to="/privacy-policy" 
