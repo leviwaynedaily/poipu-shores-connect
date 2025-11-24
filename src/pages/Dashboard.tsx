@@ -8,7 +8,7 @@ import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { WeatherAndBeachConditions } from "@/components/dashboard/WeatherAndBeachConditions";
 import { EmergencyContacts } from "@/components/dashboard/EmergencyContacts";
-import { LiveCameraEmbed } from "@/components/dashboard/LiveCameraEmbed";
+import { LiveCameraDropdown } from "@/components/dashboard/LiveCameraDropdown";
 import { PhotoCarousel } from "@/components/photos/PhotoCarousel";
 import { AnnouncementDialog } from "@/components/AnnouncementDialog";
 
@@ -133,8 +133,16 @@ const Dashboard = () => {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-2xl">Live Beach Cameras</CardTitle>
+              <LiveCameraDropdown />
+            </div>
+            <CardDescription className="text-lg">View live webcam feeds from around Poipu</CardDescription>
+          </CardHeader>
+        </Card>
         <WeatherAndBeachConditions />
-        <LiveCameraEmbed />
       </div>
 
       <PhotoCarousel />
