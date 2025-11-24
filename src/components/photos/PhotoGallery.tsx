@@ -12,7 +12,6 @@ import { Search, Calendar, User, Trash2, Camera, MapPin, ChevronLeft, ChevronRig
 import { formatDistanceToNow, format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { useEffect as useKeyboardEffect } from "react";
 
 interface Photo {
   id: string;
@@ -158,7 +157,7 @@ export function PhotoGallery() {
   };
 
   // Keyboard navigation
-  useKeyboardEffect(() => {
+  useEffect(() => {
     if (!selectedPhoto) return;
 
     const handleKeyPress = (e: KeyboardEvent) => {
