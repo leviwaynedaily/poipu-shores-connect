@@ -4,6 +4,9 @@ import { Settings, Palette, Webcam, Phone, Users } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { ThemeSettingsDialog } from "@/components/ThemeSettingsDialog";
 import { UserManagement } from "@/components/settings/UserManagement";
+import { WebcamManagement } from "@/components/settings/WebcamManagement";
+import { EmergencyContactManagement } from "@/components/settings/EmergencyContactManagement";
+import { GeneralSettings } from "@/components/settings/GeneralSettings";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -66,51 +69,15 @@ export default function AdminSettings() {
         </TabsContent>
 
         <TabsContent value="webcams" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Live Webcams</CardTitle>
-              <CardDescription>
-                Manage live camera feeds displayed on the dashboard
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Coming soon: Add, edit, and remove webcam streams
-              </p>
-            </CardContent>
-          </Card>
+          <WebcamManagement />
         </TabsContent>
 
         <TabsContent value="emergency" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Emergency Contacts</CardTitle>
-              <CardDescription>
-                Manage emergency contact information for the community
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Coming soon: Add, edit, and remove emergency contacts
-              </p>
-            </CardContent>
-          </Card>
+          <EmergencyContactManagement />
         </TabsContent>
 
         <TabsContent value="general" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>General Settings</CardTitle>
-              <CardDescription>
-                Configure general application settings
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Coming soon: General configuration options
-              </p>
-            </CardContent>
-          </Card>
+          <GeneralSettings />
         </TabsContent>
       </Tabs>
 
