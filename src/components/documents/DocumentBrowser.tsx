@@ -422,11 +422,10 @@ export function DocumentBrowser({ canManage, onRefresh }: DocumentBrowserProps) 
             {currentFolderId && (
               <BreadcrumbItem>
                 <BreadcrumbLink
-                  className="cursor-pointer flex items-center gap-1"
+                  className="cursor-pointer"
                   onClick={() => setCurrentFolderId(null)}
                 >
                   <Home className="h-4 w-4" />
-                  Root
                 </BreadcrumbLink>
               </BreadcrumbItem>
             )}
