@@ -91,6 +91,7 @@ export function DocumentBrowser({ canManage, onRefresh }: DocumentBrowserProps) 
   const [moveTarget, setMoveTarget] = useState<{ id: string; type: "folder" | "document" } | null>(null);
   const [targetFolderId, setTargetFolderId] = useState<string | null>(null);
   const [viewingDocument, setViewingDocument] = useState<{ id: string; title: string; filePath: string; fileType: string | null } | null>(null);
+  const [draggedDocument, setDraggedDocument] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -289,6 +290,46 @@ export function DocumentBrowser({ canManage, onRefresh }: DocumentBrowserProps) 
     }
   };
 
+  const handleDragStart = (e: React.DragEvent, documentId: string) => {
+    setDraggedDocument(documentId);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetFolderId: string | null) => {
+    e.preventDefault();
+    if (!draggedDocument || !canManage) return;
+
+    try {
+      const { error } = await supabase
+        .from("documents")
+        .update({ folder_id: targetFolderId })
+        .eq("id", draggedDocument);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Document moved successfully",
+      });
+
+      fetchData();
+      onRefresh?.();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setDraggedDocument(null);
+    }
+  };
+
   const handleDeleteFolder = async (folderId: string) => {
     if (!confirm("Are you sure? This will delete the folder and all its contents."))
       return;
@@ -464,7 +505,12 @@ export function DocumentBrowser({ canManage, onRefresh }: DocumentBrowserProps) 
       {isLoading ? (
         <div className="text-center py-8">Loading...</div>
       ) : (
-        <Table>
+        <div
+          onDragOver={canManage ? handleDragOver : undefined}
+          onDrop={canManage ? (e) => handleDrop(e, null) : undefined}
+          className={draggedDocument ? "ring-2 ring-primary/20 rounded-lg" : ""}
+        >
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
@@ -478,8 +524,12 @@ export function DocumentBrowser({ canManage, onRefresh }: DocumentBrowserProps) 
             {folders.map((folder) => (
               <TableRow
                 key={folder.id}
-                className="cursor-pointer hover:bg-muted/50"
+                className={`cursor-pointer hover:bg-muted/50 transition-colors ${
+                  draggedDocument ? "hover:bg-primary/10" : ""
+                }`}
                 onClick={() => setCurrentFolderId(folder.id)}
+                onDragOver={canManage ? handleDragOver : undefined}
+                onDrop={canManage ? (e) => handleDrop(e, folder.id) : undefined}
               >
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
@@ -541,7 +591,12 @@ export function DocumentBrowser({ canManage, onRefresh }: DocumentBrowserProps) 
             ))}
 
             {documents.map((doc) => (
-              <TableRow key={doc.id}>
+              <TableRow 
+                key={doc.id}
+                draggable={canManage}
+                onDragStart={canManage ? (e) => handleDragStart(e, doc.id) : undefined}
+                className={canManage ? "cursor-move" : ""}
+              >
                 <TableCell className="font-medium">
                   <div 
                     className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors"
@@ -624,6 +679,7 @@ export function DocumentBrowser({ canManage, onRefresh }: DocumentBrowserProps) 
             )}
           </TableBody>
         </Table>
+        </div>
       )}
 
       {/* New Folder Dialog */}
