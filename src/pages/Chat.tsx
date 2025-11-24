@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Send, Settings, Trash2 } from "lucide-react";
+import { Send, Settings, Trash2, Image as ImageIcon, X, Smile, Reply } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { ChannelManager } from "@/components/ChannelManager";
@@ -18,10 +18,20 @@ interface Message {
   created_at: string;
   author_id: string;
   channel_id: string;
+  image_url: string | null;
+  reply_to: string | null;
   profiles: {
     full_name: string;
     avatar_url: string | null;
   };
+  reply_message?: Message;
+  reactions?: MessageReaction[];
+}
+
+interface MessageReaction {
+  emoji: string;
+  count: number;
+  user_ids: string[];
 }
 
 interface Channel {
@@ -41,6 +51,11 @@ const Chat = () => {
   const [showChannelManager, setShowChannelManager] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     checkAdminStatus();
@@ -61,6 +76,17 @@ const Chat = () => {
             schema: "public",
             table: "chat_messages",
             filter: `channel_id=eq.${selectedChannel}`,
+          },
+          () => {
+            fetchMessages();
+          }
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "chat_message_reactions",
           },
           () => {
             fetchMessages();
@@ -171,15 +197,52 @@ const Chat = () => {
       .select("id, full_name, avatar_url")
       .in("id", authorIds);
 
-    // Map profiles to messages
+    // Fetch reactions for all messages
+    const { data: reactionsData } = await supabase
+      .from("chat_message_reactions")
+      .select("*")
+      .in("message_id", messagesData.map(m => m.id));
+
+    // Map profiles and reactions to messages
     const messagesWithProfiles = messagesData.map(message => {
       const profile = profilesData?.find(p => p.id === message.author_id);
+      const messageReactions = reactionsData?.filter(r => r.message_id === message.id) || [];
+      
+      // Group reactions by emoji
+      const reactionsMap = new Map<string, MessageReaction>();
+      messageReactions.forEach(r => {
+        const existing = reactionsMap.get(r.emoji);
+        if (existing) {
+          existing.count++;
+          existing.user_ids.push(r.user_id);
+        } else {
+          reactionsMap.set(r.emoji, {
+            emoji: r.emoji,
+            count: 1,
+            user_ids: [r.user_id]
+          });
+        }
+      });
+
+      // Find reply message if exists
+      const replyMessage = message.reply_to 
+        ? messagesData.find(m => m.id === message.reply_to)
+        : null;
+
       return {
         ...message,
         profiles: {
           full_name: profile?.full_name || "Unknown User",
           avatar_url: profile?.avatar_url || null
-        }
+        },
+        reactions: Array.from(reactionsMap.values()),
+        reply_message: replyMessage ? {
+          ...replyMessage,
+          profiles: {
+            full_name: profilesData?.find(p => p.id === replyMessage.author_id)?.full_name || "Unknown User",
+            avatar_url: profilesData?.find(p => p.id === replyMessage.author_id)?.avatar_url || null
+          }
+        } : undefined
       };
     });
 
@@ -201,6 +264,95 @@ const Chat = () => {
     }
   };
 
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Error",
+        description: "Please select an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Error",
+        description: "Image must be less than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImagePreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const uploadImage = async (file: File): Promise<string | null> => {
+    if (!user) return null;
+
+    setUploadingImage(true);
+    const fileExt = file.name.split(".").pop();
+    const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("chat-images")
+      .upload(filePath, file);
+
+    setUploadingImage(false);
+
+    if (uploadError) {
+      toast({
+        title: "Error",
+        description: "Failed to upload image",
+        variant: "destructive",
+      });
+      return null;
+    }
+
+    const { data } = supabase.storage
+      .from("chat-images")
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  };
+
+  const handleReaction = async (messageId: string, emoji: string) => {
+    if (!user) return;
+
+    const message = messages.find(m => m.id === messageId);
+    const existingReaction = message?.reactions?.find(r => 
+      r.emoji === emoji && r.user_ids.includes(user.id)
+    );
+
+    if (existingReaction) {
+      // Remove reaction
+      await supabase
+        .from("chat_message_reactions")
+        .delete()
+        .eq("message_id", messageId)
+        .eq("user_id", user.id)
+        .eq("emoji", emoji);
+    } else {
+      // Add reaction
+      await supabase
+        .from("chat_message_reactions")
+        .insert({
+          message_id: messageId,
+          user_id: user.id,
+          emoji
+        });
+    }
+
+    fetchMessages();
+    setShowEmojiPicker(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -213,7 +365,7 @@ const Chat = () => {
       return;
     }
 
-    if (!newMessage.trim()) {
+    if (!newMessage.trim() && !imagePreview) {
       return;
     }
 
@@ -226,15 +378,21 @@ const Chat = () => {
       return;
     }
 
-    console.log("Sending message to channel:", selectedChannel);
+    let imageUrl = null;
+    if (imagePreview && fileInputRef.current?.files?.[0]) {
+      imageUrl = await uploadImage(fileInputRef.current.files[0]);
+      if (!imageUrl) return;
+    }
 
     const { error } = await supabase
       .from("chat_messages")
       .insert({
-        content: newMessage.trim(),
+        content: newMessage.trim() || "",
         author_id: user.id,
         channel_id: selectedChannel,
         is_private: false,
+        image_url: imageUrl,
+        reply_to: replyingTo?.id || null
       });
 
     if (error) {
@@ -246,6 +404,11 @@ const Chat = () => {
       });
     } else {
       setNewMessage("");
+      setImagePreview(null);
+      setReplyingTo(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -331,36 +494,171 @@ const Chat = () => {
                           {format(new Date(message.created_at), "h:mm a")}
                         </span>
                       </div>
-                      <p className="text-base text-foreground whitespace-pre-wrap mt-1">
-                        {message.content}
-                      </p>
+                      
+                      {message.reply_message && (
+                        <div className="mt-1 pl-3 border-l-2 border-muted-foreground/30 text-sm text-muted-foreground">
+                          <span className="font-medium">{message.reply_message.profiles?.full_name}</span>
+                          <p className="truncate">{message.reply_message.content}</p>
+                        </div>
+                      )}
+                      
+                      {message.content && (
+                        <p className="text-base text-foreground whitespace-pre-wrap mt-1">
+                          {message.content}
+                        </p>
+                      )}
+                      
+                      {message.image_url && (
+                        <img 
+                          src={message.image_url} 
+                          alt="Shared image"
+                          className="mt-2 rounded-lg max-w-sm max-h-96 object-cover"
+                        />
+                      )}
+                      
+                      {message.reactions && message.reactions.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {message.reactions.map((reaction) => {
+                            const userReacted = reaction.user_ids.includes(user?.id || "");
+                            return (
+                              <button
+                                key={reaction.emoji}
+                                onClick={() => handleReaction(message.id, reaction.emoji)}
+                                className={`px-2 py-1 rounded-full text-sm transition-colors ${
+                                  userReacted 
+                                    ? "bg-primary/20 border border-primary" 
+                                    : "bg-muted border border-border hover:bg-muted/80"
+                                }`}
+                              >
+                                {reaction.emoji} {reaction.count}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
-                    {isOwnMessage && (
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 shrink-0">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 h-8 w-8"
-                        onClick={() => handleDeleteMessage(message.id)}
+                        className="h-8 w-8"
+                        onClick={() => setReplyingTo(message)}
                       >
-                        <Trash2 className="h-4 w-4 text-destructive" />
+                        <Reply className="h-4 w-4" />
                       </Button>
-                    )}
+                      <div className="relative">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => setShowEmojiPicker(showEmojiPicker === message.id ? null : message.id)}
+                        >
+                          <Smile className="h-4 w-4" />
+                        </Button>
+                        {showEmojiPicker === message.id && (
+                          <div className="absolute right-0 top-10 bg-popover border rounded-lg p-2 shadow-lg z-10 flex gap-1">
+                            {["👍", "❤️", "😂", "🎉", "🤔", "👏"].map((emoji) => (
+                              <button
+                                key={emoji}
+                                onClick={() => handleReaction(message.id, emoji)}
+                                className="text-2xl hover:scale-125 transition-transform p-1"
+                              >
+                                {emoji}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      {isOwnMessage && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => handleDeleteMessage(message.id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 );
               })}
             </div>
           </ScrollArea>
           
-          <form onSubmit={handleSubmit} className="p-4 border-t">
+          <form onSubmit={handleSubmit} className="p-4 border-t space-y-2">
+            {replyingTo && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
+                <Reply className="h-4 w-4 text-muted-foreground" />
+                <div className="flex-1 text-sm">
+                  <span className="font-medium">Replying to {replyingTo.profiles.full_name}</span>
+                  <p className="text-muted-foreground truncate">{replyingTo.content}</p>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={() => setReplyingTo(null)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+            
+            {imagePreview && (
+              <div className="relative inline-block">
+                <img src={imagePreview} alt="Preview" className="h-20 rounded-lg" />
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  className="absolute -top-2 -right-2 h-6 w-6"
+                  onClick={() => {
+                    setImagePreview(null);
+                    if (fileInputRef.current) fileInputRef.current.value = "";
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+            
             <div className="flex gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageSelect}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingImage}
+              >
+                <ImageIcon className="h-5 w-5" />
+              </Button>
               <Textarea
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Type your message..."
                 className="text-lg resize-none"
                 rows={2}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmit(e);
+                  }
+                }}
               />
-              <Button type="submit" size="lg" disabled={!newMessage.trim()}>
+              <Button 
+                type="submit" 
+                size="lg" 
+                disabled={(!newMessage.trim() && !imagePreview) || uploadingImage}
+              >
                 <Send className="h-5 w-5" />
               </Button>
             </div>

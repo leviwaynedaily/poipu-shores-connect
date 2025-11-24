@@ -130,6 +130,38 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_message_reactions: {
+        Row: {
+          created_at: string | null
+          emoji: string
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          emoji: string
+          id?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          emoji?: string
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "chat_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           author_id: string
@@ -137,8 +169,10 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          image_url: string | null
           is_private: boolean | null
           recipient_id: string | null
+          reply_to: string | null
         }
         Insert: {
           author_id: string
@@ -146,8 +180,10 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          image_url?: string | null
           is_private?: boolean | null
           recipient_id?: string | null
+          reply_to?: string | null
         }
         Update: {
           author_id?: string
@@ -155,8 +191,10 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          image_url?: string | null
           is_private?: boolean | null
           recipient_id?: string | null
+          reply_to?: string | null
         }
         Relationships: [
           {
@@ -164,6 +202,13 @@ export type Database = {
             columns: ["channel_id"]
             isOneToOne: false
             referencedRelation: "chat_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_messages_reply_to_fkey"
+            columns: ["reply_to"]
+            isOneToOne: false
+            referencedRelation: "chat_messages"
             referencedColumns: ["id"]
           },
         ]
