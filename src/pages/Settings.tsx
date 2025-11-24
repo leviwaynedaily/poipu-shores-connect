@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Loader2, Sparkles, Upload, Save } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 
 interface BackgroundSetting {
@@ -49,6 +50,7 @@ export default function Settings() {
   const [hasChanges, setHasChanges] = useState(false);
   const [initialHomeBackground, setInitialHomeBackground] = useState<BackgroundSetting | null>(null);
   const [initialAppBackground, setInitialAppBackground] = useState<BackgroundSetting | null>(null);
+  const [useSameBackground, setUseSameBackground] = useState(false);
 
   useEffect(() => {
     if (!isAdmin) {
@@ -182,6 +184,12 @@ export default function Settings() {
     const appChanged = JSON.stringify(appBackground) !== JSON.stringify(initialAppBackground);
     setHasChanges(homeChanged || appChanged);
   }, [homeBackground, appBackground, initialHomeBackground, initialAppBackground]);
+
+  useEffect(() => {
+    if (useSameBackground) {
+      setAppBackground(homeBackground);
+    }
+  }, [useSameBackground, homeBackground]);
 
   if (!isAdmin) return null;
 
@@ -439,10 +447,21 @@ export default function Settings() {
         )}
       </div>
 
+      <div className="mb-6 flex items-center space-x-2 p-4 bg-card rounded-lg border">
+        <Switch
+          id="same-background"
+          checked={useSameBackground}
+          onCheckedChange={setUseSameBackground}
+        />
+        <Label htmlFor="same-background" className="cursor-pointer">
+          Use same background for both Home Screen and App Background
+        </Label>
+      </div>
+
       <Tabs defaultValue="home" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="home">Home Screen</TabsTrigger>
-          <TabsTrigger value="app">App Background</TabsTrigger>
+          <TabsTrigger value="app" disabled={useSameBackground}>App Background</TabsTrigger>
         </TabsList>
 
         <TabsContent value="home">
