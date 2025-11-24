@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Pin, MessageSquare, FileText, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Pin, MessageSquare, FileText, Users, MessageCircle } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { WeatherAndBeachConditions } from "@/components/dashboard/WeatherAndBeachConditions";
@@ -11,6 +12,8 @@ import { EmergencyContacts } from "@/components/dashboard/EmergencyContacts";
 import { LiveCameraEmbed } from "@/components/dashboard/LiveCameraEmbed";
 import { PhotoCarousel } from "@/components/photos/PhotoCarousel";
 import { AnnouncementDialog } from "@/components/AnnouncementDialog";
+import { CommunityAssistantDialog } from "@/components/CommunityAssistantDialog";
+import chickenIcon from "@/assets/chicken-assistant.jpeg";
 
 interface Announcement {
   id: string;
@@ -26,6 +29,7 @@ interface Announcement {
 const Dashboard = () => {
   const { user } = useAuth();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [isAssistantOpen, setIsAssistantOpen] = useState(false);
   const [stats, setStats] = useState({
     totalMessages: 0,
     totalDocuments: 0,
@@ -68,6 +72,31 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       <AnnouncementDialog />
+
+      <Card 
+        className="cursor-pointer hover:border-primary transition-all hover:shadow-lg bg-gradient-to-r from-card to-card/80"
+        onClick={() => setIsAssistantOpen(true)}
+      >
+        <CardHeader>
+          <div className="flex items-center gap-4">
+            <img
+              src={chickenIcon}
+              alt="Community Assistant"
+              className="h-20 w-20 rounded-full object-cover ring-2 ring-primary/20"
+            />
+            <div className="flex-1">
+              <CardTitle className="text-3xl mb-2">Ask the Chicken</CardTitle>
+              <CardDescription className="text-lg">
+                Your AI assistant for documents, announcements, emergency info, and more!
+              </CardDescription>
+            </div>
+            <Button size="lg" className="h-12 px-6">
+              <MessageCircle className="mr-2 h-5 w-5" />
+              Start Chat
+            </Button>
+          </div>
+        </CardHeader>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-3">
         <Link to="/chat">
@@ -178,6 +207,8 @@ const Dashboard = () => {
           </Card>
         </Link>
       </div>
+
+      <CommunityAssistantDialog open={isAssistantOpen} onOpenChange={setIsAssistantOpen} />
     </div>
   );
 };
