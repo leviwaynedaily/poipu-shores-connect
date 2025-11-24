@@ -1,6 +1,7 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Footer } from "@/components/Footer";
+import { FloatingChatAssistant } from "@/components/FloatingChatAssistant";
 import { useTheme } from "@/contexts/ThemeContext";
 import beachImage from "@/assets/condo-oceanfront.jpeg";
 import headerLogo from "@/assets/header-logo.png";
@@ -54,6 +55,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           <Footer />
         </main>
       </div>
+      <FloatingChatAssistant />
     </SidebarProvider>
   );
 };
