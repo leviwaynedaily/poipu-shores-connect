@@ -25,11 +25,27 @@ const defaultBackground: BackgroundSetting = {
   opacity: 100,
 };
 
+const getInitialBackground = (key: string): BackgroundSetting => {
+  try {
+    const cached = localStorage.getItem(key);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+  } catch (e) {
+    console.error("Failed to load cached background", e);
+  }
+  return defaultBackground;
+};
+
 const BackgroundContext = createContext<BackgroundContextType | undefined>(undefined);
 
 export const BackgroundProvider = ({ children }: { children: React.ReactNode }) => {
-  const [homeBackground, setHomeBackground] = useState<BackgroundSetting>(defaultBackground);
-  const [appBackground, setAppBackground] = useState<BackgroundSetting>(defaultBackground);
+  const [homeBackground, setHomeBackground] = useState<BackgroundSetting>(
+    () => getInitialBackground("home_background")
+  );
+  const [appBackground, setAppBackground] = useState<BackgroundSetting>(
+    () => getInitialBackground("app_background")
+  );
 
   const refreshBackgrounds = async () => {
     const { data: homeData } = await supabase
@@ -45,10 +61,14 @@ export const BackgroundProvider = ({ children }: { children: React.ReactNode }) 
       .single();
 
     if (homeData?.setting_value) {
-      setHomeBackground(homeData.setting_value as any);
+      const bgValue = homeData.setting_value as any;
+      setHomeBackground(bgValue);
+      localStorage.setItem("home_background", JSON.stringify(bgValue));
     }
     if (appData?.setting_value) {
-      setAppBackground(appData.setting_value as any);
+      const bgValue = appData.setting_value as any;
+      setAppBackground(bgValue);
+      localStorage.setItem("app_background", JSON.stringify(bgValue));
     }
   };
 
