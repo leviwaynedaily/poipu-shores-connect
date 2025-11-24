@@ -17,3 +17,6 @@ verify_jwt = true
 
 [functions.generate-photo-title]
 verify_jwt = true
+
+[functions.extract-document-content]
+verify_jwt = true

@@ -308,6 +308,7 @@ export type Database = {
       documents: {
         Row: {
           category: string
+          content: string | null
           created_at: string
           file_path: string
           file_size: number | null
@@ -321,6 +322,7 @@ export type Database = {
         }
         Insert: {
           category: string
+          content?: string | null
           created_at?: string
           file_path: string
           file_size?: number | null
@@ -334,6 +336,7 @@ export type Database = {
         }
         Update: {
           category?: string
+          content?: string | null
           created_at?: string
           file_path?: string
           file_size?: number | null
