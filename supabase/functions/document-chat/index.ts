@@ -32,43 +32,54 @@ serve(async (req) => {
     if (documentIds && documentIds.length > 0) {
       const { data: documents } = await supabase
         .from("documents")
-        .select("title, category, folder")
+        .select("title, category, folder, content")
         .in("id", documentIds);
 
       if (documents && documents.length > 0) {
-        contextText = "Available documents:\n" + 
-          documents.map(doc => 
-            `- ${doc.title} (${doc.category}${doc.folder ? `, folder: ${doc.folder}` : ''})`
-          ).join("\n") + "\n\n";
+        contextText = "Documents with their content:\n\n" + 
+          documents.map(doc => {
+            let docInfo = `## ${doc.title}\nCategory: ${doc.category}${doc.folder ? `, Folder: ${doc.folder}` : ''}\n`;
+            if (doc.content) {
+              docInfo += `\nContent:\n${doc.content}\n`;
+            } else {
+              docInfo += `\n(Content not yet extracted for this document)\n`;
+            }
+            return docInfo;
+          }).join("\n---\n\n");
       }
     } else {
-      // If no specific documents, list all available
+      // If no specific documents, list all available with content
       const { data: allDocs } = await supabase
         .from("documents")
-        .select("title, category, folder")
+        .select("title, category, folder, content")
         .limit(50);
 
       if (allDocs && allDocs.length > 0) {
-        contextText = "Available documents in the system:\n" + 
-          allDocs.map(doc => 
-            `- ${doc.title} (${doc.category}${doc.folder ? `, folder: ${doc.folder}` : ''})`
-          ).join("\n") + "\n\n";
+        contextText = "Available documents in the system:\n\n" + 
+          allDocs.map(doc => {
+            let docInfo = `## ${doc.title}\nCategory: ${doc.category}${doc.folder ? `, Folder: ${doc.folder}` : ''}\n`;
+            if (doc.content) {
+              docInfo += `\nContent Preview:\n${doc.content.substring(0, 500)}${doc.content.length > 500 ? '...' : ''}\n`;
+            }
+            return docInfo;
+          }).join("\n---\n\n");
       }
     }
 
     const systemPrompt = `You are a helpful AI assistant for the Poipu Shores Hawaiian condo community portal. 
-You have access to community documents and can answer questions about them.
+You have access to community documents and their actual content.
 
 ${contextText}
 
 When users ask about documents:
-1. If they ask about specific documents (meetings, rules, financials, etc.), reference the available documents by name
-2. Provide helpful guidance based on what documents are available
-3. If you don't have the actual content, let them know they should download and review the specific document
-4. Offer to help them find the right document based on their question
-5. Provide general information about HOA/condo management best practices when relevant
+1. Answer questions directly using the document content provided above
+2. Reference specific documents by name when providing information
+3. If a document's content hasn't been extracted yet, let them know and suggest downloading it
+4. Provide accurate information based on the actual document content
+5. If the answer isn't in the available documents, be honest about that
+6. Provide general information about HOA/condo management best practices when relevant
 
-For questions about the community, be helpful and friendly. Suggest which documents might contain the information they need.`;
+For questions about the community, be helpful and friendly. Use the actual document content to provide accurate answers.`;
 
     console.log("System prompt:", systemPrompt);
     console.log("User messages:", messages);

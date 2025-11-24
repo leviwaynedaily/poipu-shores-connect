@@ -100,7 +100,7 @@ export function DocumentUpload({ onUploadComplete, folders: _folders, currentFol
           // Otherwise, use the original filename
           const documentTitle = files.length === 1 && title ? title : file.name.replace(/\.[^/.]+$/, "");
 
-          const { error: dbError } = await supabase
+          const { data: insertedDoc, error: dbError } = await supabase
             .from("documents")
             .insert({
               title: documentTitle,
@@ -111,9 +111,28 @@ export function DocumentUpload({ onUploadComplete, folders: _folders, currentFol
               file_type: file.type,
               uploaded_by: user.id,
               unit_number: unitNumber || null,
-            });
+            })
+            .select()
+            .single();
 
           if (dbError) throw dbError;
+
+          // Extract document content in the background
+          if (insertedDoc) {
+            supabase.functions
+              .invoke("extract-document-content", {
+                body: {
+                  documentId: insertedDoc.id,
+                  filePath: filePath,
+                },
+              })
+              .then(({ error }) => {
+                if (error) {
+                  console.error("Error extracting document content:", error);
+                }
+              });
+          }
+
           successCount++;
         } catch (error) {
           console.error(`Error uploading ${file.name}:`, error);
