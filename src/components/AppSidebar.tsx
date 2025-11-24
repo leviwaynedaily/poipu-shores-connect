@@ -3,6 +3,8 @@ import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import logoIcon from "@/assets/poipu-logo-icon.png";
+import logoText from "@/assets/poipu-text.png";
 import {
   Sidebar,
   SidebarContent,
@@ -59,7 +61,10 @@ export function AppSidebar() {
     >
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-lg py-3">Menu</SidebarGroupLabel>
+          <div className="flex items-center justify-center gap-3 px-4 py-6 border-b border-border/20">
+            <img src={logoIcon} alt="Poipu Shores Logo" className="h-12 w-12" />
+            {open && <img src={logoText} alt="Poipu Shores" className="h-8" />}
+          </div>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
@@ -103,7 +108,6 @@ export function AppSidebar() {
         
         {isAdmin && (
           <SidebarGroup>
-            <SidebarGroupLabel className="text-lg py-3">Admin</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
