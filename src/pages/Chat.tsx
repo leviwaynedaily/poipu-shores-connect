@@ -133,16 +133,36 @@ const Chat = () => {
   const fetchMessages = async () => {
     if (!selectedChannel) return;
 
-    const { data } = await supabase
+    // Fetch messages
+    const { data: messagesData } = await supabase
       .from("chat_messages")
-      .select(`
-        *,
-        profiles!chat_messages_author_id_fkey (full_name)
-      `)
+      .select("*")
       .eq("channel_id", selectedChannel)
       .order("created_at", { ascending: true });
 
-    if (data) setMessages(data as any);
+    if (!messagesData || messagesData.length === 0) {
+      setMessages([]);
+      return;
+    }
+
+    // Get unique author IDs
+    const authorIds = [...new Set(messagesData.map(m => m.author_id))];
+
+    // Fetch profiles for all authors
+    const { data: profilesData } = await supabase
+      .from("profiles")
+      .select("id, full_name")
+      .in("id", authorIds);
+
+    // Map profiles to messages
+    const messagesWithProfiles = messagesData.map(message => ({
+      ...message,
+      profiles: {
+        full_name: profilesData?.find(p => p.id === message.author_id)?.full_name || "Unknown User"
+      }
+    }));
+
+    setMessages(messagesWithProfiles as any);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
