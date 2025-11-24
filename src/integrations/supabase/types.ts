@@ -213,6 +213,30 @@ export type Database = {
           },
         ]
       }
+      community_assistant_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       community_photos: {
         Row: {
           camera_make: string | null
@@ -527,6 +551,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_old_assistant_messages: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
