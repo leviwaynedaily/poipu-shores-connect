@@ -145,7 +145,22 @@ const Dashboard = () => {
         <WeatherAndBeachConditions />
       </div>
 
-      <PhotoCarousel />
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <div>
+            <CardTitle className="text-2xl">Community Photos</CardTitle>
+            <CardDescription className="text-lg">Recent photos from Poipu Shores</CardDescription>
+          </div>
+          <Link to="/photos">
+            <button className="text-sm text-primary hover:underline font-medium">
+              View All Photos →
+            </button>
+          </Link>
+        </CardHeader>
+        <CardContent>
+          <PhotoCarousel />
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-2">
         <EmergencyContacts />
