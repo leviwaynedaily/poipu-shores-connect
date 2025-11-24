@@ -11,7 +11,6 @@ import { EmergencyContacts } from "@/components/dashboard/EmergencyContacts";
 import { LiveCameraEmbed } from "@/components/dashboard/LiveCameraEmbed";
 import { PhotoCarousel } from "@/components/photos/PhotoCarousel";
 import { AnnouncementDialog } from "@/components/AnnouncementDialog";
-import { PageHeader } from "@/components/PageHeader";
 
 interface Announcement {
   id: string;
@@ -27,7 +26,6 @@ interface Announcement {
 const Dashboard = () => {
   const { user } = useAuth();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [profile, setProfile] = useState<any>(null);
   const [stats, setStats] = useState({
     totalMessages: 0,
     totalDocuments: 0,
@@ -35,22 +33,9 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
-    fetchProfile();
     fetchAnnouncements();
     fetchStats();
   }, [user]);
-
-  const fetchProfile = async () => {
-    if (!user) return;
-    
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
-    
-    if (data) setProfile(data);
-  };
 
   const fetchAnnouncements = async () => {
     const { data } = await supabase
