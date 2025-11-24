@@ -5,7 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DocumentUpload } from "@/components/DocumentUpload";
 import { DocumentChat } from "@/components/DocumentChat";
 import { DocumentBrowser } from "@/components/documents/DocumentBrowser";
-import { FileText, MessageSquare } from "lucide-react";
+import { FileText } from "lucide-react";
+import chickenIcon from "@/assets/chicken-assistant.jpeg";
 
 export default function Documents() {
   const { isAdmin, isBoard } = useAuth();
@@ -37,8 +38,8 @@ export default function Documents() {
             Browse Documents
           </TabsTrigger>
           <TabsTrigger value="chat">
-            <MessageSquare className="mr-2 h-4 w-4" />
-            AI Assistant
+            <img src={chickenIcon} alt="Chicken" className="mr-2 h-4 w-4 rounded-full object-cover" />
+            Ask the Chicken
           </TabsTrigger>
         </TabsList>
 
