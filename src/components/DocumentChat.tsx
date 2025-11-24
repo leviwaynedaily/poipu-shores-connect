@@ -179,18 +179,18 @@ export function DocumentChat({ documentIds = [] }: DocumentChatProps) {
 
   if (isLoadingHistory) {
     return (
-      <Card className="h-[600px] flex items-center justify-center">
+      <Card className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </Card>
     );
   }
 
   return (
-    <Card className="h-[600px] flex flex-col">
-      <CardHeader>
+    <Card className="flex flex-col max-h-[calc(100vh-300px)]">
+      <CardHeader className="flex-shrink-0">
         <CardTitle>Document Assistant</CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col p-0">
+      <CardContent className="flex-1 flex flex-col p-0 min-h-0">
         <ScrollArea className="flex-1 px-4" ref={scrollRef}>
           <div className="space-y-4 py-4">
             {messages.length === 0 && (
@@ -216,7 +216,7 @@ export function DocumentChat({ documentIds = [] }: DocumentChatProps) {
             ))}
           </div>
         </ScrollArea>
-        <div className="border-t p-4">
+        <div className="border-t p-4 flex-shrink-0">
           <form
             onSubmit={(e) => {
               e.preventDefault();
