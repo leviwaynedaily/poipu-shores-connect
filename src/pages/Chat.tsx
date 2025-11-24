@@ -117,16 +117,31 @@ const Chat = () => {
   };
 
   const fetchChannels = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("chat_channels")
       .select("*")
       .order("name");
 
-    if (data) {
+    if (error) {
+      console.error("Error fetching channels:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load chat channels",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (data && data.length > 0) {
+      console.log("Loaded channels:", data);
       setChannels(data);
-      if (!selectedChannel && data.length > 0) {
+      // Always set the first channel if none selected
+      if (!selectedChannel) {
+        console.log("Setting selected channel to:", data[0].id);
         setSelectedChannel(data[0].id);
       }
+    } else {
+      console.log("No channels found");
     }
   };
 
@@ -168,7 +183,29 @@ const Chat = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user || !newMessage.trim() || !selectedChannel) return;
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to send messages",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!newMessage.trim()) {
+      return;
+    }
+
+    if (!selectedChannel) {
+      toast({
+        title: "Error",
+        description: "Please select a channel first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log("Sending message to channel:", selectedChannel);
 
     const { error } = await supabase
       .from("chat_messages")
@@ -180,6 +217,7 @@ const Chat = () => {
       });
 
     if (error) {
+      console.error("Error sending message:", error);
       toast({
         title: "Error",
         description: error.message,
