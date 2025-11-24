@@ -96,21 +96,27 @@ export function DocumentBrowser({ canManage, onRefresh }: DocumentBrowserProps) 
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      // Fetch folders
-      const { data: foldersData, error: foldersError } = await supabase
+      // Fetch folders - handle null parent_folder_id properly
+      const foldersQuery = supabase
         .from("folders")
         .select("*")
-        .eq("parent_folder_id", currentFolderId)
         .order("name");
+      
+      const { data: foldersData, error: foldersError } = currentFolderId
+        ? await foldersQuery.eq("parent_folder_id", currentFolderId)
+        : await foldersQuery.is("parent_folder_id", null);
 
       if (foldersError) throw foldersError;
 
-      // Fetch documents
-      const { data: docsData, error: docsError } = await supabase
+      // Fetch documents - handle null folder_id properly
+      const docsQuery = supabase
         .from("documents")
         .select("*")
-        .eq("folder_id", currentFolderId)
         .order("title");
+      
+      const { data: docsData, error: docsError } = currentFolderId
+        ? await docsQuery.eq("folder_id", currentFolderId)
+        : await docsQuery.is("folder_id", null);
 
       if (docsError) throw docsError;
 
@@ -413,15 +419,17 @@ export function DocumentBrowser({ canManage, onRefresh }: DocumentBrowserProps) 
       <div className="flex items-center justify-between">
         <Breadcrumb>
           <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink
-                className="cursor-pointer flex items-center gap-1"
-                onClick={() => setCurrentFolderId(null)}
-              >
-                <Home className="h-4 w-4" />
-                Root
-              </BreadcrumbLink>
-            </BreadcrumbItem>
+            {currentFolderId && (
+              <BreadcrumbItem>
+                <BreadcrumbLink
+                  className="cursor-pointer flex items-center gap-1"
+                  onClick={() => setCurrentFolderId(null)}
+                >
+                  <Home className="h-4 w-4" />
+                  Root
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+            )}
             {breadcrumbs.map((crumb, index) => (
               <div key={crumb.id} className="flex items-center">
                 <BreadcrumbSeparator />
