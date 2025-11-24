@@ -8,13 +8,17 @@ import { Slider } from "@/components/ui/slider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Loader2, Sparkles, Upload } from "lucide-react";
+import { Loader2, Sparkles, Upload, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface BackgroundSetting {
-  type: "default" | "generated" | "uploaded";
+  type: "default" | "generated" | "uploaded" | "color" | "gradient";
   url: string | null;
   opacity: number;
+  color?: string;
+  gradientStart?: string;
+  gradientEnd?: string;
+  gradientDirection?: string;
 }
 
 interface CommunityPhoto {
@@ -42,6 +46,9 @@ export default function Settings() {
   const [isGeneratingApp, setIsGeneratingApp] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [photos, setPhotos] = useState<CommunityPhoto[]>([]);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [initialHomeBackground, setInitialHomeBackground] = useState<BackgroundSetting | null>(null);
+  const [initialAppBackground, setInitialAppBackground] = useState<BackgroundSetting | null>(null);
 
   useEffect(() => {
     if (!isAdmin) {
@@ -68,10 +75,12 @@ export default function Settings() {
     if (homeData?.setting_value) {
       const value = homeData.setting_value as any;
       setHomeBackground(value);
+      setInitialHomeBackground(value);
     }
     if (appData?.setting_value) {
       const value = appData.setting_value as any;
       setAppBackground(value);
+      setInitialAppBackground(value);
     }
   };
 
@@ -156,6 +165,9 @@ export default function Settings() {
 
       if (appError) throw appError;
 
+      setInitialHomeBackground(homeBackground);
+      setInitialAppBackground(appBackground);
+      setHasChanges(false);
       toast.success("Settings saved successfully!");
     } catch (error) {
       console.error("Error saving settings:", error);
@@ -165,13 +177,266 @@ export default function Settings() {
     }
   };
 
+  useEffect(() => {
+    const homeChanged = JSON.stringify(homeBackground) !== JSON.stringify(initialHomeBackground);
+    const appChanged = JSON.stringify(appBackground) !== JSON.stringify(initialAppBackground);
+    setHasChanges(homeChanged || appChanged);
+  }, [homeBackground, appBackground, initialHomeBackground, initialAppBackground]);
+
   if (!isAdmin) return null;
+
+  const renderBackgroundTabs = (
+    background: BackgroundSetting,
+    setBackground: React.Dispatch<React.SetStateAction<BackgroundSetting>>,
+    prompt: string,
+    setPrompt: React.Dispatch<React.SetStateAction<string>>,
+    isGenerating: boolean,
+    type: "home" | "app"
+  ) => (
+    <Tabs defaultValue="ai" className="w-full">
+      <TabsList className="grid w-full grid-cols-4">
+        <TabsTrigger value="ai">AI</TabsTrigger>
+        <TabsTrigger value="photos">Photos</TabsTrigger>
+        <TabsTrigger value="colors">Colors</TabsTrigger>
+        <TabsTrigger value="transparency">Transparency</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="ai" className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Generate with AI</CardTitle>
+            <CardDescription>Use Lovable AI to create a custom background</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor={`${type}-prompt`}>Describe your background</Label>
+              <Input
+                id={`${type}-prompt`}
+                placeholder="e.g., Beautiful Hawaiian beach at sunset with palm trees"
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+              />
+            </div>
+            <Button
+              onClick={() => generateBackground(prompt, type)}
+              disabled={!prompt || isGenerating}
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Generate Background
+                </>
+              )}
+            </Button>
+            {background.url && background.url.trim() !== "" && background.type === "generated" && (
+              <div className="mt-4">
+                <p className="text-sm text-muted-foreground mb-2">Preview:</p>
+                <img
+                  src={background.url}
+                  alt="Background preview"
+                  className="w-full h-48 object-cover rounded-lg"
+                  onError={(e) => {
+                    console.error("Failed to load image:", background.url);
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="photos" className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Choose from Uploaded Photos</CardTitle>
+            <CardDescription>Select from community photos</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {photos.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">No community photos available yet</p>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {photos.map((photo) => (
+                  <div
+                    key={photo.id}
+                    className="relative cursor-pointer group"
+                    onClick={() => selectPhoto(photo.file_path, type)}
+                  >
+                    <img
+                      src={supabase.storage.from("community_photos").getPublicUrl(photo.file_path).data.publicUrl}
+                      alt={photo.title}
+                      className="w-full h-32 object-cover rounded-lg group-hover:opacity-75 transition-opacity"
+                      onError={(e) => {
+                        e.currentTarget.src = "https://placehold.co/400x300?text=Image+Not+Found";
+                      }}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Upload className="h-8 w-8 text-white" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="colors" className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Solid Color</CardTitle>
+            <CardDescription>Choose a solid background color</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Select Color</Label>
+              <Input
+                type="color"
+                value={background.color || "#ffffff"}
+                onChange={(e) =>
+                  setBackground((prev) => ({
+                    ...prev,
+                    type: "color",
+                    color: e.target.value,
+                    url: null,
+                  }))
+                }
+                className="h-12 w-full cursor-pointer"
+              />
+            </div>
+            {background.type === "color" && (
+              <div className="h-24 rounded-lg" style={{ backgroundColor: background.color }} />
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Gradient</CardTitle>
+            <CardDescription>Create a gradient background</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Start Color</Label>
+                <Input
+                  type="color"
+                  value={background.gradientStart || "#ffffff"}
+                  onChange={(e) =>
+                    setBackground((prev) => ({
+                      ...prev,
+                      type: "gradient",
+                      gradientStart: e.target.value,
+                      url: null,
+                    }))
+                  }
+                  className="h-12 w-full cursor-pointer"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>End Color</Label>
+                <Input
+                  type="color"
+                  value={background.gradientEnd || "#000000"}
+                  onChange={(e) =>
+                    setBackground((prev) => ({
+                      ...prev,
+                      type: "gradient",
+                      gradientEnd: e.target.value,
+                      url: null,
+                    }))
+                  }
+                  className="h-12 w-full cursor-pointer"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Direction</Label>
+              <select
+                value={background.gradientDirection || "to bottom"}
+                onChange={(e) =>
+                  setBackground((prev) => ({
+                    ...prev,
+                    gradientDirection: e.target.value,
+                  }))
+                }
+                className="w-full h-10 px-3 rounded-md border border-input bg-background"
+              >
+                <option value="to bottom">Top to Bottom</option>
+                <option value="to right">Left to Right</option>
+                <option value="to bottom right">Diagonal ↘</option>
+                <option value="to bottom left">Diagonal ↙</option>
+              </select>
+            </div>
+            {background.type === "gradient" && background.gradientStart && background.gradientEnd && (
+              <div
+                className="h-24 rounded-lg"
+                style={{
+                  background: `linear-gradient(${background.gradientDirection || "to bottom"}, ${
+                    background.gradientStart
+                  }, ${background.gradientEnd})`,
+                }}
+              />
+            )}
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="transparency" className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Transparency</CardTitle>
+            <CardDescription>Adjust background opacity</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label>Opacity: {background.opacity}%</Label>
+              </div>
+              <Slider
+                value={[background.opacity]}
+                onValueChange={([value]) =>
+                  setBackground((prev) => ({ ...prev, opacity: value }))
+                }
+                min={0}
+                max={100}
+                step={1}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
+  );
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-6xl">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Background Settings</h1>
-        <p className="text-muted-foreground">Customize the backgrounds for your application</p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-4xl font-bold mb-2">Background Settings</h1>
+          <p className="text-muted-foreground">Customize the backgrounds for your application</p>
+        </div>
+        {hasChanges && (
+          <Button onClick={saveSettings} disabled={isSaving} size="lg">
+            {isSaving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Save Changes
+              </>
+            )}
+          </Button>
+        )}
       </div>
 
       <Tabs defaultValue="home" className="space-y-6">
@@ -180,233 +445,28 @@ export default function Settings() {
           <TabsTrigger value="app">App Background</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="home" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Generate with AI</CardTitle>
-              <CardDescription>Use Lovable AI to create a custom background</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="home-prompt">Describe your background</Label>
-                <Input
-                  id="home-prompt"
-                  placeholder="e.g., Beautiful Hawaiian beach at sunset with palm trees"
-                  value={homePrompt}
-                  onChange={(e) => setHomePrompt(e.target.value)}
-                />
-              </div>
-              <Button
-                onClick={() => generateBackground(homePrompt, "home")}
-                disabled={!homePrompt || isGeneratingHome}
-              >
-                {isGeneratingHome ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Generate Background
-                  </>
-                )}
-              </Button>
-              {homeBackground.url && homeBackground.url.trim() !== "" && (
-                <div className="mt-4">
-                  <p className="text-sm text-muted-foreground mb-2">Preview:</p>
-                  <img
-                    src={homeBackground.url}
-                    alt="Home background preview"
-                    className="w-full h-48 object-cover rounded-lg"
-                    onError={(e) => {
-                      console.error("Failed to load image:", homeBackground.url);
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Choose from Uploaded Photos</CardTitle>
-              <CardDescription>Select from community photos</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {photos.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">No community photos available yet</p>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {photos.map((photo) => (
-                    <div
-                      key={photo.id}
-                      className="relative cursor-pointer group"
-                      onClick={() => selectPhoto(photo.file_path, "home")}
-                    >
-                      <img
-                        src={supabase.storage.from("community_photos").getPublicUrl(photo.file_path).data.publicUrl}
-                        alt={photo.title}
-                        className="w-full h-32 object-cover rounded-lg group-hover:opacity-75 transition-opacity"
-                        onError={(e) => {
-                          e.currentTarget.src = "https://placehold.co/400x300?text=Image+Not+Found";
-                        }}
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Upload className="h-8 w-8 text-white" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Transparency</CardTitle>
-              <CardDescription>Adjust background opacity</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label>Opacity: {homeBackground.opacity}%</Label>
-                </div>
-                <Slider
-                  value={[homeBackground.opacity]}
-                  onValueChange={([value]) =>
-                    setHomeBackground((prev) => ({ ...prev, opacity: value }))
-                  }
-                  min={0}
-                  max={100}
-                  step={1}
-                />
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="home">
+          {renderBackgroundTabs(
+            homeBackground,
+            setHomeBackground,
+            homePrompt,
+            setHomePrompt,
+            isGeneratingHome,
+            "home"
+          )}
         </TabsContent>
 
-        <TabsContent value="app" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Generate with AI</CardTitle>
-              <CardDescription>Use Lovable AI to create a custom background</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="app-prompt">Describe your background</Label>
-                <Input
-                  id="app-prompt"
-                  placeholder="e.g., Subtle gradient with tropical theme"
-                  value={appPrompt}
-                  onChange={(e) => setAppPrompt(e.target.value)}
-                />
-              </div>
-              <Button
-                onClick={() => generateBackground(appPrompt, "app")}
-                disabled={!appPrompt || isGeneratingApp}
-              >
-                {isGeneratingApp ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Generate Background
-                  </>
-                )}
-              </Button>
-              {appBackground.url && appBackground.url.trim() !== "" && (
-                <div className="mt-4">
-                  <p className="text-sm text-muted-foreground mb-2">Preview:</p>
-                  <img
-                    src={appBackground.url}
-                    alt="App background preview"
-                    className="w-full h-48 object-cover rounded-lg"
-                    onError={(e) => {
-                      console.error("Failed to load image:", appBackground.url);
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Choose from Uploaded Photos</CardTitle>
-              <CardDescription>Select from community photos</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {photos.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">No community photos available yet</p>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {photos.map((photo) => (
-                    <div
-                      key={photo.id}
-                      className="relative cursor-pointer group"
-                      onClick={() => selectPhoto(photo.file_path, "app")}
-                    >
-                      <img
-                        src={supabase.storage.from("community_photos").getPublicUrl(photo.file_path).data.publicUrl}
-                        alt={photo.title}
-                        className="w-full h-32 object-cover rounded-lg group-hover:opacity-75 transition-opacity"
-                        onError={(e) => {
-                          e.currentTarget.src = "https://placehold.co/400x300?text=Image+Not+Found";
-                        }}
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Upload className="h-8 w-8 text-white" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Transparency</CardTitle>
-              <CardDescription>Adjust background opacity</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label>Opacity: {appBackground.opacity}%</Label>
-                </div>
-                <Slider
-                  value={[appBackground.opacity]}
-                  onValueChange={([value]) =>
-                    setAppBackground((prev) => ({ ...prev, opacity: value }))
-                  }
-                  min={0}
-                  max={100}
-                  step={1}
-                />
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="app">
+          {renderBackgroundTabs(
+            appBackground,
+            setAppBackground,
+            appPrompt,
+            setAppPrompt,
+            isGeneratingApp,
+            "app"
+          )}
         </TabsContent>
       </Tabs>
-
-      <div className="mt-8 flex justify-end">
-        <Button onClick={saveSettings} disabled={isSaving}>
-          {isSaving ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Saving...
-            </>
-          ) : (
-            "Save Settings"
-          )}
-        </Button>
-      </div>
     </div>
   );
 }
