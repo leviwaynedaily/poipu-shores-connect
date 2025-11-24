@@ -28,7 +28,60 @@ export function CommunityAssistantDialog({ open, onOpenChange }: CommunityAssist
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Load chat history on mount
+  useEffect(() => {
+    if (open) {
+      loadChatHistory();
+    }
+  }, [open]);
+
+  const loadChatHistory = async () => {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return;
+
+      const { data, error } = await supabase
+        .from("community_assistant_messages")
+        .select("*")
+        .eq("user_id", user.user.id)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+
+      if (data) {
+        setMessages(data.map((msg) => ({
+          role: msg.role as "user" | "assistant",
+          content: msg.content,
+        })));
+      }
+    } catch (error: any) {
+      console.error("Error loading chat history:", error);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+
+  const saveMessage = async (role: "user" | "assistant", content: string) => {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return;
+
+      const { error } = await supabase
+        .from("community_assistant_messages")
+        .insert({
+          user_id: user.user.id,
+          role,
+          content,
+        });
+
+      if (error) throw error;
+    } catch (error: any) {
+      console.error("Error saving message:", error);
+    }
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -43,6 +96,9 @@ export function CommunityAssistantDialog({ open, onOpenChange }: CommunityAssist
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
+
+    // Save user message
+    await saveMessage("user", userMessage.content);
 
     try {
       const { data, error } = await supabase.functions.invoke("community-assistant", {
@@ -103,6 +159,11 @@ export function CommunityAssistantDialog({ open, onOpenChange }: CommunityAssist
           }
         }
       }
+
+      // Save complete assistant message
+      if (assistantContent) {
+        await saveMessage("assistant", assistantContent);
+      }
     } catch (error: any) {
       console.error("Chat error:", error);
       toast({
@@ -116,22 +177,66 @@ export function CommunityAssistantDialog({ open, onOpenChange }: CommunityAssist
     }
   };
 
+  const clearHistory = async () => {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return;
+
+      const { error } = await supabase
+        .from("community_assistant_messages")
+        .delete()
+        .eq("user_id", user.user.id);
+
+      if (error) throw error;
+
+      setMessages([]);
+      toast({
+        title: "Success",
+        description: "Chat history cleared",
+      });
+    } catch (error: any) {
+      console.error("Error clearing history:", error);
+      toast({
+        title: "Error",
+        description: "Failed to clear history",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (isLoadingHistory) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-3xl h-[600px] flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl h-[600px] flex flex-col p-0">
         <DialogHeader className="p-6 pb-4 border-b">
-          <div className="flex items-center gap-3">
-            <img
-              src={chickenIcon}
-              alt="Community Assistant"
-              className="h-12 w-12 rounded-full object-cover"
-            />
-            <div>
-              <DialogTitle className="text-2xl">Ask the Chicken</DialogTitle>
-              <p className="text-base text-muted-foreground mt-1">
-                Your AI community assistant
-              </p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <img
+                src={chickenIcon}
+                alt="Community Assistant"
+                className="h-12 w-12 rounded-full object-cover"
+              />
+              <div>
+                <DialogTitle className="text-2xl">Ask the Chicken</DialogTitle>
+                <p className="text-base text-muted-foreground mt-1">
+                  Your AI community assistant
+                </p>
+              </div>
             </div>
+            {messages.length > 0 && (
+              <Button variant="ghost" size="sm" onClick={clearHistory}>
+                Clear History
+              </Button>
+            )}
           </div>
         </DialogHeader>
         
