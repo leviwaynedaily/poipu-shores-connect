@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
-import * as pdfjsLib from "https://esm.sh/pdfjs-dist@4.9.155/build/pdf.mjs";
+import { extractText } from "https://esm.sh/unpdf@0.11.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -50,26 +50,12 @@ serve(async (req) => {
       // Plain text files
       extractedText = await fileData.text();
     } else if (extension === "pdf") {
-      // Extract text from PDF
+      // Extract text from PDF using unpdf
       try {
         const arrayBuffer = await fileData.arrayBuffer();
-        const uint8Array = new Uint8Array(arrayBuffer);
-        
-        const loadingTask = pdfjsLib.getDocument({ data: uint8Array });
-        const pdf = await loadingTask.promise;
-        
-        const numPages = pdf.numPages;
-        const textParts: string[] = [];
-        
-        for (let pageNum = 1; pageNum <= numPages; pageNum++) {
-          const page = await pdf.getPage(pageNum);
-          const textContent = await page.getTextContent();
-          const pageText = textContent.items.map((item: any) => item.str).join(" ");
-          textParts.push(`\n--- Page ${pageNum} ---\n${pageText}`);
-        }
-        
-        extractedText = textParts.join("\n");
-        console.log(`Extracted ${extractedText.length} characters from PDF with ${numPages} pages`);
+        const { text } = await extractText(new Uint8Array(arrayBuffer), { mergePages: true });
+        extractedText = text || "";
+        console.log(`Extracted ${extractedText.length} characters from PDF`);
       } catch (pdfError) {
         console.error("Error extracting PDF content:", pdfError);
         extractedText = `[PDF Document - ${filePath}]\nError extracting content: ${pdfError instanceof Error ? pdfError.message : 'Unknown error'}`;
