@@ -48,7 +48,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar
-      className={`${!open ? "w-16" : "w-64"} ${
+      className={`${!open ? "w-20" : "w-64"} ${
         isGlassTheme 
           ? "backdrop-blur-sm" 
           : "bg-sidebar border-sidebar-border"
@@ -61,8 +61,8 @@ export function AppSidebar() {
     >
       <SidebarContent>
         <SidebarGroup>
-          <div className={`flex items-center justify-center border-b border-border/20 ${open ? "gap-3 px-4 py-6" : "px-2 py-6"}`}>
-            <img src={logoIcon} alt="Poipu Shores Logo" className={open ? "h-12 w-auto" : "h-10 w-auto"} />
+          <div className={`flex items-center justify-center border-b border-border/20 ${open ? "gap-3 px-4 py-6" : "py-6"}`}>
+            <img src={logoIcon} alt="Poipu Shores Logo" className={open ? "h-12 w-auto" : "h-12 w-auto"} />
             {open && <img src={logoText} alt="Poipu Shores" className="h-8 w-auto" />}
           </div>
           <SidebarGroupContent>
