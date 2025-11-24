@@ -13,13 +13,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Documents() {
-  const { isAdmin, isBoard } = useAuth();
+  const { isAdmin, isOwner } = useAuth();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
   const { toast } = useToast();
 
-  const canManage = isAdmin || isBoard;
+  const canManage = isAdmin || isOwner;
 
   const handleBatchExtract = async () => {
     setIsExtracting(true);

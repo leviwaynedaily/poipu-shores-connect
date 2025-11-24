@@ -19,7 +19,7 @@ import Photos from "./pages/Photos";
 import Members from "./pages/Members";
 import Profile from "./pages/Profile";
 import Users from "./pages/Users";
-import Settings from "./pages/Settings";
+import AdminSettings from "./pages/AdminSettings";
 import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -125,7 +125,7 @@ const AppContent = () => {
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <Settings />
+                    <AdminSettings />
                   </Layout>
                 </ProtectedRoute>
               }
