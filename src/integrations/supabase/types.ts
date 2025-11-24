@@ -218,6 +218,7 @@ export type Database = {
           file_size: number | null
           file_type: string | null
           folder: string | null
+          folder_id: string | null
           id: string
           title: string
           unit_number: string | null
@@ -230,6 +231,7 @@ export type Database = {
           file_size?: number | null
           file_type?: string | null
           folder?: string | null
+          folder_id?: string | null
           id?: string
           title: string
           unit_number?: string | null
@@ -242,12 +244,21 @@ export type Database = {
           file_size?: number | null
           file_type?: string | null
           folder?: string | null
+          folder_id?: string | null
           id?: string
           title?: string
           unit_number?: string | null
           uploaded_by?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "documents_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       emergency_contacts: {
         Row: {
@@ -284,6 +295,41 @@ export type Database = {
           phone?: string
         }
         Relationships: []
+      }
+      folders: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+          parent_folder_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          name: string
+          parent_folder_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+          parent_folder_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "folders_parent_folder_id_fkey"
+            columns: ["parent_folder_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
