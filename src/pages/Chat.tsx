@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -635,20 +635,19 @@ const Chat = () => {
               <Button
                 type="button"
                 variant="outline"
-                size="icon"
+                className="h-11 w-11"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadingImage}
               >
                 <ImageIcon className="h-5 w-5" />
               </Button>
-              <Textarea
+              <Input
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Type your message..."
-                className="text-lg resize-none"
-                rows={1}
+                className="text-base h-11"
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
+                  if (e.key === "Enter") {
                     e.preventDefault();
                     handleSubmit(e);
                   }
@@ -656,7 +655,7 @@ const Chat = () => {
               />
               <Button 
                 type="submit" 
-                size="lg" 
+                className="h-11 w-11"
                 disabled={(!newMessage.trim() && !imagePreview) || uploadingImage}
               >
                 <Send className="h-5 w-5" />
