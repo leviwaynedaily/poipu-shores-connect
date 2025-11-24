@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, Settings } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Send, Settings, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { ChannelManager } from "@/components/ChannelManager";
@@ -19,6 +20,7 @@ interface Message {
   channel_id: string;
   profiles: {
     full_name: string;
+    avatar_url: string | null;
   };
 }
 
@@ -166,18 +168,37 @@ const Chat = () => {
     // Fetch profiles for all authors
     const { data: profilesData } = await supabase
       .from("profiles")
-      .select("id, full_name")
+      .select("id, full_name, avatar_url")
       .in("id", authorIds);
 
     // Map profiles to messages
-    const messagesWithProfiles = messagesData.map(message => ({
-      ...message,
-      profiles: {
-        full_name: profilesData?.find(p => p.id === message.author_id)?.full_name || "Unknown User"
-      }
-    }));
+    const messagesWithProfiles = messagesData.map(message => {
+      const profile = profilesData?.find(p => p.id === message.author_id);
+      return {
+        ...message,
+        profiles: {
+          full_name: profile?.full_name || "Unknown User",
+          avatar_url: profile?.avatar_url || null
+        }
+      };
+    });
 
     setMessages(messagesWithProfiles as any);
+  };
+
+  const handleDeleteMessage = async (messageId: string) => {
+    const { error } = await supabase
+      .from("chat_messages")
+      .delete()
+      .eq("id", messageId);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete message",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -281,31 +302,52 @@ const Chat = () => {
         </CardHeader>
         <CardContent className="p-0 flex flex-col h-[calc(100%-5rem)]">
           <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex flex-col ${
-                    message.author_id === user?.id ? "items-end" : "items-start"
-                  }`}
-                >
+            <div className="space-y-3">
+              {messages.map((message) => {
+                const isOwnMessage = message.author_id === user?.id;
+                const initials = message.profiles.full_name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .toUpperCase();
+
+                return (
                   <div
-                    className={`max-w-[80%] rounded-lg p-4 ${
-                      message.author_id === user?.id
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted"
-                    }`}
+                    key={message.id}
+                    className="flex gap-3 group hover:bg-muted/50 p-2 rounded transition-colors"
                   >
-                    <p className="font-semibold text-base mb-1">
-                      {message.profiles.full_name}
-                    </p>
-                    <p className="text-base whitespace-pre-wrap">{message.content}</p>
-                    <p className="text-sm mt-2 opacity-70">
-                      {format(new Date(message.created_at), "MMM dd, h:mm a")}
-                    </p>
+                    <Avatar className="h-10 w-10 shrink-0">
+                      {message.profiles.avatar_url ? (
+                        <AvatarImage src={message.profiles.avatar_url} alt={message.profiles.full_name} />
+                      ) : null}
+                      <AvatarFallback className="text-sm">{initials}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-semibold text-base text-foreground">
+                          {message.profiles.full_name}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {format(new Date(message.created_at), "h:mm a")}
+                        </span>
+                      </div>
+                      <p className="text-base text-foreground whitespace-pre-wrap mt-1">
+                        {message.content}
+                      </p>
+                    </div>
+                    {isOwnMessage && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 h-8 w-8"
+                        onClick={() => handleDeleteMessage(message.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </ScrollArea>
           
