@@ -82,14 +82,6 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       <AnnouncementDialog />
-      <div>
-        <h2 className="text-3xl font-bold text-foreground mb-2">
-          Welcome back, {profile?.full_name || "Owner"}!
-        </h2>
-        <p className="text-xl text-muted-foreground">
-          {profile?.unit_number && `Unit ${profile.unit_number}`}
-        </p>
-      </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <Link to="/chat">

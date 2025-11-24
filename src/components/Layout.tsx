@@ -4,11 +4,32 @@ import { Footer } from "@/components/Footer";
 import { FloatingChatAssistant } from "@/components/FloatingChatAssistant";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useBackground } from "@/contexts/BackgroundContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 import beachImage from "@/assets/condo-oceanfront.jpeg";
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const { isGlassTheme, glassIntensity } = useTheme();
   const { appBackground } = useBackground();
+  const { user } = useAuth();
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) return;
+      
+      const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+      
+      if (data) setProfile(data);
+    };
+
+    fetchProfile();
+  }, [user]);
 
   const getBackgroundStyle = () => {
     switch (appBackground.type) {
@@ -72,7 +93,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         <AppSidebar />
         <main className="flex-1 flex flex-col relative z-10">
           <header 
-            className="sticky top-0 z-10 flex h-16 items-center border-b px-4 shadow-sm backdrop-blur-sm"
+            className="sticky top-0 z-10 flex h-16 items-center justify-between border-b px-4 shadow-sm backdrop-blur-sm"
             style={
               isGlassTheme
                 ? {
@@ -86,6 +107,20 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             }
           >
             <SidebarTrigger />
+            {profile && (
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-foreground">
+                    {profile.full_name}
+                  </p>
+                  {profile.unit_number && (
+                    <p className="text-xs text-muted-foreground">
+                      Unit {profile.unit_number}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
           </header>
           <div className="p-6 flex-1">
             {children}
