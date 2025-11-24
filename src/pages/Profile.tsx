@@ -297,118 +297,102 @@ const Profile = () => {
 
         <TabsContent value="profile">
           <Card>
-            <CardHeader>
-              <CardTitle>Profile Information</CardTitle>
-              <CardDescription>
-                Update your personal details and contact information
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="space-y-2">
-                  <Label>Profile Photo</Label>
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-20 w-20">
-                      <AvatarImage src={avatarPreview || avatarUrl || ""} />
-                      <AvatarFallback className="text-xl">
-                        {fullName.split(" ").map(n => n[0]).join("").toUpperCase() || "?"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col gap-2">
-                      <Label htmlFor="avatar" className="cursor-pointer">
-                        <div className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
-                          <Upload className="h-4 w-4" />
-                          <span>Upload Photo</span>
-                        </div>
-                        <Input
-                          id="avatar"
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={handleAvatarChange}
-                        />
-                      </Label>
-                      {(avatarUrl || avatarPreview) && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={removeAvatar}
-                          disabled={loading}
-                        >
-                          <X className="h-4 w-4 mr-2" />
-                          Remove
-                        </Button>
-                      )}
-                    </div>
+            <CardContent className="pt-6">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="flex items-center gap-4 pb-4 border-b">
+                  <Avatar className="h-16 w-16">
+                    <AvatarImage src={avatarPreview || avatarUrl || ""} />
+                    <AvatarFallback className="text-lg">
+                      {fullName.split(" ").map(n => n[0]).join("").toUpperCase() || "?"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex gap-2">
+                    <Label htmlFor="avatar" className="cursor-pointer">
+                      <div className="flex items-center gap-2 px-3 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
+                        <Upload className="h-3.5 w-3.5" />
+                        <span>Upload Photo</span>
+                      </div>
+                      <Input
+                        id="avatar"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleAvatarChange}
+                      />
+                    </Label>
+                    {(avatarUrl || avatarPreview) && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={removeAvatar}
+                        disabled={loading}
+                      >
+                        <X className="h-3.5 w-3.5 mr-1" />
+                        Remove
+                      </Button>
+                    )}
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Max size: 5MB. Supported formats: JPG, PNG, WEBP, GIF
-                  </p>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={user?.email || ""}
-                    disabled
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    Email cannot be changed
-                  </p>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
-                  <Input
-                    id="fullName"
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="unitNumber">Unit Number</Label>
-                  <Input
-                    id="unitNumber"
-                    type="text"
-                    value={unitNumber}
-                    onChange={(e) => setUnitNumber(e.target.value)}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={phone}
-                    onChange={handlePhoneChange}
-                    placeholder="(808) 555-1234"
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    Format: (XXX) XXX-XXXX
-                  </p>
-                </div>
-                
-                <div className="space-y-3 border-t pt-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="showContact">Show Contact Info in Members Directory</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Allow other members to see your phone number
-                      </p>
-                    </div>
-                    <Switch
-                      id="showContact"
-                      checked={showContactInfo}
-                      onCheckedChange={setShowContactInfo}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName">Full Name</Label>
+                    <Input
+                      id="fullName"
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      required
                     />
                   </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="unitNumber">Unit Number</Label>
+                    <Input
+                      id="unitNumber"
+                      type="text"
+                      value={unitNumber}
+                      onChange={(e) => setUnitNumber(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={user?.email || ""}
+                      disabled
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={phone}
+                      onChange={handlePhoneChange}
+                      placeholder="(808) 555-1234"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between pt-2 border-t">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="showContact">Show Contact Info in Members Directory</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Allow other members to see your phone number
+                    </p>
+                  </div>
+                  <Switch
+                    id="showContact"
+                    checked={showContactInfo}
+                    onCheckedChange={setShowContactInfo}
+                  />
                 </div>
               </form>
             </CardContent>
@@ -417,44 +401,37 @@ const Profile = () => {
 
         <TabsContent value="password">
           <Card>
-            <CardHeader>
-              <CardTitle>Change Password</CardTitle>
-              <CardDescription>
-                Update your password to keep your account secure
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handlePasswordChange} className="space-y-5">
-                <div className="space-y-2">
-                  <Label htmlFor="newPassword">New Password</Label>
-                  <Input
-                    id="newPassword"
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    required
-                    placeholder="Enter new password"
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    Must be at least 6 characters
-                  </p>
+            <CardContent className="pt-6">
+              <form onSubmit={handlePasswordChange} className="space-y-4">
+                <div className="space-y-4 max-w-md">
+                  <div className="space-y-2">
+                    <Label htmlFor="newPassword">New Password</Label>
+                    <Input
+                      id="newPassword"
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                      placeholder="Enter new password (min. 6 characters)"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      placeholder="Confirm new password"
+                    />
+                  </div>
+                  
+                  <Button type="submit" className="w-full" disabled={passwordLoading}>
+                    {passwordLoading ? "Updating..." : "Update Password"}
+                  </Button>
                 </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    placeholder="Confirm new password"
-                  />
-                </div>
-                
-                <Button type="submit" className="w-full" disabled={passwordLoading}>
-                  {passwordLoading ? "Updating..." : "Update Password"}
-                </Button>
               </form>
             </CardContent>
           </Card>
