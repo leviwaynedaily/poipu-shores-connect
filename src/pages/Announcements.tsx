@@ -99,11 +99,11 @@ const Announcements = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-foreground">Announcements</h2>
-          <p className="text-lg text-muted-foreground">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="flex-1 min-w-0">
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground break-words">Announcements</h2>
+          <p className="text-sm sm:text-base md:text-lg text-muted-foreground">
             Important updates and notifications
           </p>
         </div>
@@ -111,35 +111,35 @@ const Announcements = () => {
         {canPost && (
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="lg" className="text-lg">
-                <Plus className="h-5 w-5 mr-2" />
+              <Button size="lg" className="text-sm sm:text-base md:text-lg w-full sm:w-auto shrink-0">
+                <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 New Announcement
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle className="text-2xl">Create Announcement</DialogTitle>
+                <DialogTitle className="text-xl sm:text-2xl">Create Announcement</DialogTitle>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title" className="text-lg">Title</Label>
+                  <Label htmlFor="title" className="text-sm sm:text-base md:text-lg">Title</Label>
                   <Input
                     id="title"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     required
-                    className="text-lg p-6"
+                    className="text-sm sm:text-base md:text-lg p-3 sm:p-4 md:p-6"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="content" className="text-lg">Content</Label>
+                  <Label htmlFor="content" className="text-sm sm:text-base md:text-lg">Content</Label>
                   <Textarea
                     id="content"
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     required
                     rows={6}
-                    className="text-lg p-4"
+                    className="text-sm sm:text-base md:text-lg p-3 sm:p-4"
                   />
                 </div>
                 <div className="flex items-center space-x-2">
@@ -148,9 +148,9 @@ const Announcements = () => {
                     checked={isPinned}
                     onCheckedChange={setIsPinned}
                   />
-                  <Label htmlFor="pinned" className="text-lg">Pin this announcement</Label>
+                  <Label htmlFor="pinned" className="text-sm sm:text-base md:text-lg">Pin this announcement</Label>
                 </div>
-                <Button type="submit" className="w-full text-lg py-6">
+                <Button type="submit" className="w-full text-sm sm:text-base md:text-lg py-4 sm:py-5 md:py-6">
                   Post Announcement
                 </Button>
               </form>
@@ -159,37 +159,37 @@ const Announcements = () => {
         )}
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {announcements.length === 0 ? (
           <Card>
-            <CardContent className="p-8 text-center">
-              <p className="text-lg text-muted-foreground">No announcements yet.</p>
+            <CardContent className="p-6 sm:p-8 text-center">
+              <p className="text-base sm:text-lg text-muted-foreground">No announcements yet.</p>
             </CardContent>
           </Card>
         ) : (
           announcements.map((announcement) => (
             <Card key={announcement.id} className="border-2">
-              <CardHeader>
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
+              <CardHeader className="p-4 sm:p-6">
+                <div className="flex items-start justify-between gap-2 sm:gap-4">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
                       {announcement.is_pinned && (
-                        <Badge variant="secondary" className="text-base">
-                          <Pin className="h-4 w-4 mr-1" />
+                        <Badge variant="secondary" className="text-xs sm:text-sm md:text-base">
+                          <Pin className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                           Pinned
                         </Badge>
                       )}
                     </div>
-                    <CardTitle className="text-2xl">{announcement.title}</CardTitle>
-                    <CardDescription className="text-base mt-1">
+                    <CardTitle className="text-lg sm:text-xl md:text-2xl break-words">{announcement.title}</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm md:text-base mt-1">
                       Posted by {announcement.author_name} on{" "}
                       {format(new Date(announcement.created_at), "MMM dd, yyyy 'at' h:mm a")}
                     </CardDescription>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <p className="text-lg whitespace-pre-wrap">{announcement.content}</p>
+              <CardContent className="p-4 sm:p-6 pt-0">
+                <p className="text-sm sm:text-base md:text-lg whitespace-pre-wrap break-words">{announcement.content}</p>
               </CardContent>
             </Card>
           ))

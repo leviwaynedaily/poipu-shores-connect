@@ -1,4 +1,4 @@
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Footer } from "@/components/Footer";
 import { FloatingChatAssistant } from "@/components/FloatingChatAssistant";
@@ -6,6 +6,8 @@ import { CommunityAssistantDialog } from "@/components/CommunityAssistantDialog"
 import { useTheme } from "@/contexts/ThemeContext";
 import { useBackground } from "@/contexts/BackgroundContext";
 import beachImage from "@/assets/condo-oceanfront.jpeg";
+import logoIcon from "@/assets/poipu-logo-icon.png";
+import logoText from "@/assets/poipu-text.png";
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const { isGlassTheme } = useTheme();
@@ -72,7 +74,16 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
         <AppSidebar />
         <main className="flex-1 flex flex-col relative z-10">
-          <div className="p-6 flex-1">
+          {/* Mobile Header */}
+          <header className="md:hidden sticky top-0 z-20 flex items-center gap-3 border-b border-border/20 px-4 py-3 backdrop-blur-sm bg-card/80">
+            <SidebarTrigger className="h-8 w-8" />
+            <div className="flex items-center gap-2">
+              <img src={logoIcon} alt="Poipu Shores" className="h-7 w-7 object-contain" />
+              <img src={logoText} alt="Poipu Shores" className="h-4 w-auto" />
+            </div>
+          </header>
+
+          <div className="p-4 md:p-6 flex-1">
             {children}
           </div>
           <Footer />

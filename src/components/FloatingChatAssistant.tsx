@@ -110,35 +110,35 @@ export function FloatingChatAssistant() {
   return (
     <>
       {isOpen && (
-        <Card className="fixed bottom-24 right-4 w-96 h-[500px] flex flex-col shadow-lg z-50">
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-lg">Community Assistant</CardTitle>
-            <div className="flex gap-2">
+        <Card className="fixed bottom-16 sm:bottom-24 right-2 sm:right-4 w-[calc(100vw-1rem)] sm:w-96 max-w-[400px] h-[70vh] sm:h-[500px] flex flex-col shadow-lg z-50">
+          <CardHeader className="flex flex-row items-center justify-between pb-3 px-3 sm:px-6">
+            <CardTitle className="text-base sm:text-lg">Community Assistant</CardTitle>
+            <div className="flex gap-1 sm:gap-2">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6"
+                className="h-6 w-6 sm:h-8 sm:w-8"
                 onClick={() => setIsOpen(false)}
               >
-                <Minimize2 className="h-4 w-4" />
+                <Minimize2 className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6"
+                className="h-6 w-6 sm:h-8 sm:w-8"
                 onClick={() => setIsOpen(false)}
               >
-                <X className="h-4 w-4" />
+                <X className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </div>
           </CardHeader>
           <CardContent className="flex-1 flex flex-col p-0">
-            <ScrollArea className="flex-1 px-4" ref={scrollRef}>
-              <div className="space-y-4 py-4">
+            <ScrollArea className="flex-1 px-3 sm:px-4" ref={scrollRef}>
+              <div className="space-y-3 sm:space-y-4 py-3 sm:py-4">
                 {messages.length === 0 && (
-                  <div className="text-center text-muted-foreground py-8">
-                    <p className="font-medium mb-2">Aloha! 🌺</p>
-                    <p className="text-sm">
+                  <div className="text-center text-muted-foreground py-6 sm:py-8">
+                    <p className="font-medium mb-2 text-sm sm:text-base">Aloha! 🌺</p>
+                    <p className="text-xs sm:text-sm px-2">
                       Ask me about documents, announcements, community info, or anything else!
                     </p>
                   </div>
@@ -149,7 +149,7 @@ export function FloatingChatAssistant() {
                     className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                   >
                     <div
-                      className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                      className={`max-w-[85%] sm:max-w-[80%] rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base ${
                         msg.role === "user"
                           ? "bg-primary text-primary-foreground"
                           : "bg-muted"
@@ -161,7 +161,7 @@ export function FloatingChatAssistant() {
                 ))}
               </div>
             </ScrollArea>
-            <div className="border-t p-4">
+            <div className="border-t p-3 sm:p-4">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -172,10 +172,11 @@ export function FloatingChatAssistant() {
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask the chicken anything..."
+                  placeholder="Ask the chicken..."
                   disabled={isLoading}
+                  className="text-sm sm:text-base"
                 />
-                <Button type="submit" size="icon" disabled={isLoading}>
+                <Button type="submit" size="icon" disabled={isLoading} className="shrink-0">
                   {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
@@ -190,7 +191,7 @@ export function FloatingChatAssistant() {
 
       <Button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-4 right-4 h-12 w-12 rounded-full shadow-md z-40 p-0 overflow-hidden opacity-80 hover:opacity-100"
+        className="fixed bottom-3 sm:bottom-4 right-3 sm:right-4 h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-lg z-40 p-0 overflow-hidden opacity-90 hover:opacity-100 transition-opacity"
         size="icon"
       >
         <img
