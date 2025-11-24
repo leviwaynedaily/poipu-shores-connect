@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.community-assistant]
 verify_jwt = false
+
+[functions.generate-background]
+verify_jwt = true
