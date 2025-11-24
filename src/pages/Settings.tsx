@@ -154,6 +154,42 @@ export default function Settings() {
     toast.success("Photo selected!");
   };
 
+  const uploadCustomPhoto = async (file: File, type: "home" | "app") => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file");
+      return;
+    }
+
+    const setBackground = type === "home" ? setHomeBackground : setAppBackground;
+    
+    try {
+      const user = (await supabase.auth.getUser()).data.user;
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${user?.id}/${Date.now()}.${fileExt}`;
+
+      const { data, error } = await supabase.storage
+        .from("community_photos")
+        .upload(fileName, file);
+
+      if (error) throw error;
+
+      const publicUrl = supabase.storage
+        .from("community_photos")
+        .getPublicUrl(fileName).data.publicUrl;
+
+      setBackground((prev) => ({
+        ...prev,
+        type: "uploaded",
+        url: publicUrl,
+      }));
+      
+      toast.success("Photo uploaded successfully!");
+    } catch (error: any) {
+      console.error("Error uploading photo:", error);
+      toast.error("Failed to upload photo");
+    }
+  };
+
   const clearBackground = (type: "home" | "app") => {
     const setBackground = type === "home" ? setHomeBackground : setAppBackground;
     setBackground({
@@ -304,9 +340,22 @@ export default function Settings() {
         <Card>
           <CardHeader>
             <CardTitle>Choose from Uploaded Photos</CardTitle>
-            <CardDescription>Select from community photos or clear current background</CardDescription>
+            <CardDescription>Upload your own photo or select from community photos</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Upload Custom Photo</Label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) uploadCustomPhoto(file, type);
+                }}
+                className="cursor-pointer"
+              />
+            </div>
+
             {(background.type === "uploaded" || background.type === "generated") && background.url && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
