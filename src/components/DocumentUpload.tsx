@@ -34,54 +34,82 @@ export function DocumentUpload({ onUploadComplete, folders }: DocumentUploadProp
   const [category, setCategory] = useState("general");
   const [folder, setFolder] = useState("none");
   const [newFolder, setNewFolder] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<FileList | null>(null);
   const [unitNumber, setUnitNumber] = useState("");
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) return;
+    if (!files || files.length === 0) return;
 
     setIsUploading(true);
+    const uploadedCount = files.length;
+    let successCount = 0;
+    let failCount = 0;
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const actualFolder = folder === "none" ? "" : folder;
-      const filePath = actualFolder || newFolder ? `${actualFolder || newFolder}/${fileName}` : fileName;
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        try {
+          const fileExt = file.name.split(".").pop();
+          const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+          const actualFolder = folder === "none" ? "" : folder;
+          const filePath = actualFolder || newFolder ? `${actualFolder || newFolder}/${fileName}` : fileName;
 
-      const { error: uploadError } = await supabase.storage
-        .from("documents")
-        .upload(filePath, file);
+          const { error: uploadError } = await supabase.storage
+            .from("documents")
+            .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+          if (uploadError) throw uploadError;
 
-      const { error: dbError } = await supabase
-        .from("documents")
-        .insert({
-          title,
-          category,
-          folder: (folder === "none" ? null : folder) || newFolder || null,
-          file_path: filePath,
-          file_size: file.size,
-          file_type: file.type,
-          uploaded_by: user.id,
-          unit_number: unitNumber || null,
+          // Use the file name as title if only uploading one file with a specified title
+          // Otherwise, use the original filename
+          const documentTitle = files.length === 1 && title ? title : file.name.replace(/\.[^/.]+$/, "");
+
+          const { error: dbError } = await supabase
+            .from("documents")
+            .insert({
+              title: documentTitle,
+              category,
+              folder: (folder === "none" ? null : folder) || newFolder || null,
+              file_path: filePath,
+              file_size: file.size,
+              file_type: file.type,
+              uploaded_by: user.id,
+              unit_number: unitNumber || null,
+            });
+
+          if (dbError) throw dbError;
+          successCount++;
+        } catch (error) {
+          console.error(`Error uploading ${file.name}:`, error);
+          failCount++;
+        }
+      }
+
+      if (successCount > 0) {
+        toast({
+          title: "Success",
+          description: `${successCount} document${successCount > 1 ? 's' : ''} uploaded successfully${failCount > 0 ? `, ${failCount} failed` : ''}`,
         });
+      }
 
-      if (dbError) throw dbError;
-
-      toast({
-        title: "Success",
-        description: "Document uploaded successfully",
-      });
+      if (failCount > 0 && successCount === 0) {
+        toast({
+          title: "Error",
+          description: `Failed to upload ${failCount} document${failCount > 1 ? 's' : ''}`,
+          variant: "destructive",
+        });
+      }
 
       setTitle("");
       setCategory("general");
       setFolder("none");
       setNewFolder("");
-      setFile(null);
+      setFiles(null);
       setUnitNumber("");
       setIsOpen(false);
       onUploadComplete();
@@ -113,22 +141,35 @@ export function DocumentUpload({ onUploadComplete, folders }: DocumentUploadProp
         </DialogHeader>
         <form onSubmit={handleUpload} className="space-y-4">
           <div>
-            <Label htmlFor="file">File</Label>
+            <Label htmlFor="file">File(s)</Label>
             <Input
               id="file"
               type="file"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              onChange={(e) => setFiles(e.target.files)}
               required
+              multiple
+              accept=".pdf,.doc,.docx,.txt,.xlsx,.xls,.pptx,.ppt"
             />
+            {files && files.length > 1 && (
+              <p className="text-sm text-muted-foreground mt-1">
+                {files.length} files selected
+              </p>
+            )}
           </div>
           <div>
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">Title {files && files.length > 1 && "(optional for multiple files)"}</Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              required
+              required={!files || files.length === 1}
+              placeholder={files && files.length > 1 ? "Will use filenames" : "Document title"}
             />
+            {files && files.length > 1 && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Leave empty to use original filenames as titles
+              </p>
+            )}
           </div>
           <div>
             <Label htmlFor="category">Category</Label>

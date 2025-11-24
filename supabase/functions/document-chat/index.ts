@@ -56,12 +56,22 @@ serve(async (req) => {
       }
     }
 
-    const systemPrompt = `You are a helpful AI assistant for a Hawaiian condo community portal. 
+    const systemPrompt = `You are a helpful AI assistant for the Poipu Shores Hawaiian condo community portal. 
 You have access to community documents and can answer questions about them.
 
 ${contextText}
 
-Provide clear, concise answers based on the documents available. If you don't have specific information from the documents, let the user know and provide general helpful guidance.`;
+When users ask about documents:
+1. If they ask about specific documents (meetings, rules, financials, etc.), reference the available documents by name
+2. Provide helpful guidance based on what documents are available
+3. If you don't have the actual content, let them know they should download and review the specific document
+4. Offer to help them find the right document based on their question
+5. Provide general information about HOA/condo management best practices when relevant
+
+For questions about the community, be helpful and friendly. Suggest which documents might contain the information they need.`;
+
+    console.log("System prompt:", systemPrompt);
+    console.log("User messages:", messages);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

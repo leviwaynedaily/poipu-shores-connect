@@ -37,9 +37,7 @@ export function DocumentChat({ documentIds = [] }: DocumentChatProps) {
     setIsLoading(true);
 
     try {
-      const CHAT_URL = `https://rvqqnfsgovlxocjjugww.supabase.co/functions/v1/document-chat`;
-      
-      const resp = await fetch(CHAT_URL, {
+      const response = await fetch(`https://rvqqnfsgovlxocjjugww.supabase.co/functions/v1/document-chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -54,14 +52,14 @@ export function DocumentChat({ documentIds = [] }: DocumentChatProps) {
         }),
       });
 
-      if (!resp.ok) {
-        const error = await resp.json();
+      if (!response.ok) {
+        const error = await response.json();
         throw new Error(error.error || "Failed to get response");
       }
 
-      if (!resp.body) throw new Error("No response body");
+      if (!response.body) throw new Error("No response body");
 
-      const reader = resp.body.getReader();
+      const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let assistantContent = "";
       let textBuffer = "";
