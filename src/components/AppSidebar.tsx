@@ -89,12 +89,12 @@ export function AppSidebar() {
     >
       <SidebarContent>
         <SidebarGroup>
-          <div className={`flex items-center justify-between h-12 border-b border-border/20 ${open ? "px-4" : "px-2"}`}>
-            <div className="flex items-center gap-3">
-              <img src={logoIcon} alt="Poipu Shores Logo" className="h-8 w-8 object-contain" />
-              {open && <img src={logoText} alt="Poipu Shores" className="h-6 w-auto" />}
+          <div className="flex items-center justify-between h-12 border-b border-border/20 px-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <img src={logoIcon} alt="Poipu Shores Logo" className="h-8 w-8 object-contain flex-shrink-0" />
+              {open && <img src={logoText} alt="Poipu Shores" className="h-5 w-auto" />}
             </div>
-            <SidebarTrigger className="h-9 w-9" />
+            <SidebarTrigger className="h-8 w-8 flex-shrink-0" />
           </div>
           <SidebarGroupContent>
             <SidebarMenu>
