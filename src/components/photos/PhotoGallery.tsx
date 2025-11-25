@@ -63,7 +63,7 @@ export function PhotoGallery() {
         .from("community_photos")
         .select(`
           *,
-          profiles!community_photos_uploaded_by_fkey (
+          profiles (
             full_name
           )
         `)
