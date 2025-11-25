@@ -63,18 +63,20 @@ serve(async (req) => {
 
     const email = targetUser.user.email;
 
-    // Generate a new invite link
+    // Generate a password reset link (works for existing users who haven't logged in)
     const { data: resetData, error: resetError } = await supabaseClient.auth.admin.generateLink({
-      type: 'invite',
+      type: 'recovery',
       email: email,
     });
 
     if (resetError || !resetData.properties?.action_link) {
-      console.error("Failed to generate invite link:", resetError);
-      throw new Error("Failed to generate invite link");
+      console.error("Failed to generate reset link:", resetError);
+      throw new Error("Failed to generate reset link");
     }
 
     const inviteLink = resetData.properties.action_link;
+    
+    console.log(`Successfully generated reset link for ${email}`);
 
     // Send the email
     const { error: emailError } = await resend.emails.send({
