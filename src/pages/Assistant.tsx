@@ -1,59 +1,58 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { Send, Loader2, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, Loader2 } from "lucide-react";
-import { TypingIndicator } from "./TypingIndicator";
+import { useAuth } from "@/contexts/AuthContext";
+import { TypingIndicator } from "@/components/TypingIndicator";
+import chickenIcon from "@/assets/chicken-assistant.jpeg";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
 }
 
-interface DocumentChatProps {
-  documentIds?: string[];
-}
-
-export function DocumentChat({ documentIds = [] }: DocumentChatProps) {
+const Assistant = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Load chat history on mount
   useEffect(() => {
     loadChatHistory();
   }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      scrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
 
   const loadChatHistory = async () => {
     try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) return;
+      if (!user) return;
 
       const { data, error } = await supabase
         .from("community_assistant_messages")
         .select("*")
-        .eq("user_id", user.user.id)
+        .eq("user_id", user.id)
         .order("created_at", { ascending: true });
 
       if (error) throw error;
 
       if (data) {
-        setMessages(data.map((msg) => ({
-          role: msg.role as "user" | "assistant",
-          content: msg.content,
-        })));
+        setMessages(
+          data.map((msg) => ({
+            role: msg.role as "user" | "assistant",
+            content: msg.content,
+          }))
+        );
       }
     } catch (error: any) {
       console.error("Error loading chat history:", error);
@@ -64,13 +63,12 @@ export function DocumentChat({ documentIds = [] }: DocumentChatProps) {
 
   const saveMessage = async (role: "user" | "assistant", content: string) => {
     try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) return;
+      if (!user) return;
 
       const { error } = await supabase
         .from("community_assistant_messages")
         .insert({
-          user_id: user.user.id,
+          user_id: user.id,
           role,
           content,
         });
@@ -89,7 +87,6 @@ export function DocumentChat({ documentIds = [] }: DocumentChatProps) {
     setInput("");
     setIsLoading(true);
 
-    // Save user message
     await saveMessage("user", userMessage.content);
 
     try {
@@ -152,7 +149,6 @@ export function DocumentChat({ documentIds = [] }: DocumentChatProps) {
         }
       }
 
-      // Save complete assistant message
       if (assistantContent) {
         await saveMessage("assistant", assistantContent);
       }
@@ -169,25 +165,76 @@ export function DocumentChat({ documentIds = [] }: DocumentChatProps) {
     }
   };
 
+  const clearHistory = async () => {
+    try {
+      if (!user) return;
+
+      const { error } = await supabase
+        .from("community_assistant_messages")
+        .delete()
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      setMessages([]);
+      toast({
+        title: "Success",
+        description: "Chat history cleared",
+      });
+    } catch (error: any) {
+      console.error("Error clearing history:", error);
+      toast({
+        title: "Error",
+        description: "Failed to clear history",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoadingHistory) {
     return (
-      <Card className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-[60vh]">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </Card>
+      </div>
     );
   }
 
   return (
-    <Card className="flex flex-col max-h-[calc(100vh-300px)]">
-      <CardHeader className="flex-shrink-0">
-        <CardTitle>Document Assistant</CardTitle>
+    <Card className="h-[calc(100vh-8rem)] flex flex-col">
+      <CardHeader className="border-b flex-shrink-0">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img
+              src={chickenIcon}
+              alt="Community Assistant"
+              className="h-12 w-12 rounded-full object-cover ring-2 ring-primary/20"
+            />
+            <div>
+              <CardTitle className="text-2xl">Ask the Chicken</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Your AI assistant for documents, announcements, emergency info, and more!
+              </p>
+            </div>
+          </div>
+          {messages.length > 0 && (
+            <Button variant="ghost" size="sm" onClick={clearHistory}>
+              <Trash2 className="h-4 w-4 mr-2" />
+              Clear History
+            </Button>
+          )}
+        </div>
       </CardHeader>
+
       <CardContent className="flex-1 flex flex-col p-0 min-h-0">
-        <ScrollArea className="flex-1 px-4" ref={scrollRef}>
-          <div className="space-y-4 py-4">
+        <ScrollArea className="flex-1 px-6">
+          <div className="space-y-4 py-6">
             {messages.length === 0 && (
-              <div className="text-center text-muted-foreground py-8">
-                Ask me anything about the community documents!
+              <div className="text-center py-12">
+                <p className="text-xl font-medium mb-3">Aloha! 🌺</p>
+                <p className="text-base text-muted-foreground max-w-md mx-auto">
+                  I'm your community assistant. Ask me about documents, announcements,
+                  emergency contacts, photos, or anything else about Poipu Shores!
+                </p>
               </div>
             )}
             {messages.map((msg, idx) => (
@@ -196,7 +243,7 @@ export function DocumentChat({ documentIds = [] }: DocumentChatProps) {
                 className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-2 whitespace-pre-wrap ${
+                  className={`max-w-[80%] rounded-2xl px-4 py-3 text-base whitespace-pre-wrap ${
                     msg.role === "user"
                       ? "bg-primary text-primary-foreground rounded-br-sm"
                       : "bg-muted rounded-tl-sm"
@@ -207,27 +254,30 @@ export function DocumentChat({ documentIds = [] }: DocumentChatProps) {
               </div>
             ))}
             {isLoading && <TypingIndicator />}
+            <div ref={scrollRef} />
           </div>
         </ScrollArea>
-        <div className="border-t p-4 flex-shrink-0">
+
+        <div className="border-t p-6 flex-shrink-0">
           <form
             onSubmit={(e) => {
               e.preventDefault();
               handleSend();
             }}
-            className="flex gap-2"
+            className="flex gap-3"
           >
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about documents..."
+              placeholder="Ask me anything..."
               disabled={isLoading}
+              className="text-base h-12"
             />
-            <Button type="submit" size="icon" disabled={isLoading}>
+            <Button type="submit" size="lg" disabled={isLoading} className="h-12 px-6">
               {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                <Send className="h-4 w-4" />
+                <Send className="h-5 w-5" />
               )}
             </Button>
           </form>
@@ -235,4 +285,6 @@ export function DocumentChat({ documentIds = [] }: DocumentChatProps) {
       </CardContent>
     </Card>
   );
-}
+};
+
+export default Assistant;
