@@ -74,7 +74,7 @@ const Dashboard = () => {
       <AnnouncementDialog />
 
       <Card 
-        className="cursor-pointer hover:border-primary transition-all hover:shadow-lg bg-gradient-to-r from-card to-card/80"
+        className="cursor-pointer hover:border-primary transition-colors"
         onClick={() => setIsAssistantOpen(true)}
       >
         <CardHeader className="p-4 md:p-6">
