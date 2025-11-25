@@ -132,7 +132,7 @@ const Auth = () => {
       )}
       
       <div className="flex-1 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md relative z-10 bg-background/5 backdrop-blur-sm border border-border/15 shadow-xl">
+        <Card className="w-full max-w-md relative z-10 shadow-xl">
         <CardHeader className="text-center pb-4">
           <div className="flex justify-center mb-4">
             <img src={logo} alt="Poipu Shores - Kauai, Hawaii" className="w-full max-w-md" />
