@@ -129,21 +129,21 @@ const Dashboard = () => {
 
       <Link to="/assistant">
         <Card className="cursor-pointer hover:border-primary transition-colors">
-          <CardHeader className="p-4 md:p-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 md:gap-4">
+          <CardHeader className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
               <img
                 src={chickenIcon}
                 alt="Community Assistant"
-                className="h-16 w-16 sm:h-20 sm:w-20 rounded-full object-cover ring-2 ring-primary/20 flex-shrink-0"
+                className="h-12 w-12 sm:h-16 sm:w-16 rounded-full object-cover ring-2 ring-primary/20 flex-shrink-0"
               />
               <div className="flex-1 min-w-0">
-                <CardTitle className="text-xl sm:text-2xl md:text-3xl mb-1 md:mb-2">Ask the Chicken</CardTitle>
-                <CardDescription className="text-sm sm:text-base md:text-lg">
+                <CardTitle className="text-lg sm:text-xl md:text-2xl">Ask the Chicken</CardTitle>
+                <CardDescription className="text-sm sm:text-base">
                   Your AI assistant for documents, announcements, emergency info, and more!
                 </CardDescription>
               </div>
-              <Button size="lg" className="h-10 sm:h-12 px-4 sm:px-6 w-full sm:w-auto shrink-0">
-                <MessageCircle className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+              <Button size="default" className="w-full sm:w-auto shrink-0">
+                <MessageCircle className="mr-2 h-4 w-4" />
                 Start Chat
               </Button>
             </div>
