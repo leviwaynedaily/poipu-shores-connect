@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserPlus, Shield } from "lucide-react";
+import { UserPlus, Shield, Clock, Mail, UserCheck, UserX } from "lucide-react";
 
 interface Profile {
   id: string;
@@ -17,6 +17,7 @@ interface Profile {
   unit_number: string | null;
   phone: string | null;
   created_at: string;
+  last_sign_in_at: string | null;
 }
 
 interface UserWithRoles extends Profile {
@@ -123,6 +124,40 @@ export function UserManagement() {
       });
     } finally {
       setIsInviting(false);
+    }
+  };
+
+  const handleResendInvite = async (userId: string, fullName: string, unitNumber: string | null) => {
+    try {
+      const response = await fetch(`https://rvqqnfsgovlxocjjugww.supabase.co/functions/v1/resend-invite`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          full_name: fullName,
+          unit_number: unitNumber,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to resend invite");
+      }
+
+      toast({
+        title: "Invite resent",
+        description: "Invitation email has been resent successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -243,48 +278,102 @@ export function UserManagement() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Unit</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Last Sign In</TableHead>
                   <TableHead>Roles</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.full_name}</TableCell>
-                    <TableCell>{user.unit_number || "—"}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        {user.roles.length === 0 && (
-                          <Badge variant="outline">Resident</Badge>
+                {users.map((user) => {
+                  const hasLoggedIn = user.last_sign_in_at !== null;
+                  const isActive = user.last_sign_in_at 
+                    ? new Date(user.last_sign_in_at).getTime() > Date.now() - 24 * 60 * 60 * 1000
+                    : false;
+                  
+                  const formatLastSignIn = (timestamp: string | null) => {
+                    if (!timestamp) return "Never";
+                    const date = new Date(timestamp);
+                    const now = new Date();
+                    const diffMs = now.getTime() - date.getTime();
+                    const diffMins = Math.floor(diffMs / 60000);
+                    const diffHours = Math.floor(diffMs / 3600000);
+                    const diffDays = Math.floor(diffMs / 86400000);
+                    
+                    if (diffMins < 1) return "Just now";
+                    if (diffMins < 60) return `${diffMins}m ago`;
+                    if (diffHours < 24) return `${diffHours}h ago`;
+                    if (diffDays < 7) return `${diffDays}d ago`;
+                    return date.toLocaleDateString();
+                  };
+                  
+                  return (
+                    <TableRow key={user.id}>
+                      <TableCell className="font-medium">{user.full_name}</TableCell>
+                      <TableCell>{user.unit_number || "—"}</TableCell>
+                      <TableCell>
+                        {hasLoggedIn ? (
+                          <Badge variant={isActive ? "default" : "secondary"} className="gap-1">
+                            <UserCheck className="h-3 w-3" />
+                            {isActive ? "Active" : "Registered"}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="gap-1">
+                            <UserX className="h-3 w-3" />
+                            Pending
+                          </Badge>
                         )}
-                        {user.roles.includes("admin") && (
-                          <Badge variant="default">Admin</Badge>
-                        )}
-                        {user.roles.includes("owner") && (
-                          <Badge variant="secondary">Owner</Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant={user.roles.includes("admin") ? "default" : "outline"}
-                          onClick={() => handleToggleRole(user.id, "admin", user.roles.includes("admin"))}
-                        >
-                          <Shield className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant={user.roles.includes("owner") ? "default" : "outline"}
-                          onClick={() => handleToggleRole(user.id, "owner", user.roles.includes("owner"))}
-                        >
-                          Owner
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Clock className="h-4 w-4" />
+                          {formatLastSignIn(user.last_sign_in_at)}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          {user.roles.length === 0 && (
+                            <Badge variant="outline">Resident</Badge>
+                          )}
+                          {user.roles.includes("admin") && (
+                            <Badge variant="default">Admin</Badge>
+                          )}
+                          {user.roles.includes("owner") && (
+                            <Badge variant="secondary">Owner</Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          {!hasLoggedIn && (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => handleResendInvite(user.id, user.full_name, user.unit_number)}
+                            >
+                              <Mail className="h-4 w-4 mr-1" />
+                              Resend
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            variant={user.roles.includes("admin") ? "default" : "outline"}
+                            onClick={() => handleToggleRole(user.id, "admin", user.roles.includes("admin"))}
+                          >
+                            <Shield className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant={user.roles.includes("owner") ? "default" : "outline"}
+                            onClick={() => handleToggleRole(user.id, "owner", user.roles.includes("owner"))}
+                          >
+                            Owner
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}
