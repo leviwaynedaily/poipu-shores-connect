@@ -71,7 +71,7 @@ const Dashboard = () => {
     <div className="space-y-6">
       <AnnouncementDialog />
 
-      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         <Link to="/announcements">
           <Card className="cursor-pointer hover:border-primary transition-colors h-full">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
