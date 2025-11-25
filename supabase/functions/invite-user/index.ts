@@ -138,24 +138,42 @@ The Poipu Shores Team`,
 <body style="margin: 0; padding: 0; background-color: #f4f4f4;">
   <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f4f4;">
     <tr>
-      <td align="center" style="padding: 20px 0;">
-        <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+      <td align="center" style="padding: 40px 0;">
+        <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden;">
+          <!-- Header with Logo -->
+          <tr>
+            <td align="center" style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 40px 30px;">
+              <img src="https://poipu-shores.com/header-logo.png" alt="Poipu Shores" style="max-width: 240px; height: auto; display: block;" />
+            </td>
+          </tr>
+          <!-- Content -->
           <tr>
             <td style="padding: 40px 30px;">
-              <h2 style="color: #333333; font-family: Arial, sans-serif; font-size: 24px; margin: 0 0 20px 0;">Welcome to Poipu Shores!</h2>
-              <p style="color: #333333; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">Hi ${full_name},</p>
-              <p style="color: #333333; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">You've been invited to join the Poipu Shores community platform. Click the button below to complete your registration and set your password:</p>
+              <h2 style="color: #1e293b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 28px; font-weight: 600; margin: 0 0 20px 0;">Welcome to Poipu Shores!</h2>
+              <p style="color: #334155; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">Hi ${full_name},</p>
+              <p style="color: #475569; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">You've been invited to join the Poipu Shores community platform. Complete your registration and set your password to access all community features:</p>
+              ${unit_number ? `<div style="background-color: #f1f5f9; border-left: 4px solid #3b82f6; padding: 16px 20px; margin: 0 0 30px 0; border-radius: 4px;">
+                <p style="color: #1e293b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 16px; font-weight: 600; margin: 0;"><strong>Your Unit:</strong> ${unit_number}</p>
+              </div>` : ''}
               <table border="0" cellpadding="0" cellspacing="0" width="100%">
                 <tr>
-                  <td align="center" style="padding: 20px 0;">
-                    <a href="${inviteLink}" style="background-color: #0066cc; color: #ffffff; font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; text-decoration: none; padding: 14px 28px; border-radius: 4px; display: inline-block;">Complete Registration</a>
+                  <td align="center" style="padding: 10px 0 30px 0;">
+                    <a href="${inviteLink}" style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 16px; font-weight: 600; text-decoration: none; padding: 16px 36px; border-radius: 8px; display: inline-block; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);">Complete Registration</a>
                   </td>
                 </tr>
               </table>
-              <p style="color: #666666; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; margin: 0 0 10px 0;">If the button doesn't work, copy and paste this link into your browser:</p>
-              <p style="color: #0066cc; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; margin: 0 0 20px 0; word-break: break-all;">${inviteLink}</p>
-              ${unit_number ? `<p style="color: #333333; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.6; margin: 20px 0;"><strong>Your Unit:</strong> ${unit_number}</p>` : ''}
-              <p style="color: #999999; font-family: Arial, sans-serif; font-size: 13px; line-height: 1.6; margin: 30px 0 0 0; padding-top: 20px; border-top: 1px solid #eeeeee;">If you didn't expect this invitation, you can safely ignore this email.</p>
+              <p style="color: #64748b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 14px; line-height: 1.6; margin: 0 0 10px 0;">If the button doesn't work, copy and paste this link into your browser:</p>
+              <p style="color: #3b82f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 13px; line-height: 1.6; margin: 0 0 20px 0; word-break: break-all; background-color: #f8fafc; padding: 12px; border-radius: 6px;">${inviteLink}</p>
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="color: #94a3b8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 13px; line-height: 1.6; margin: 0;">If you didn't expect this invitation, you can safely ignore this email.</p>
+              </div>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="background-color: #f8fafc; padding: 30px; border-top: 1px solid #e2e8f0;">
+              <p style="color: #64748b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 14px; line-height: 1.6; margin: 0 0 10px 0;">Poipu Shores Community</p>
+              <p style="color: #94a3b8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 12px; line-height: 1.6; margin: 0;">© ${new Date().getFullYear()} Poipu Shores. All rights reserved.</p>
             </td>
           </tr>
         </table>
