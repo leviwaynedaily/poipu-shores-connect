@@ -498,6 +498,44 @@ export type Database = {
         }
         Relationships: []
       }
+      unit_owners: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_primary_contact: boolean | null
+          relationship_type: string
+          unit_number: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_primary_contact?: boolean | null
+          relationship_type?: string
+          unit_number: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_primary_contact?: boolean | null
+          relationship_type?: string
+          unit_number?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unit_owners_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string

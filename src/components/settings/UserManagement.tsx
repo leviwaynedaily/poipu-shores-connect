@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserPlus, Shield, Clock, Mail, UserCheck, UserX } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Profile {
   id: string;
@@ -32,6 +33,8 @@ export function UserManagement() {
   const [inviteFullName, setInviteFullName] = useState("");
   const [inviteUnitNumber, setInviteUnitNumber] = useState("");
   const [inviteRole, setInviteRole] = useState<"admin" | "owner">("owner");
+  const [inviteRelationshipType, setInviteRelationshipType] = useState<"primary" | "spouse" | "co-owner" | "family">("primary");
+  const [inviteIsPrimaryContact, setInviteIsPrimaryContact] = useState(false);
   const [isInviting, setIsInviting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [resendingUserId, setResendingUserId] = useState<string | null>(null);
@@ -97,6 +100,8 @@ export function UserManagement() {
           full_name: inviteFullName,
           unit_number: inviteUnitNumber,
           role: inviteRole,
+          relationship_type: inviteRelationshipType,
+          is_primary_contact: inviteIsPrimaryContact,
         }),
       });
 
@@ -115,6 +120,8 @@ export function UserManagement() {
       setInviteFullName("");
       setInviteUnitNumber("");
       setInviteRole("owner");
+      setInviteRelationshipType("primary");
+      setInviteIsPrimaryContact(false);
       setIsDialogOpen(false);
       fetchUsers();
     } catch (error: any) {
@@ -249,6 +256,34 @@ export function UserManagement() {
                     placeholder="Optional"
                   />
                 </div>
+                {inviteUnitNumber && (
+                  <>
+                    <div>
+                      <Label htmlFor="relationshipType">Relationship Type</Label>
+                      <Select value={inviteRelationshipType} onValueChange={(value: any) => setInviteRelationshipType(value)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="primary">Primary Owner</SelectItem>
+                          <SelectItem value="spouse">Spouse</SelectItem>
+                          <SelectItem value="co-owner">Co-Owner</SelectItem>
+                          <SelectItem value="family">Family Member</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="isPrimaryContact"
+                        checked={inviteIsPrimaryContact}
+                        onCheckedChange={(checked) => setInviteIsPrimaryContact(checked as boolean)}
+                      />
+                      <Label htmlFor="isPrimaryContact" className="cursor-pointer">
+                        Primary Contact for Unit
+                      </Label>
+                    </div>
+                  </>
+                )}
                 <div>
                   <Label htmlFor="role">Initial Role</Label>
                   <Select value={inviteRole} onValueChange={(value: any) => setInviteRole(value)}>
