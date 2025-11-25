@@ -272,7 +272,7 @@ export default function AdminSettings() {
     }
   };
 
-  const handleAuthBackgroundUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAuthLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -288,7 +288,7 @@ export default function AdminSettings() {
     setUploadingAuth(true);
     try {
       const fileExt = file.name.split('.').pop();
-      const filePath = `auth-background-${Date.now()}.${fileExt}`;
+      const filePath = `auth-logo-${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
@@ -303,7 +303,7 @@ export default function AdminSettings() {
       await supabase
         .from('app_settings')
         .upsert({
-          setting_key: 'auth_background',
+          setting_key: 'auth_logo',
           setting_value: publicUrl,
         }, {
           onConflict: 'setting_key',
@@ -311,10 +311,10 @@ export default function AdminSettings() {
 
       toast({
         title: "Success",
-        description: "Sign-in background image uploaded successfully",
+        description: "Sign-in logo uploaded successfully",
       });
     } catch (error: any) {
-      console.error('Error uploading auth background:', error);
+      console.error('Error uploading auth logo:', error);
       toast({
         title: "Upload failed",
         description: error.message,
@@ -662,22 +662,22 @@ export default function AdminSettings() {
                 </Card>
               </div>
 
-              {/* Sign-in Background - Full Width */}
+              {/* Sign-in Logo - Full Width */}
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-2 text-base">
                     <Upload className="h-4 w-4" />
-                    Sign-in Background
+                    Sign-in Logo
                   </CardTitle>
                   <CardDescription className="text-sm">
-                    Upload a custom background for the sign-in page
+                    Upload a custom logo for the sign-in card
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Input
                     type="file"
                     accept="image/*"
-                    onChange={handleAuthBackgroundUpload}
+                    onChange={handleAuthLogoUpload}
                     disabled={uploadingAuth}
                     className="text-sm"
                   />
