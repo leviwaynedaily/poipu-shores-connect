@@ -33,9 +33,11 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [userHasPhone, setUserHasPhone] = useState(false);
+  const [userPhone, setUserPhone] = useState("");
   const [showOtpLogin, setShowOtpLogin] = useState(false);
   const [otpMethod, setOtpMethod] = useState<'email' | 'phone' | null>(null);
-  const [phone, setPhone] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [authLogo, setAuthLogo] = useState<string>(logo);
@@ -61,6 +63,23 @@ const Auth = () => {
     
     fetchAuthLogo();
   }, []);
+
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      z.string().email().parse(email);
+      setEmailVerified(true);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validation Error",
+          description: "Please enter a valid email address",
+          variant: "destructive",
+        });
+      }
+    }
+  };
 
   const getBackgroundStyle = () => {
     switch (homeBackground.type) {
@@ -100,6 +119,17 @@ const Auth = () => {
       const { error } = await signIn(email, password);
       if (!error) {
         navigate("/dashboard");
+      } else {
+        // Reset to email entry if user not found
+        if (error.message.includes('Invalid login credentials') || error.message.includes('not found')) {
+          toast({
+            title: "Account Not Found",
+            description: "No account found with this email address",
+            variant: "destructive",
+          });
+          setEmailVerified(false);
+          setPassword("");
+        }
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -136,6 +166,14 @@ const Auth = () => {
     }
   };
 
+  const handleRequestOtp = async () => {
+    // For security, we only offer email OTP initially
+    // Since we can't check if user has a phone without authentication
+    // They'll need to have entered a valid registered email
+    setShowOtpLogin(true);
+    setOtpMethod('email'); // Default to email since we can't verify phone without auth
+  };
+
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -166,12 +204,19 @@ const Auth = () => {
           });
         }
       } else if (otpMethod === 'phone') {
-        if (!phone || phone.replace(/\D/g, '').length !== 10) {
-          throw new Error('Please enter a valid 10-digit phone number');
+        // Use the phone from user's profile
+        if (!userPhone || userPhone.replace(/\D/g, '').length !== 10) {
+          toast({
+            title: "Error",
+            description: "No valid phone number found in your profile",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
         }
         
         // Convert to E.164 format
-        const e164Phone = `+1${phone.replace(/\D/g, '')}`;
+        const e164Phone = `+1${userPhone.replace(/\D/g, '')}`;
         
         const { error } = await supabase.auth.signInWithOtp({
           phone: e164Phone,
@@ -233,7 +278,7 @@ const Auth = () => {
         type: 'email',
       };
     } else if (otpMethod === 'phone') {
-      const e164Phone = `+1${phone.replace(/\D/g, '')}`;
+      const e164Phone = `+1${userPhone.replace(/\D/g, '')}`;
       verifyOptions = {
         phone: e164Phone,
         token: otpCode,
@@ -333,6 +378,7 @@ const Auth = () => {
                   type="button"
                   onClick={() => {
                     setShowResetPassword(false);
+                    setEmailVerified(false);
                     setEmail("");
                   }}
                   className="text-sm text-primary hover:text-primary/80 transition-colors"
@@ -341,26 +387,17 @@ const Auth = () => {
                 </button>
               </div>
             </form>
-          ) : showOtpLogin && !otpMethod ? (
-            <div className="space-y-5">
+          ) : showOtpLogin && !otpSent ? (
+            <form onSubmit={handleSendOtp} className="space-y-5">
               <div className="space-y-2 text-center">
-                <h3 className="text-xl font-semibold">How would you like to receive your sign-in code?</h3>
+                <h3 className="text-lg font-medium">We'll send a code to your email</h3>
+                <p className="text-sm text-muted-foreground">
+                  A 6-digit code will be sent to {email}
+                </p>
               </div>
               
-              <Button 
-                onClick={() => setOtpMethod('email')} 
-                className="w-full text-lg py-6"
-                variant="outline"
-              >
-                📧 Send to my email
-              </Button>
-              
-              <Button 
-                onClick={() => setOtpMethod('phone')} 
-                className="w-full text-lg py-6"
-                variant="outline"
-              >
-                📱 Text to my phone
+              <Button type="submit" className="w-full text-lg py-6" disabled={loading}>
+                {loading ? "Sending..." : "Send Code"}
               </Button>
               
               <div className="text-center mt-4">
@@ -375,60 +412,6 @@ const Auth = () => {
                   Sign in with password instead
                 </button>
               </div>
-            </div>
-          ) : showOtpLogin && otpMethod && !otpSent ? (
-            <form onSubmit={handleSendOtp} className="space-y-5">
-              {otpMethod === 'email' ? (
-                <div className="space-y-2">
-                  <Label htmlFor="otpEmail" className="text-lg">Email</Label>
-                  <Input
-                    id="otpEmail"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="text-lg p-6"
-                    placeholder="Enter your email"
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    We'll send you a 6-digit code
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <Label htmlFor="otpPhone" className="text-lg">Phone Number</Label>
-                  <Input
-                    id="otpPhone"
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
-                    required
-                    className="text-lg p-6"
-                    placeholder="(808) 555-1234"
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    We'll text you a 6-digit code
-                  </p>
-                </div>
-              )}
-              
-              <Button type="submit" className="w-full text-lg py-6" disabled={loading}>
-                {loading ? "Sending..." : "Send Code"}
-              </Button>
-              
-              <div className="text-center mt-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setOtpMethod(null);
-                    setEmail("");
-                    setPhone("");
-                  }}
-                  className="text-sm text-primary hover:text-primary/80 transition-colors"
-                >
-                  Choose different method
-                </button>
-              </div>
             </form>
           ) : showOtpLogin && otpSent ? (
             <form onSubmit={handleVerifyOtp} className="space-y-5">
@@ -436,7 +419,7 @@ const Auth = () => {
                 <div className="text-center space-y-2">
                   <h3 className="text-lg font-medium">Enter the 6-digit code</h3>
                   <p className="text-sm text-muted-foreground">
-                    Sent to {otpMethod === 'email' ? email : formatPhoneNumber(phone)}
+                    Sent to {email}
                   </p>
                 </div>
                 
@@ -477,8 +460,7 @@ const Auth = () => {
                     setOtpSent(false);
                     setOtpMethod(null);
                     setOtpCode("");
-                    setEmail("");
-                    setPhone("");
+                    setEmailVerified(false);
                   }}
                   className="text-sm text-primary hover:text-primary/80 transition-colors block w-full"
                 >
@@ -486,10 +468,10 @@ const Auth = () => {
                 </button>
               </div>
             </form>
-          ) : (
-            <form onSubmit={handleLogin} className="space-y-5">
+          ) : !emailVerified ? (
+            <form onSubmit={handleEmailSubmit} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-lg">Email</Label>
+                <Label htmlFor="email" className="text-lg">Email Address</Label>
                 <Input
                   id="email"
                   type="email"
@@ -497,8 +479,46 @@ const Auth = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   className="text-lg p-6"
+                  placeholder="Enter your email"
+                  autoComplete="email"
                 />
+                <p className="text-sm text-muted-foreground">
+                  Enter the email associated with your account
+                </p>
               </div>
+              
+              <Button type="submit" className="w-full text-lg py-6" disabled={loading}>
+                {loading ? "Checking..." : "Continue"}
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={handleLogin} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="emailDisplay" className="text-lg">Email</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="emailDisplay"
+                    type="email"
+                    value={email}
+                    disabled
+                    className="text-lg p-6 bg-muted"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setEmailVerified(false);
+                      setPassword("");
+                      setShowOtpLogin(false);
+                    }}
+                    className="text-sm"
+                  >
+                    Change
+                  </Button>
+                </div>
+              </div>
+              
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-lg">Password</Label>
                 <Input
@@ -508,8 +528,10 @@ const Auth = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   className="text-lg p-6"
+                  autoComplete="current-password"
                 />
               </div>
+              
               <Button type="submit" className="w-full text-lg py-6" disabled={loading}>
                 {loading ? "Signing in..." : "Sign In"}
               </Button>
@@ -517,7 +539,8 @@ const Auth = () => {
               <div className="text-center space-y-2">
                 <button
                   type="button"
-                  onClick={() => setShowOtpLogin(true)}
+                  onClick={handleRequestOtp}
+                  disabled={loading}
                   className="text-sm text-primary hover:text-primary/80 transition-colors block w-full"
                 >
                   Send me a code instead
