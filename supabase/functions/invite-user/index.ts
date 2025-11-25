@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { Resend } from "https://esm.sh/resend@4.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -15,6 +16,7 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
+    const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
     const authHeader = req.headers.get("Authorization")!;
     const token = authHeader.replace("Bearer ", "");
@@ -74,10 +76,40 @@ serve(async (req) => {
         .insert({ user_id: newUser.user.id, role });
     }
 
-    const { error: resetError } = await supabaseClient.auth.admin.inviteUserByEmail(email);
+    const { data: resetData, error: resetError } = await supabaseClient.auth.admin.generateLink({
+      type: 'invite',
+      email: email,
+    });
 
-    if (resetError) {
-      console.error("Failed to send password reset email:", resetError);
+    if (resetError || !resetData.properties?.action_link) {
+      console.error("Failed to generate invite link:", resetError);
+      throw new Error("Failed to generate invite link");
+    }
+
+    const inviteLink = resetData.properties.action_link;
+
+    const { error: emailError } = await resend.emails.send({
+      from: "Poipu Shores <noreply@poipu-shores.com>",
+      to: [email],
+      subject: "Welcome to Poipu Shores - Set Your Password",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">Welcome to Poipu Shores!</h2>
+          <p>Hi ${full_name},</p>
+          <p>You've been invited to join the Poipu Shores community platform. Click the button below to set your password and access your account:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${inviteLink}" style="background-color: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">Set Your Password</a>
+          </div>
+          <p>If the button doesn't work, copy and paste this link into your browser:</p>
+          <p style="word-break: break-all; color: #666;">${inviteLink}</p>
+          <p style="color: #666; font-size: 14px; margin-top: 30px;">If you didn't expect this invitation, you can safely ignore this email.</p>
+        </div>
+      `,
+    });
+
+    if (emailError) {
+      console.error("Failed to send invitation email:", emailError);
+      throw new Error("Failed to send invitation email");
     }
 
     return new Response(
