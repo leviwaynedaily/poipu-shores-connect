@@ -459,7 +459,8 @@ const Profile = () => {
       </Tabs>
       <OnboardingWizard 
         open={showOnboarding} 
-        onComplete={() => setShowOnboarding(false)} 
+        onComplete={() => setShowOnboarding(false)}
+        source="profile"
       />
     </div>
   );
