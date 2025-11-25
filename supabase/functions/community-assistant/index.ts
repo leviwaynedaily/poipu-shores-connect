@@ -27,12 +27,12 @@ serve(async (req) => {
       });
     }
 
-    // Fetch recent documents
+    // Fetch ALL documents with their content
     const { data: documents } = await supabase
       .from("documents")
-      .select("title, category, folder, created_at")
+      .select("title, category, folder, content, created_at")
       .order("created_at", { ascending: false })
-      .limit(20);
+      .limit(50);
 
     // Fetch recent announcements
     const { data: announcements } = await supabase
@@ -54,14 +54,21 @@ serve(async (req) => {
       .select("*", { count: "exact", head: true })
       .eq("is_approved", true);
 
-    // Build context
-    let contextText = "You are the Poipu Shores Hawaiian condo community AI assistant. You have access to real-time community data.\n\n";
+    // Build context with FULL document content
+    let contextText = "You are the Poipu Shores Hawaiian condo community AI assistant. You have access to real-time community data and FULL document content.\n\n";
     
     if (documents && documents.length > 0) {
-      contextText += "**Recent Documents:**\n" + 
-        documents.map(doc => 
-          `- ${doc.title} (${doc.category}${doc.folder ? `, folder: ${doc.folder}` : ''}) - ${new Date(doc.created_at).toLocaleDateString()}`
-        ).join("\n") + "\n\n";
+      contextText += "**Available Documents with Full Content:**\n\n" + 
+        documents.map(doc => {
+          let docInfo = `## ${doc.title}\nCategory: ${doc.category}${doc.folder ? `, Folder: ${doc.folder}` : ''}\n`;
+          if (doc.content) {
+            // Include first 800 chars of content for context
+            docInfo += `\nContent Preview:\n${doc.content.substring(0, 800)}${doc.content.length > 800 ? '...' : ''}\n`;
+          } else {
+            docInfo += `\n(Content not yet extracted for this document)\n`;
+          }
+          return docInfo;
+        }).join("\n---\n\n") + "\n\n";
     }
 
     if (announcements && announcements.length > 0) {
@@ -87,14 +94,24 @@ serve(async (req) => {
 You are a helpful, friendly AI assistant for the Poipu Shores Hawaiian condo community. 
 
 Your role:
-1. Answer questions about documents, announcements, emergency contacts, and community information
-2. Be conversational and warm - use Hawaiian spirit (Aloha!) when appropriate
-3. Reference specific documents, announcements, or contacts when relevant
-4. If you don't have specific information, guide users where to find it (Documents page, Announcements page, etc.)
-5. Provide helpful summaries and insights about community activities
-6. Be concise but informative
+1. Answer questions about documents, announcements, emergency contacts, and community information using the ACTUAL CONTENT provided above
+2. Reference specific documents by name when providing information
+3. Be conversational and warm - use Hawaiian spirit (Aloha!) when appropriate
+4. If a document's content hasn't been extracted yet, let users know and suggest downloading it
+5. Provide accurate information based on the actual document content
+6. If you don't have specific information, guide users where to find it (Documents page, Announcements page, etc.)
+7. Provide helpful summaries and insights about community activities
+8. Be concise but informative
 
-Remember: You're here to help the community stay informed and connected!`;
+FORMATTING GUIDELINES:
+- Use clear paragraph breaks between different topics or points
+- Use bullet points (- or •) for lists and multiple items
+- Use **bold** for important terms, rules, or key information
+- Keep paragraphs short (2-4 sentences max)
+- Add blank lines between sections for better readability
+- When listing requirements or steps, number them clearly
+
+Remember: You have access to the FULL content of documents, so answer questions directly from that content!`;
 
     console.log("System prompt:", systemPrompt);
     console.log("User messages:", messages);
