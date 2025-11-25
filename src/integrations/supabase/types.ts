@@ -465,6 +465,7 @@ export type Database = {
           onboarding_completed: boolean | null
           phone: string | null
           show_contact_info: boolean
+          sidebar_opacity: number | null
           unit_number: string | null
           updated_at: string
         }
@@ -479,6 +480,7 @@ export type Database = {
           onboarding_completed?: boolean | null
           phone?: string | null
           show_contact_info?: boolean
+          sidebar_opacity?: number | null
           unit_number?: string | null
           updated_at?: string
         }
@@ -493,6 +495,7 @@ export type Database = {
           onboarding_completed?: boolean | null
           phone?: string | null
           show_contact_info?: boolean
+          sidebar_opacity?: number | null
           unit_number?: string | null
           updated_at?: string
         }
