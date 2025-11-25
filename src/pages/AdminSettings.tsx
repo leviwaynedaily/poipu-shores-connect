@@ -1,11 +1,12 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings, Palette, Webcam, Phone, Users, Sparkles, Upload, Wand2, Image as ImageIcon } from "lucide-react";
+import { Settings, Palette, Webcam, Phone, Users, Sparkles, Upload, Wand2, Image as ImageIcon, Activity } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { UserManagement } from "@/components/settings/UserManagement";
 import { WebcamManagement } from "@/components/settings/WebcamManagement";
 import { EmergencyContactManagement } from "@/components/settings/EmergencyContactManagement";
 import { GeneralSettings } from "@/components/settings/GeneralSettings";
+import { LoginActivityTable } from "@/components/settings/LoginActivityTable";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -485,7 +486,7 @@ export default function AdminSettings() {
       />
 
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="users">
             <Users className="mr-2 h-4 w-4" />
             Users
@@ -493,6 +494,10 @@ export default function AdminSettings() {
           <TabsTrigger value="theme">
             <Palette className="mr-2 h-4 w-4" />
             Theme
+          </TabsTrigger>
+          <TabsTrigger value="activity">
+            <Activity className="mr-2 h-4 w-4" />
+            Activity
           </TabsTrigger>
           <TabsTrigger value="webcams">
             <Webcam className="mr-2 h-4 w-4" />
@@ -828,6 +833,10 @@ export default function AdminSettings() {
               </Card>
             </TabsContent>
           </Tabs>
+        </TabsContent>
+
+        <TabsContent value="activity" className="space-y-4">
+          <LoginActivityTable />
         </TabsContent>
 
         <TabsContent value="webcams" className="space-y-4">
