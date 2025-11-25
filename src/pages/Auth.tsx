@@ -31,7 +31,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
-  const [authBackground, setAuthBackground] = useState<string | null>(null);
+  const [authLogo, setAuthLogo] = useState<string>(logo);
 
   useEffect(() => {
     if (user) {
@@ -40,32 +40,22 @@ const Auth = () => {
   }, [user, navigate]);
 
   useEffect(() => {
-    const fetchAuthBackground = async () => {
+    const fetchAuthLogo = async () => {
       const { data } = await supabase
         .from('app_settings')
         .select('setting_value')
-        .eq('setting_key', 'auth_background')
+        .eq('setting_key', 'auth_logo')
         .maybeSingle();
       
       if (data?.setting_value) {
-        setAuthBackground(data.setting_value as string);
+        setAuthLogo(data.setting_value as string);
       }
     };
     
-    fetchAuthBackground();
+    fetchAuthLogo();
   }, []);
 
   const getBackgroundStyle = () => {
-    // If custom auth background is set, use it
-    if (authBackground) {
-      return {
-        backgroundImage: `url(${authBackground})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      };
-    }
-
-    // Otherwise use home background settings
     switch (homeBackground.type) {
       case "color":
         return {
@@ -171,11 +161,19 @@ const Auth = () => {
             borderColor: `hsl(var(--border) / 20%)`
           } : undefined}
         >
-        <CardHeader className="text-center pb-4">
-          <div className="flex justify-center mb-4">
-            <img src={logo} alt="Poipu Shores - Kauai, Hawaii" className="w-full max-w-md" />
-          </div>
-        </CardHeader>
+          <CardHeader>
+            <div className="flex justify-center mb-4">
+              <img 
+                src={authLogo} 
+                alt="Poipu Shores" 
+                className="h-24 w-auto"
+              />
+            </div>
+            <CardTitle className="text-2xl text-center">Welcome Back</CardTitle>
+            <CardDescription className="text-center">
+              {showResetPassword ? "Enter your email to reset your password" : "Sign in to your account"}
+            </CardDescription>
+          </CardHeader>
         <CardContent>
           {!showResetPassword ? (
             <form onSubmit={handleLogin} className="space-y-5">
