@@ -138,7 +138,11 @@ const Sidebar = React.forwardRef<
   }
 >(({ side = "left", variant = "sidebar", collapsible = "offcanvas", className, children, ...props }, ref) => {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
-  const { isGlassTheme } = useTheme();
+  const { isGlassTheme, sidebarOpacity } = useTheme();
+  
+  // Calculate opacity using SAME FORMULA as cards and AppSidebar
+  const opacity = isGlassTheme ? 5 + (sidebarOpacity * 0.95) : 100;
+  const borderOpacity = isGlassTheme ? 15 + (sidebarOpacity * 0.85) : 100;
 
   if (collapsible === "none") {
     return (
@@ -208,12 +212,19 @@ const Sidebar = React.forwardRef<
       >
         <div
           data-sidebar="sidebar"
-          className={cn(
-            "flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow",
+          className="flex h-full w-full flex-col border-r group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow"
+          style={
             isGlassTheme 
-              ? "bg-card/5 backdrop-blur-sm border-r border-border/15" 
-              : "bg-card border-r border-border group-data-[variant=floating]:border-sidebar-border"
-          )}
+              ? {
+                  backgroundColor: `hsl(var(--card) / ${opacity}%)`,
+                  borderColor: `hsl(var(--border) / ${borderOpacity}%)`,
+                  backdropFilter: 'blur(8px)'
+                }
+              : {
+                  backgroundColor: `hsl(var(--card))`,
+                  borderColor: `hsl(var(--border))`
+                }
+          }
         >
           {children}
         </div>
