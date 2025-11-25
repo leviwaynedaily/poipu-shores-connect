@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Send, Loader2, X, Minimize2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import chickenIcon from "@/assets/chicken-assistant.jpeg";
+import { TypingIndicator } from "./TypingIndicator";
 
 interface Message {
   role: "user" | "assistant";
@@ -149,16 +150,17 @@ export function FloatingChatAssistant() {
                     className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                   >
                     <div
-                      className={`max-w-[85%] sm:max-w-[80%] rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base ${
+                      className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-3 sm:px-4 py-2 text-sm sm:text-base whitespace-pre-wrap ${
                         msg.role === "user"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted"
+                          ? "bg-primary text-primary-foreground rounded-br-sm"
+                          : "bg-muted rounded-tl-sm"
                       }`}
                     >
                       {msg.content}
                     </div>
                   </div>
                 ))}
+                {isLoading && <TypingIndicator />}
               </div>
             </ScrollArea>
             <div className="border-t p-3 sm:p-4">

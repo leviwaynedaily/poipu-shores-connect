@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Send, Loader2 } from "lucide-react";
+import { TypingIndicator } from "./TypingIndicator";
 
 interface Message {
   role: "user" | "assistant";
@@ -204,16 +205,17 @@ export function DocumentChat({ documentIds = [] }: DocumentChatProps) {
                 className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[80%] rounded-lg px-4 py-2 whitespace-pre-wrap ${
+                  className={`max-w-[80%] rounded-2xl px-4 py-2 whitespace-pre-wrap ${
                     msg.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted"
+                      ? "bg-primary text-primary-foreground rounded-br-sm"
+                      : "bg-muted rounded-tl-sm"
                   }`}
                 >
                   {msg.content}
                 </div>
               </div>
             ))}
+            {isLoading && <TypingIndicator />}
           </div>
         </ScrollArea>
         <div className="border-t p-4 flex-shrink-0">
