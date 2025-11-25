@@ -79,12 +79,19 @@ export function AppSidebar() {
       className={`${!open ? "w-20" : "w-64"} ${
         isGlassTheme 
           ? "backdrop-blur-sm" 
-          : "bg-sidebar border-sidebar-border"
+          : ""
       }`}
-      style={isGlassTheme ? {
-        backgroundColor: `hsl(var(--card) / ${opacity}%)`,
-        borderColor: `hsl(var(--border) / ${borderOpacity}%)`
-      } : undefined}
+      style={
+        isGlassTheme 
+          ? {
+              backgroundColor: `hsl(var(--card) / ${opacity}%)`,
+              borderColor: `hsl(var(--border) / ${borderOpacity}%)`
+            }
+          : {
+              backgroundColor: `hsl(var(--card))`,
+              borderColor: `hsl(var(--border))`
+            }
+      }
       collapsible="icon"
     >
       <SidebarContent>
