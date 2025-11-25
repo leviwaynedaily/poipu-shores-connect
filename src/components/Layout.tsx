@@ -52,7 +52,20 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       <div className="flex min-h-screen w-full relative">
         {/* Background - conditional based on type */}
         {appBackground.type !== "default" ? (
-          <div className="absolute inset-0 z-0" style={getBackgroundStyle()} />
+          <>
+            <div className="absolute inset-0 z-0" style={getBackgroundStyle()} />
+            {/* Color overlay for images */}
+            {(appBackground.type === "uploaded" || appBackground.type === "generated") && 
+             appBackground.overlayColor && (
+              <div 
+                className="absolute inset-0 z-0" 
+                style={{
+                  backgroundColor: appBackground.overlayColor,
+                  opacity: (appBackground.overlayOpacity || 0) / 100,
+                }}
+              />
+            )}
+          </>
         ) : isGlassTheme ? (
           <>
             <div 
