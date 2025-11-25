@@ -143,7 +143,7 @@ The Poipu Shores Team`,
           <!-- Header with Logo -->
           <tr>
             <td align="center" style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 40px 30px;">
-              <img src="https://poipu-shores.com/header-logo.png" alt="Poipu Shores" style="max-width: 240px; height: auto; display: block;" />
+              <img src="https://poipu-shores.com/header-logo.png" alt="Poipu Shores" style="max-width: 240px; height: auto; display: block; margin: 0 auto;" />
             </td>
           </tr>
           <!-- Content -->
@@ -155,10 +155,17 @@ The Poipu Shores Team`,
               ${unit_number ? `<div style="background-color: #f1f5f9; border-left: 4px solid #3b82f6; padding: 16px 20px; margin: 0 0 30px 0; border-radius: 4px;">
                 <p style="color: #1e293b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 16px; font-weight: 600; margin: 0;"><strong>Your Unit:</strong> ${unit_number}</p>
               </div>` : ''}
+              <!-- Button -->
               <table border="0" cellpadding="0" cellspacing="0" width="100%">
                 <tr>
                   <td align="center" style="padding: 10px 0 30px 0;">
-                    <a href="${inviteLink}" style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 16px; font-weight: 600; text-decoration: none; padding: 16px 36px; border-radius: 8px; display: inline-block; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);">Complete Registration</a>
+                    <table border="0" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td align="center" style="background-color: #3b82f6; border-radius: 8px;">
+                          <a href="${inviteLink}" target="_blank" style="background-color: #3b82f6; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 16px; font-weight: 600; text-decoration: none; padding: 16px 36px; border-radius: 8px; display: inline-block; border: none;">Complete Registration</a>
+                        </td>
+                      </tr>
+                    </table>
                   </td>
                 </tr>
               </table>
