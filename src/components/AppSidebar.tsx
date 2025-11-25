@@ -48,7 +48,7 @@ export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut, isAdmin } = useAuth();
-  const { isGlassTheme, sidebarOpacity } = useTheme();
+  const { isGlassTheme, glassIntensity } = useTheme();
   const currentPath = location.pathname;
   const [profile, setProfile] = useState<any>(null);
 
@@ -70,9 +70,9 @@ export function AppSidebar() {
 
   const isActive = (path: string) => currentPath === path;
 
-  // Calculate opacity for sidebar (0-100 scale)
-  const opacity = isGlassTheme ? 5 + (sidebarOpacity * 0.95) : 100;
-  const borderOpacity = isGlassTheme ? 15 + (sidebarOpacity * 0.85) : 100;
+  // Calculate opacity for sidebar using same glass intensity as cards
+  const opacity = isGlassTheme ? 5 + (glassIntensity * 0.95) : 100;
+  const borderOpacity = isGlassTheme ? 15 + (glassIntensity * 0.85) : 100;
 
   return (
     <Sidebar
