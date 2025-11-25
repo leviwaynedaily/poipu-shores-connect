@@ -136,11 +136,11 @@ const Auth = () => {
       <div className="flex-1 flex items-center justify-center p-4">
         <Card 
           className={`w-full max-w-md relative z-10 shadow-xl ${
-            isGlassTheme ? "backdrop-blur-sm" : ""
+            isGlassTheme ? "backdrop-blur-md border-white/20" : ""
           }`}
           style={isGlassTheme ? {
-            backgroundColor: `hsl(var(--card) / ${5 + (authPageOpacity * 0.95)}%)`,
-            borderColor: `hsl(var(--border) / ${15 + (authPageOpacity * 0.85)}%)`
+            backgroundColor: `hsl(var(--card) / ${100 - authPageOpacity}%)`,
+            borderColor: `hsl(var(--border) / 20%)`
           } : undefined}
         >
         <CardHeader className="text-center pb-4">
