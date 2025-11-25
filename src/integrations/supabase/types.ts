@@ -453,6 +453,42 @@ export type Database = {
           },
         ]
       }
+      login_history: {
+        Row: {
+          browser: string | null
+          device_type: string | null
+          id: string
+          ip_address: string | null
+          location_city: string | null
+          location_country: string | null
+          logged_in_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          browser?: string | null
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          location_city?: string | null
+          location_country?: string | null
+          logged_in_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          browser?: string | null
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          location_city?: string | null
+          location_country?: string | null
+          logged_in_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           auth_page_opacity: number | null

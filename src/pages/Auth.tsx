@@ -132,6 +132,8 @@ const Auth = () => {
       setLoading(true);
       const { error } = await signIn(email, password);
       if (!error) {
+        // Track login after successful authentication
+        trackLogin();
         navigate("/dashboard");
       } else {
         // Reset to email entry if user not found
@@ -155,6 +157,37 @@ const Auth = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const trackLogin = async () => {
+    try {
+      const userAgent = navigator.userAgent;
+      
+      // Parse browser info
+      let browser = 'Unknown';
+      if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) browser = 'Chrome';
+      else if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) browser = 'Safari';
+      else if (userAgent.includes('Firefox')) browser = 'Firefox';
+      else if (userAgent.includes('Edg')) browser = 'Edge';
+      
+      // Parse device type
+      let deviceType = 'Desktop';
+      if (/Mobi|Android/i.test(userAgent)) deviceType = 'Mobile';
+      else if (/Tablet|iPad/i.test(userAgent)) deviceType = 'Tablet';
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      await supabase.functions.invoke('track-login', {
+        body: {
+          userAgent,
+          browser,
+          deviceType,
+        },
+      });
+    } catch (error) {
+      console.error('Error tracking login:', error);
     }
   };
 
@@ -319,6 +352,8 @@ const Auth = () => {
         title: "Success!",
         description: "Signed in successfully",
       });
+      // Track login after successful OTP verification
+      trackLogin();
       navigate("/dashboard");
     }
   };
