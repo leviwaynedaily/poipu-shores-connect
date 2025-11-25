@@ -70,15 +70,15 @@ const Members = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Community Members"
+        title="Poipu Shores Owners"
         description="Connect with your neighbors at Poipu Shores"
       />
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Member Directory</CardTitle>
+          <CardTitle className="text-2xl">Owner Directory</CardTitle>
           <CardDescription className="text-lg">
-            Search and browse community members
+            Search and browse Poipu Shores owners
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -95,12 +95,12 @@ const Members = () => {
 
           {loading ? (
             <div className="text-center py-8">
-              <p className="text-lg text-muted-foreground">Loading members...</p>
+              <p className="text-lg text-muted-foreground">Loading owners...</p>
             </div>
           ) : filteredMembers.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-lg text-muted-foreground">
-                {searchTerm ? "No members found matching your search." : "No members found."}
+                {searchTerm ? "No owners found matching your search." : "No owners found."}
               </p>
             </div>
           ) : (
@@ -152,7 +152,7 @@ const Members = () => {
 
           <div className="mt-6 pt-6 border-t">
             <p className="text-sm text-muted-foreground">
-              Total Members: {filteredMembers.length}
+              Total Owners: {filteredMembers.length}
               {searchTerm && ` (filtered from ${members.length})`}
             </p>
           </div>
