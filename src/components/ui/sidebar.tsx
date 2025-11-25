@@ -212,7 +212,7 @@ const Sidebar = React.forwardRef<
             "flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow",
             isGlassTheme 
               ? "bg-card/5 backdrop-blur-sm border-r border-border/15" 
-              : "bg-sidebar group-data-[variant=floating]:border-sidebar-border"
+              : "bg-card border-r border-border group-data-[variant=floating]:border-sidebar-border"
           )}
         >
           {children}
