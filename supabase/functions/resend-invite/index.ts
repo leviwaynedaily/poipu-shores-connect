@@ -78,21 +78,22 @@ serve(async (req) => {
     
     console.log(`Successfully generated reset link for ${email}`);
 
-    // Send the email
+    // Send the email with password reset link
     const { error: emailError } = await resend.emails.send({
-      from: "Poipu Shores <noreply@poipu-shores.com>",
+      from: "Poipu Shores <onboarding@resend.dev>",
       to: [email],
-      subject: "Welcome to Poipu Shores - Set Your Password",
+      subject: "Poipu Shores - Complete Your Registration",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">Welcome to Poipu Shores!</h2>
+          <h2 style="color: #333;">Complete Your Poipu Shores Registration</h2>
           <p>Hi ${full_name},</p>
-          <p>You've been invited to join the Poipu Shores community platform. Click the button below to set your password and access your account:</p>
+          <p>You were invited to join Poipu Shores but haven't completed your registration yet. Click the button below to set your password and access your account:</p>
           <div style="text-align: center; margin: 30px 0;">
             <a href="${inviteLink}" style="background-color: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">Set Your Password</a>
           </div>
           <p>If the button doesn't work, copy and paste this link into your browser:</p>
           <p style="word-break: break-all; color: #666;">${inviteLink}</p>
+          ${unit_number ? `<p style="margin-top: 20px;"><strong>Your Unit:</strong> ${unit_number}</p>` : ''}
           <p style="color: #666; font-size: 14px; margin-top: 30px;">If you didn't expect this invitation, you can safely ignore this email.</p>
         </div>
       `,

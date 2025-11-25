@@ -51,12 +51,14 @@ serve(async (req) => {
       });
     }
 
+    // Generate a temporary password
     const tempPassword = crypto.randomUUID();
 
+    // Create the user without email confirmation
     const { data: newUser, error: createError } = await supabaseClient.auth.admin.createUser({
       email,
       password: tempPassword,
-      email_confirm: true,
+      email_confirm: false, // Don't confirm yet - they'll confirm via the invite link
       user_metadata: {
         full_name,
         unit_number: unit_number || null,
@@ -64,44 +66,65 @@ serve(async (req) => {
     });
 
     if (createError) {
+      console.error("Failed to create user:", createError);
       return new Response(JSON.stringify({ error: createError.message }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    if (role && (role === "admin" || role === "board")) {
-      await supabaseClient
+    console.log(`User created successfully: ${email}`);
+
+    // Assign role if specified
+    if (role && (role === "admin" || role === "owner" || role === "board")) {
+      const { error: roleError } = await supabaseClient
         .from("user_roles")
         .insert({ user_id: newUser.user.id, role });
+      
+      if (roleError) {
+        console.error("Failed to assign role:", roleError);
+      } else {
+        console.log(`Assigned role ${role} to user ${email}`);
+      }
     }
 
-    const { data: resetData, error: resetError } = await supabaseClient.auth.admin.generateLink({
+    // Generate an invite link (for signup with password)
+    const { data: inviteData, error: inviteError } = await supabaseClient.auth.admin.generateLink({
       type: 'invite',
       email: email,
     });
 
-    if (resetError || !resetData.properties?.action_link) {
-      console.error("Failed to generate invite link:", resetError);
-      throw new Error("Failed to generate invite link");
+    if (inviteError || !inviteData.properties?.action_link) {
+      console.error("Failed to generate invite link:", inviteError);
+      // User was created, but we can't send email - return partial success
+      return new Response(JSON.stringify({ 
+        error: "User created but failed to generate invite link",
+        user: { id: newUser.user.id, email }
+      }), {
+        status: 207, // Multi-status
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const inviteLink = resetData.properties.action_link;
+    const inviteLink = inviteData.properties.action_link;
+    console.log(`Generated invite link for ${email}`);
 
+    // Send invitation email
     const { error: emailError } = await resend.emails.send({
-      from: "Poipu Shores <noreply@poipu-shores.com>",
+      from: "Poipu Shores <onboarding@resend.dev>",
       to: [email],
-      subject: "Welcome to Poipu Shores - Set Your Password",
+      subject: "Welcome to Poipu Shores - Complete Your Registration",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #333;">Welcome to Poipu Shores!</h2>
           <p>Hi ${full_name},</p>
-          <p>You've been invited to join the Poipu Shores community platform. Click the button below to set your password and access your account:</p>
+          <p>You've been invited to join the Poipu Shores community platform. Click the button below to complete your registration and set your password:</p>
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${inviteLink}" style="background-color: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">Set Your Password</a>
+            <a href="${inviteLink}" style="background-color: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">Complete Registration</a>
           </div>
           <p>If the button doesn't work, copy and paste this link into your browser:</p>
           <p style="word-break: break-all; color: #666;">${inviteLink}</p>
+          ${unit_number ? `<p style="margin-top: 20px;"><strong>Your Unit:</strong> ${unit_number}</p>` : ''}
           <p style="color: #666; font-size: 14px; margin-top: 30px;">If you didn't expect this invitation, you can safely ignore this email.</p>
         </div>
       `,
@@ -109,8 +132,17 @@ serve(async (req) => {
 
     if (emailError) {
       console.error("Failed to send invitation email:", emailError);
-      throw new Error("Failed to send invitation email");
+      // User was created but email failed - return partial success
+      return new Response(JSON.stringify({ 
+        error: "User created but failed to send email",
+        user: { id: newUser.user.id, email }
+      }), {
+        status: 207, // Multi-status
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
+
+    console.log(`Invitation email sent successfully to ${email}`);
 
     return new Response(
       JSON.stringify({ 
