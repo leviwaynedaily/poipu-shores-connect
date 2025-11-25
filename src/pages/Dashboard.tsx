@@ -71,31 +71,22 @@ const Dashboard = () => {
     <div className="space-y-6">
       <AnnouncementDialog />
 
-      <Link to="/assistant">
-        <Card className="cursor-pointer hover:border-primary transition-colors">
-          <CardHeader className="p-4 md:p-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 md:gap-4">
-              <img
-                src={chickenIcon}
-                alt="Community Assistant"
-                className="h-16 w-16 sm:h-20 sm:w-20 rounded-full object-cover ring-2 ring-primary/20 flex-shrink-0"
-              />
-              <div className="flex-1 min-w-0">
-                <CardTitle className="text-xl sm:text-2xl md:text-3xl mb-1 md:mb-2">Ask the Chicken</CardTitle>
-                <CardDescription className="text-sm sm:text-base md:text-lg">
-                  Your AI assistant for documents, announcements, emergency info, and more!
-                </CardDescription>
-              </div>
-              <Button size="lg" className="h-10 sm:h-12 px-4 sm:px-6 w-full sm:w-auto shrink-0">
-                <MessageCircle className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                Start Chat
-              </Button>
-            </div>
-          </CardHeader>
-        </Card>
-      </Link>
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <Link to="/announcements">
+          <Card className="cursor-pointer hover:border-primary transition-colors h-full">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Recent Announcements</CardTitle>
+              <Pin className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{announcements.length}</div>
+              <p className="text-xs text-muted-foreground line-clamp-1">
+                {announcements.length > 0 ? announcements[0].title : "No announcements"}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
-      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
         <Link to="/chat">
           <Card className="cursor-pointer hover:border-primary transition-colors h-full">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -136,6 +127,30 @@ const Dashboard = () => {
         </Link>
       </div>
 
+      <Link to="/assistant">
+        <Card className="cursor-pointer hover:border-primary transition-colors">
+          <CardHeader className="p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 md:gap-4">
+              <img
+                src={chickenIcon}
+                alt="Community Assistant"
+                className="h-16 w-16 sm:h-20 sm:w-20 rounded-full object-cover ring-2 ring-primary/20 flex-shrink-0"
+              />
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-xl sm:text-2xl md:text-3xl mb-1 md:mb-2">Ask the Chicken</CardTitle>
+                <CardDescription className="text-sm sm:text-base md:text-lg">
+                  Your AI assistant for documents, announcements, emergency info, and more!
+                </CardDescription>
+              </div>
+              <Button size="lg" className="h-10 sm:h-12 px-4 sm:px-6 w-full sm:w-auto shrink-0">
+                <MessageCircle className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                Start Chat
+              </Button>
+            </div>
+          </CardHeader>
+        </Card>
+      </Link>
+
       <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
         <LiveCameraEmbed />
         <WeatherAndBeachConditions />
@@ -160,47 +175,34 @@ const Dashboard = () => {
 
       <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
         <EmergencyContacts />
-
+        
         <Link to="/announcements">
           <Card className="cursor-pointer hover:border-primary transition-colors h-full">
             <CardHeader className="p-4 sm:p-6">
-              <CardTitle className="text-xl sm:text-2xl">Recent Announcements</CardTitle>
+              <CardTitle className="text-xl sm:text-2xl">All Announcements</CardTitle>
               <CardDescription className="text-sm sm:text-base md:text-lg">
-                Important updates from the board and administration
+                View all community announcements and updates
               </CardDescription>
             </CardHeader>
-          <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
-            {announcements.length === 0 ? (
-              <p className="text-sm sm:text-base text-muted-foreground">No announcements yet.</p>
-            ) : (
-              announcements.map((announcement) => (
-                <Card key={announcement.id} className="border-2">
-                  <CardHeader className="p-3 sm:p-4 md:p-6">
-                    <div className="flex items-start justify-between gap-2 sm:gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          {announcement.is_pinned && (
-                            <Badge variant="secondary" className="text-xs sm:text-sm">
-                              <Pin className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                              Pinned
-                            </Badge>
-                          )}
-                        </div>
-                        <CardTitle className="text-base sm:text-lg md:text-xl break-words">{announcement.title}</CardTitle>
-                        <CardDescription className="text-xs sm:text-sm md:text-base mt-1">
-                          Posted by {announcement.profiles.full_name} on{" "}
-                          {format(new Date(announcement.created_at), "MMM dd, yyyy")}
-                        </CardDescription>
-                      </div>
+            <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
+              {announcements.length === 0 ? (
+                <p className="text-sm sm:text-base text-muted-foreground">No announcements yet.</p>
+              ) : (
+                announcements.slice(0, 3).map((announcement) => (
+                  <div key={announcement.id} className="border-l-2 border-primary pl-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      {announcement.is_pinned && (
+                        <Pin className="h-3 w-3 text-muted-foreground" />
+                      )}
+                      <p className="text-sm font-medium line-clamp-1">{announcement.title}</p>
                     </div>
-                  </CardHeader>
-                  <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
-                    <p className="text-sm sm:text-base whitespace-pre-wrap break-words">{announcement.content}</p>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </CardContent>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(announcement.created_at), "MMM dd, yyyy")}
+                    </p>
+                  </div>
+                ))
+              )}
+            </CardContent>
           </Card>
         </Link>
       </div>
