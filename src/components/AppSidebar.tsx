@@ -76,22 +76,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar
-      className={`${!open ? "w-20" : "w-64"} ${
-        isGlassTheme 
-          ? "backdrop-blur-sm" 
-          : ""
-      }`}
-      style={
-        isGlassTheme 
-          ? {
-              backgroundColor: `hsl(var(--card) / ${opacity}%)`,
-              borderColor: `hsl(var(--border) / ${borderOpacity}%)`
-            }
-          : {
-              backgroundColor: `hsl(var(--card))`,
-              borderColor: `hsl(var(--border))`
-            }
-      }
+      className={`${!open ? "w-20" : "w-64"}`}
       collapsible="icon"
     >
       <SidebarContent>
