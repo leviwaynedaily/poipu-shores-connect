@@ -80,7 +80,7 @@ serve(async (req) => {
 
     // Send the email with password reset link
     const { error: emailError } = await resend.emails.send({
-      from: "Poipu Shores <onboarding@resend.dev>",
+      from: "Poipu Shores <noreply@poipu-shores.com>",
       to: [email],
       subject: "Poipu Shores - Complete Your Registration",
       html: `

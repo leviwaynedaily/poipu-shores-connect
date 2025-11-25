@@ -111,7 +111,7 @@ serve(async (req) => {
 
     // Send invitation email
     const { error: emailError } = await resend.emails.send({
-      from: "Poipu Shores <onboarding@resend.dev>",
+      from: "Poipu Shores <noreply@poipu-shores.com>",
       to: [email],
       subject: "Welcome to Poipu Shores - Complete Your Registration",
       html: `
