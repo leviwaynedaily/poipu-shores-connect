@@ -6,7 +6,7 @@ import { UserManagement } from "@/components/settings/UserManagement";
 import { WebcamManagement } from "@/components/settings/WebcamManagement";
 import { EmergencyContactManagement } from "@/components/settings/EmergencyContactManagement";
 import { GeneralSettings } from "@/components/settings/GeneralSettings";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -31,7 +31,35 @@ export default function AdminSettings() {
   const [gradientStart, setGradientStart] = useState(appBackground.gradientStart || '#0066cc');
   const [gradientEnd, setGradientEnd] = useState(appBackground.gradientEnd || '#00ccff');
   const [aiPrompt, setAiPrompt] = useState('');
+  const [currentAuthLogo, setCurrentAuthLogo] = useState<string | null>(null);
+  const [currentFavicon, setCurrentFavicon] = useState<string | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchCustomImages = async () => {
+      const { data: authLogoData } = await supabase
+        .from('app_settings')
+        .select('setting_value')
+        .eq('setting_key', 'auth_logo')
+        .maybeSingle();
+      
+      if (authLogoData?.setting_value) {
+        setCurrentAuthLogo(authLogoData.setting_value as string);
+      }
+
+      const { data: faviconData } = await supabase
+        .from('app_settings')
+        .select('setting_value')
+        .eq('setting_key', 'favicon_url')
+        .maybeSingle();
+      
+      if (faviconData?.setting_value) {
+        setCurrentFavicon(faviconData.setting_value as string);
+      }
+    };
+
+    fetchCustomImages();
+  }, []);
 
   const handleToggleTheme = async () => {
     await toggleGlassTheme();
@@ -309,6 +337,8 @@ export default function AdminSettings() {
           onConflict: 'setting_key',
         });
 
+      setCurrentAuthLogo(publicUrl);
+
       toast({
         title: "Success",
         description: "Sign-in logo uploaded successfully",
@@ -428,6 +458,8 @@ export default function AdminSettings() {
       if (!document.querySelector("link[rel*='icon']")) {
         document.head.appendChild(link);
       }
+
+      setCurrentFavicon(publicUrl);
 
       toast({
         title: "Success",
@@ -601,7 +633,19 @@ export default function AdminSettings() {
                       Upload Image
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-3">
+                    {appBackground.type === 'uploaded' && appBackground.url && (
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground">Current Image</Label>
+                        <div className="rounded-md border border-border overflow-hidden">
+                          <img 
+                            src={appBackground.url} 
+                            alt="Current background" 
+                            className="w-full h-24 object-cover"
+                          />
+                        </div>
+                      </div>
+                    )}
                     <Input
                       type="file"
                       accept="image/*"
@@ -673,7 +717,24 @@ export default function AdminSettings() {
                     Upload a custom logo for the sign-in card
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-3">
+                  {currentAuthLogo && (
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Current Logo</Label>
+                      <div className="flex justify-center p-4 rounded-md border border-border bg-muted/30">
+                        <img 
+                          src={currentAuthLogo} 
+                          alt="Current sign-in logo" 
+                          className="h-20 w-auto object-contain"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {!currentAuthLogo && (
+                    <div className="text-xs text-muted-foreground text-center py-2">
+                      No custom logo set
+                    </div>
+                  )}
                   <Input
                     type="file"
                     accept="image/*"
@@ -692,7 +753,19 @@ export default function AdminSettings() {
                     Generate with AI
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-3">
+                  {appBackground.type === 'generated' && appBackground.url && (
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Current Generated Image</Label>
+                      <div className="rounded-md border border-border overflow-hidden">
+                        <img 
+                          src={appBackground.url} 
+                          alt="AI generated background" 
+                          className="w-full h-24 object-cover"
+                        />
+                      </div>
+                    </div>
+                  )}
                   <div className="flex gap-2">
                     <Input
                       placeholder="Describe your background..."
@@ -725,7 +798,25 @@ export default function AdminSettings() {
                     Upload favicon (PNG, ICO, SVG) - 32x32 or 64x64 pixels
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-3">
+                  {currentFavicon && (
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Current Favicon</Label>
+                      <div className="flex items-center gap-3 p-3 rounded-md border border-border bg-muted/30">
+                        <img 
+                          src={currentFavicon} 
+                          alt="Current favicon" 
+                          className="h-8 w-8 object-contain"
+                        />
+                        <span className="text-xs text-muted-foreground">32x32 pixels</span>
+                      </div>
+                    </div>
+                  )}
+                  {!currentFavicon && (
+                    <div className="text-xs text-muted-foreground text-center py-2">
+                      No custom favicon set
+                    </div>
+                  )}
                   <Input
                     type="file"
                     accept="image/*"
