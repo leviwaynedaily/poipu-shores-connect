@@ -67,10 +67,7 @@ const Dashboard = () => {
 
     const { data } = await supabase
       .from("announcements")
-      .select(`
-        *,
-        profiles (full_name)
-      `)
+      .select("*")
       .gte("created_at", ninetyDaysAgo.toISOString())
       .order("is_pinned", { ascending: false })
       .order("created_at", { ascending: false })
