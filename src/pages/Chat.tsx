@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -429,20 +429,22 @@ const Chat = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-foreground">Community Chat</h2>
-          <p className="text-lg text-muted-foreground">
-            Connect with your neighbors and community
-          </p>
-        </div>
-        {isAdmin && (
-          <Button onClick={() => setShowChannelManager(!showChannelManager)}>
-            <Settings className="h-4 w-4 mr-2" />
-            Manage Channels
-          </Button>
-        )}
-      </div>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <div className="space-y-1.5">
+            <CardTitle className="text-3xl">Community Chat</CardTitle>
+            <CardDescription className="text-lg">
+              Connect with your neighbors and community
+            </CardDescription>
+          </div>
+          {isAdmin && (
+            <Button onClick={() => setShowChannelManager(!showChannelManager)} className="shrink-0">
+              <Settings className="h-4 w-4 mr-2" />
+              Manage Channels
+            </Button>
+          )}
+        </CardHeader>
+      </Card>
 
       {showChannelManager && isAdmin && (
         <ChannelManager onClose={() => setShowChannelManager(false)} />
