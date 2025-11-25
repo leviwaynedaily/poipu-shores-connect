@@ -6,7 +6,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Search, Phone, Home } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatPhoneNumber } from "@/lib/phoneUtils";
-import { PageHeader } from "@/components/PageHeader";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface UnitOwner {
@@ -122,10 +121,14 @@ const Members = () => {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Poipu Shores Owners"
-        description="Connect with your neighbors at Poipu Shores"
-      />
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-3xl">Poipu Shores Owners</CardTitle>
+          <CardDescription className="text-lg">
+            Connect with your neighbors at Poipu Shores
+          </CardDescription>
+        </CardHeader>
+      </Card>
 
       <Card>
         <CardHeader>
