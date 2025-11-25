@@ -2,6 +2,7 @@ import { useState } from "react";
 import { PhotoGallery } from "@/components/photos/PhotoGallery";
 import { PhotoUpload } from "@/components/photos/PhotoUpload";
 import { Button } from "@/components/ui/button";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Camera } from "lucide-react";
 
 export default function Photos() {
@@ -14,19 +15,21 @@ export default function Photos() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Community Photos</h1>
-          <p className="text-muted-foreground mt-1">
-            Share and discover beautiful moments from Poipu Shores
-          </p>
-        </div>
-        <Button onClick={() => setShowUpload(!showUpload)} className="gap-2">
-          <Camera className="h-4 w-4" />
-          {showUpload ? "View Gallery" : "Upload Photo"}
-        </Button>
-      </div>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <div className="space-y-1.5">
+            <CardTitle className="text-3xl">Community Photos</CardTitle>
+            <CardDescription className="text-lg">
+              Share and discover beautiful moments from Poipu Shores
+            </CardDescription>
+          </div>
+          <Button onClick={() => setShowUpload(!showUpload)} className="gap-2 shrink-0">
+            <Camera className="h-4 w-4" />
+            {showUpload ? "View Gallery" : "Upload Photo"}
+          </Button>
+        </CardHeader>
+      </Card>
 
       {showUpload ? (
         <div className="max-w-2xl mx-auto">
