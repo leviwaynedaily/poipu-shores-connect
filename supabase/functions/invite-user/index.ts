@@ -140,10 +140,10 @@ The Poipu Shores Team`,
     <tr>
       <td align="center" style="padding: 40px 0;">
         <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden;">
-          <!-- Header with Logo -->
+          <!-- Header -->
           <tr>
-            <td align="center" style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 40px 30px;">
-              <img src="https://poipu-shores.com/header-logo.png" alt="Poipu Shores" style="max-width: 240px; height: auto; display: block; margin: 0 auto;" />
+            <td align="center" style="background-color: #1e40af; padding: 40px 30px;">
+              <h1 style="color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 32px; font-weight: 700; margin: 0; letter-spacing: -0.5px;">Poipu Shores</h1>
             </td>
           </tr>
           <!-- Content -->
