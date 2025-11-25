@@ -18,10 +18,11 @@ interface ThemeSettingsDialogProps {
 }
 
 export const ThemeSettingsDialog = ({ open, onOpenChange }: ThemeSettingsDialogProps) => {
-  const { isGlassTheme, toggleGlassTheme, glassIntensity, setGlassIntensity, sidebarOpacity, setSidebarOpacity } = useTheme();
+  const { isGlassTheme, toggleGlassTheme, glassIntensity, setGlassIntensity, sidebarOpacity, setSidebarOpacity, authPageOpacity, setAuthPageOpacity } = useTheme();
   const { appBackground, setAppBackground, refreshBackgrounds } = useBackground();
   const [localIntensity, setLocalIntensity] = useState(glassIntensity);
   const [localSidebarOpacity, setLocalSidebarOpacity] = useState(sidebarOpacity);
+  const [localAuthPageOpacity, setLocalAuthPageOpacity] = useState(authPageOpacity);
   const [backgroundOpacity, setBackgroundOpacity] = useState(appBackground.opacity);
   const [uploading, setUploading] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -43,9 +44,14 @@ export const ThemeSettingsDialog = ({ open, onOpenChange }: ThemeSettingsDialogP
     setLocalSidebarOpacity(value[0]);
   };
 
+  const handleAuthPageOpacityChange = (value: number[]) => {
+    setLocalAuthPageOpacity(value[0]);
+  };
+
   const handleSaveIntensity = async () => {
     await setGlassIntensity(localIntensity);
     await setSidebarOpacity(localSidebarOpacity);
+    await setAuthPageOpacity(localAuthPageOpacity);
     onOpenChange(false);
   };
 
@@ -408,6 +414,24 @@ export const ThemeSettingsDialog = ({ open, onOpenChange }: ThemeSettingsDialogP
                   />
                   <p className="text-xs text-muted-foreground">
                     Adjust sidebar opacity (uses same formula as cards, so matching values = matching appearance)
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label>Auth Page Glass Intensity</Label>
+                    <span className="text-sm text-muted-foreground">{localAuthPageOpacity}%</span>
+                  </div>
+                  <Slider
+                    value={[localAuthPageOpacity]}
+                    onValueChange={handleAuthPageOpacityChange}
+                    min={0}
+                    max={100}
+                    step={5}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Adjust auth page opacity (uses same formula as cards, so matching values = matching appearance)
                   </p>
                 </div>
               </>

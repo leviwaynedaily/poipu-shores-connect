@@ -455,6 +455,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          auth_page_opacity: number | null
           avatar_url: string | null
           created_at: string
           full_name: string
@@ -470,6 +471,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          auth_page_opacity?: number | null
           avatar_url?: string | null
           created_at?: string
           full_name: string
@@ -485,6 +487,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          auth_page_opacity?: number | null
           avatar_url?: string | null
           created_at?: string
           full_name?: string
