@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Footer } from "@/components/Footer";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
@@ -31,6 +32,9 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
+  const [showOtpLogin, setShowOtpLogin] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
   const [authLogo, setAuthLogo] = useState<string>(logo);
 
   useEffect(() => {
@@ -129,6 +133,87 @@ const Auth = () => {
     }
   };
 
+  const handleSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      z.string().email().parse(email);
+      setLoading(true);
+      
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+      
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        setOtpSent(true);
+        toast({
+          title: "Code Sent!",
+          description: `Check your email for the 6-digit code`,
+        });
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validation Error",
+          description: "Please enter a valid email address",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (otpCode.length !== 6) {
+      toast({
+        title: "Invalid Code",
+        description: "Please enter a 6-digit code",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setLoading(true);
+    
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token: otpCode,
+      type: 'email',
+    });
+    
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+      setLoading(false);
+    } else {
+      toast({
+        title: "Success!",
+        description: "Signed in successfully",
+      });
+      navigate("/dashboard");
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setOtpCode("");
+    await handleSendOtp(new Event('submit') as any);
+  };
+
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
       {/* Background */}
@@ -171,45 +256,7 @@ const Auth = () => {
             </div>
           </CardHeader>
         <CardContent>
-          {!showResetPassword ? (
-            <form onSubmit={handleLogin} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-lg">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="text-lg p-6"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-lg">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="text-lg p-6"
-              />
-            </div>
-              <Button type="submit" className="w-full text-lg py-6" disabled={loading}>
-                {loading ? "Signing in..." : "Sign In"}
-              </Button>
-              
-              <div className="text-center mt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowResetPassword(true)}
-                  className="text-sm text-primary hover:text-primary/80 transition-colors"
-                >
-                  Forgot password?
-                </button>
-              </div>
-            </form>
-          ) : (
+          {showResetPassword ? (
             <form onSubmit={handleResetPassword} className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="resetEmail" className="text-lg">Email</Label>
@@ -241,6 +288,140 @@ const Auth = () => {
                   className="text-sm text-primary hover:text-primary/80 transition-colors"
                 >
                   Back to sign in
+                </button>
+              </div>
+            </form>
+          ) : showOtpLogin && !otpSent ? (
+            <form onSubmit={handleSendOtp} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="otpEmail" className="text-lg">Email</Label>
+                <Input
+                  id="otpEmail"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="text-lg p-6"
+                  placeholder="Enter your email"
+                />
+                <p className="text-sm text-muted-foreground">
+                  We'll send you a 6-digit code
+                </p>
+              </div>
+              
+              <Button type="submit" className="w-full text-lg py-6" disabled={loading}>
+                {loading ? "Sending..." : "Send Code"}
+              </Button>
+              
+              <div className="text-center mt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowOtpLogin(false);
+                    setEmail("");
+                  }}
+                  className="text-sm text-primary hover:text-primary/80 transition-colors"
+                >
+                  Sign in with password instead
+                </button>
+              </div>
+            </form>
+          ) : showOtpLogin && otpSent ? (
+            <form onSubmit={handleVerifyOtp} className="space-y-5">
+              <div className="space-y-4">
+                <div className="text-center space-y-2">
+                  <h3 className="text-lg font-medium">Enter the 6-digit code</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Sent to {email}
+                  </p>
+                </div>
+                
+                <div className="flex justify-center">
+                  <InputOTP 
+                    maxLength={6} 
+                    value={otpCode}
+                    onChange={setOtpCode}
+                  >
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+              </div>
+              
+              <Button type="submit" className="w-full text-lg py-6" disabled={loading}>
+                {loading ? "Verifying..." : "Verify"}
+              </Button>
+              
+              <div className="text-center space-y-2">
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  className="text-sm text-primary hover:text-primary/80 transition-colors block w-full"
+                >
+                  Didn't get it? Resend code
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowOtpLogin(false);
+                    setOtpSent(false);
+                    setOtpCode("");
+                    setEmail("");
+                  }}
+                  className="text-sm text-primary hover:text-primary/80 transition-colors block w-full"
+                >
+                  Back to sign in
+                </button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handleLogin} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-lg">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="text-lg p-6"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-lg">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="text-lg p-6"
+                />
+              </div>
+              <Button type="submit" className="w-full text-lg py-6" disabled={loading}>
+                {loading ? "Signing in..." : "Sign In"}
+              </Button>
+              
+              <div className="text-center space-y-2">
+                <button
+                  type="button"
+                  onClick={() => setShowOtpLogin(true)}
+                  className="text-sm text-primary hover:text-primary/80 transition-colors block w-full"
+                >
+                  Send me a code instead
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowResetPassword(true)}
+                  className="text-sm text-primary hover:text-primary/80 transition-colors block w-full"
+                >
+                  Forgot password?
                 </button>
               </div>
             </form>
