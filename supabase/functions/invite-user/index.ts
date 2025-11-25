@@ -42,7 +42,7 @@ serve(async (req) => {
       });
     }
 
-    const { email, full_name, unit_number, role } = await req.json();
+    const { email, full_name, unit_number, role, relationship_type, is_primary_contact } = await req.json();
 
     if (!email || !full_name) {
       return new Response(JSON.stringify({ error: "Email and full name are required" }), {
@@ -85,6 +85,24 @@ serve(async (req) => {
         console.error("Failed to assign role:", roleError);
       } else {
         console.log(`Assigned role ${role} to user ${email}`);
+      }
+    }
+
+    // Create unit_owners entry if unit_number is provided
+    if (unit_number) {
+      const { error: unitOwnerError } = await supabaseClient
+        .from("unit_owners")
+        .insert({
+          user_id: newUser.user.id,
+          unit_number,
+          relationship_type: relationship_type || 'primary',
+          is_primary_contact: is_primary_contact || false,
+        });
+      
+      if (unitOwnerError) {
+        console.error("Failed to assign unit:", unitOwnerError);
+      } else {
+        console.log(`Assigned unit ${unit_number} to user ${email} as ${relationship_type || 'primary'}`);
       }
     }
 
