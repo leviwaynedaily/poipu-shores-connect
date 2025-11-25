@@ -27,6 +27,7 @@ const Announcements = () => {
   const { user, isAdmin, isOwner } = useAuth();
   const { toast } = useToast();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [readAnnouncementIds, setReadAnnouncementIds] = useState<Set<string>>(new Set());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -46,6 +47,18 @@ const Announcements = () => {
       .order("created_at", { ascending: false });
 
     if (data) {
+      // Fetch read status for current user
+      if (user) {
+        const { data: readData } = await supabase
+          .from("announcement_reads")
+          .select("announcement_id")
+          .eq("user_id", user.id);
+        
+        if (readData) {
+          setReadAnnouncementIds(new Set(readData.map(r => r.announcement_id)));
+        }
+      }
+
       // Fetch author names separately
       const announcementsWithAuthors = await Promise.all(
         data.map(async (announcement) => {
@@ -62,6 +75,46 @@ const Announcements = () => {
         })
       );
       setAnnouncements(announcementsWithAuthors);
+    }
+  };
+
+  const markAsRead = async (announcementId: string) => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from("announcement_reads")
+      .insert({
+        user_id: user.id,
+        announcement_id: announcementId,
+      });
+
+    if (!error) {
+      setReadAnnouncementIds(prev => new Set([...prev, announcementId]));
+    }
+  };
+
+  const markAllAsRead = async () => {
+    if (!user) return;
+
+    const unreadAnnouncements = announcements.filter(
+      a => !readAnnouncementIds.has(a.id)
+    );
+
+    const { error } = await supabase
+      .from("announcement_reads")
+      .insert(
+        unreadAnnouncements.map(a => ({
+          user_id: user.id,
+          announcement_id: a.id,
+        }))
+      );
+
+    if (!error) {
+      setReadAnnouncementIds(new Set(announcements.map(a => a.id)));
+      toast({
+        title: "Success",
+        description: "All announcements marked as read",
+      });
     }
   };
 
@@ -98,6 +151,8 @@ const Announcements = () => {
     }
   };
 
+  const unreadCount = announcements.filter(a => !readAnnouncementIds.has(a.id)).length;
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <Card>
@@ -109,14 +164,20 @@ const Announcements = () => {
             </CardDescription>
           </div>
           
-          {canPost && (
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="shrink-0">
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Announcement
-                </Button>
-              </DialogTrigger>
+          <div className="flex gap-2 items-center shrink-0">
+            {unreadCount > 0 && (
+              <Button variant="outline" onClick={markAllAsRead}>
+                Mark All as Read
+              </Button>
+            )}
+            {canPost && (
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="shrink-0">
+                    <Plus className="h-4 w-4 mr-2" />
+                    New Announcement
+                  </Button>
+                </DialogTrigger>
             <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-xl sm:text-2xl">Create Announcement</DialogTitle>
@@ -158,6 +219,7 @@ const Announcements = () => {
             </DialogContent>
             </Dialog>
           )}
+          </div>
         </CardHeader>
       </Card>
 
@@ -169,32 +231,53 @@ const Announcements = () => {
             </CardContent>
           </Card>
         ) : (
-          announcements.map((announcement) => (
-            <Card key={announcement.id} className="border-2">
-              <CardHeader className="p-4 sm:p-6">
-                <div className="flex items-start justify-between gap-2 sm:gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      {announcement.is_pinned && (
-                        <Badge variant="secondary" className="text-xs sm:text-sm md:text-base">
-                          <Pin className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                          Pinned
-                        </Badge>
-                      )}
+          announcements.map((announcement) => {
+            const isRead = readAnnouncementIds.has(announcement.id);
+            return (
+              <Card key={announcement.id} className={`border-2 ${isRead ? 'opacity-70' : ''}`}>
+                <CardHeader className="p-4 sm:p-6">
+                  <div className="flex items-start justify-between gap-2 sm:gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        {!isRead && (
+                          <Badge className="text-xs sm:text-sm md:text-base">
+                            New
+                          </Badge>
+                        )}
+                        {announcement.is_pinned && (
+                          <Badge variant="secondary" className="text-xs sm:text-sm md:text-base">
+                            <Pin className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                            Pinned
+                          </Badge>
+                        )}
+                        {isRead && (
+                          <span className="text-xs sm:text-sm text-muted-foreground">✓ Read</span>
+                        )}
+                      </div>
+                      <CardTitle className="text-lg sm:text-xl md:text-2xl break-words">{announcement.title}</CardTitle>
+                      <CardDescription className="text-xs sm:text-sm md:text-base mt-1">
+                        Posted by {announcement.author_name} on{" "}
+                        {format(new Date(announcement.created_at), "MMM dd, yyyy 'at' h:mm a")}
+                      </CardDescription>
                     </div>
-                    <CardTitle className="text-lg sm:text-xl md:text-2xl break-words">{announcement.title}</CardTitle>
-                    <CardDescription className="text-xs sm:text-sm md:text-base mt-1">
-                      Posted by {announcement.author_name} on{" "}
-                      {format(new Date(announcement.created_at), "MMM dd, yyyy 'at' h:mm a")}
-                    </CardDescription>
+                    {!isRead && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => markAsRead(announcement.id)}
+                        className="shrink-0"
+                      >
+                        Mark as Read
+                      </Button>
+                    )}
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-6 pt-0">
-                <p className="text-sm sm:text-base md:text-lg whitespace-pre-wrap break-words">{announcement.content}</p>
-              </CardContent>
-            </Card>
-          ))
+                </CardHeader>
+                <CardContent className="p-4 sm:p-6 pt-0">
+                  <p className="text-sm sm:text-base md:text-lg whitespace-pre-wrap break-words">{announcement.content}</p>
+                </CardContent>
+              </Card>
+            );
+          })
         )}
       </div>
     </div>
