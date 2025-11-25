@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Search, Phone, Home } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatPhoneNumber } from "@/lib/phoneUtils";
+import { PageHeader } from "@/components/PageHeader";
 
 interface Member {
   id: string;
@@ -68,12 +69,10 @@ const Members = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-foreground">Community Members</h2>
-        <p className="text-lg text-muted-foreground">
-          Connect with your neighbors at Poipu Shores
-        </p>
-      </div>
+      <PageHeader
+        title="Community Members"
+        description="Connect with your neighbors at Poipu Shores"
+      />
 
       <Card>
         <CardHeader>
