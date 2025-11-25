@@ -377,41 +377,40 @@ export default function AdminSettings() {
               <TabsTrigger value="advanced">Advanced</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="display" className="space-y-6 pt-6">
+            <TabsContent value="display" className="space-y-4 pt-4">
               {/* Theme Mode Toggle */}
               <Card>
-                <CardHeader>
-                  <CardTitle>Display Mode</CardTitle>
-                  <CardDescription>
-                    Glass mode adds beautiful translucent effects to cards and panels
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Display Mode</CardTitle>
+                  <CardDescription className="text-sm">
+                    Glass mode adds translucent effects
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Button
-                      onClick={handleToggleTheme}
-                      variant={isGlassTheme ? "default" : "outline"}
-                      className="flex-1"
-                    >
-                      {isGlassTheme ? "✨ Glass Mode" : "Classic Mode"}
-                    </Button>
-                  </div>
+                <CardContent>
+                  <Button
+                    onClick={handleToggleTheme}
+                    variant={isGlassTheme ? "default" : "outline"}
+                    className="w-full"
+                  >
+                    {isGlassTheme ? "✨ Glass Mode" : "Classic Mode"}
+                  </Button>
                 </CardContent>
               </Card>
 
               {/* Glass Intensity Sliders */}
               {isGlassTheme && (
-                <>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Card Glass Intensity</CardTitle>
-                      <CardDescription>
-                        Adjust card opacity (0% = transparent glass, 100% = completely solid)
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Glass Intensity</CardTitle>
+                    <CardDescription className="text-sm">
+                      Adjust opacity for different areas
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">{localIntensity}%</span>
+                        <Label className="text-sm">Cards</Label>
+                        <span className="text-xs text-muted-foreground">{localIntensity}%</span>
                       </div>
                       <Slider
                         value={[localIntensity]}
@@ -421,22 +420,12 @@ export default function AdminSettings() {
                         step={5}
                         className="w-full"
                       />
-                      <Button onClick={handleSaveIntensity} className="w-full">
-                        Apply Card Intensity
-                      </Button>
-                    </CardContent>
-                  </Card>
+                    </div>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Sidebar Glass Intensity</CardTitle>
-                      <CardDescription>
-                        Adjust sidebar opacity (uses same formula as cards, so matching values = matching appearance)
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
+                    <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">{localSidebarOpacity}%</span>
+                        <Label className="text-sm">Sidebar</Label>
+                        <span className="text-xs text-muted-foreground">{localSidebarOpacity}%</span>
                       </div>
                       <Slider
                         value={[localSidebarOpacity]}
@@ -446,22 +435,12 @@ export default function AdminSettings() {
                         step={5}
                         className="w-full"
                       />
-                      <Button onClick={handleSaveIntensity} className="w-full">
-                        Apply Sidebar Intensity
-                      </Button>
-                    </CardContent>
-                  </Card>
+                    </div>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Auth Page Glass Intensity</CardTitle>
-                      <CardDescription>
-                        Adjust auth page opacity (uses same formula as cards, so matching values = matching appearance)
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
+                    <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">{localAuthPageOpacity}%</span>
+                        <Label className="text-sm">Auth Page</Label>
+                        <span className="text-xs text-muted-foreground">{localAuthPageOpacity}%</span>
                       </div>
                       <Slider
                         value={[localAuthPageOpacity]}
@@ -471,152 +450,146 @@ export default function AdminSettings() {
                         step={5}
                         className="w-full"
                       />
-                      <Button onClick={handleSaveIntensity} className="w-full">
-                        Apply Auth Page Intensity
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </>
+                    </div>
+
+                    <Button onClick={handleSaveIntensity} className="w-full" size="sm">
+                      Apply Changes
+                    </Button>
+                  </CardContent>
+                </Card>
               )}
             </TabsContent>
 
-            <TabsContent value="background" className="space-y-6 pt-6">
-              {/* Background Opacity */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Background Opacity</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">{backgroundOpacity}%</span>
-                  </div>
-                  <Slider
-                    value={[backgroundOpacity]}
-                    onValueChange={(val) => setBackgroundOpacity(val[0])}
-                    min={0}
-                    max={100}
-                    step={5}
-                    className="w-full"
-                  />
-                </CardContent>
-              </Card>
+            <TabsContent value="background" className="space-y-4 pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Background Opacity */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Opacity</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">{backgroundOpacity}%</span>
+                    </div>
+                    <Slider
+                      value={[backgroundOpacity]}
+                      onValueChange={(val) => setBackgroundOpacity(val[0])}
+                      min={0}
+                      max={100}
+                      step={5}
+                      className="w-full"
+                    />
+                  </CardContent>
+                </Card>
 
-              {/* Upload Background */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Upload className="h-4 w-4" />
-                    Upload Custom Image
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleBackgroundUpload}
-                    disabled={uploading}
-                  />
-                  {uploading && (
-                    <span className="text-sm text-muted-foreground mt-2 block">Uploading...</span>
-                  )}
-                </CardContent>
-              </Card>
+                {/* Upload Background */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Upload className="h-4 w-4" />
+                      Upload Image
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleBackgroundUpload}
+                      disabled={uploading}
+                      className="text-sm"
+                    />
+                  </CardContent>
+                </Card>
 
-              {/* Generate with AI */}
+                {/* Solid Color */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Palette className="h-4 w-4" />
+                      Solid Color
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex gap-2">
+                      <Input
+                        type="color"
+                        value={customColor}
+                        onChange={(e) => setCustomColor(e.target.value)}
+                        className="w-16 h-9"
+                      />
+                      <Button onClick={handleSolidColor} variant="outline" size="sm" className="flex-1">
+                        Apply
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Gradient */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Gradient</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex gap-2">
+                      <Input
+                        type="color"
+                        value={gradientStart}
+                        onChange={(e) => setGradientStart(e.target.value)}
+                        className="w-16 h-9"
+                      />
+                      <Input
+                        type="color"
+                        value={gradientEnd}
+                        onChange={(e) => setGradientEnd(e.target.value)}
+                        className="w-16 h-9"
+                      />
+                      <Button onClick={handleGradient} variant="outline" size="sm" className="flex-1">
+                        Apply
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Generate with AI - Full Width */}
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
                     <Wand2 className="h-4 w-4" />
                     Generate with AI
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent>
                   <div className="flex gap-2">
                     <Input
                       placeholder="Describe your background..."
                       value={aiPrompt}
                       onChange={(e) => setAiPrompt(e.target.value)}
                       disabled={generating}
+                      className="text-sm"
                     />
-                    <Button onClick={handleGenerateBackground} disabled={generating}>
-                      {generating ? "Generating..." : "Generate"}
+                    <Button onClick={handleGenerateBackground} disabled={generating} size="sm">
+                      {generating ? "..." : "Generate"}
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Solid Color */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Palette className="h-4 w-4" />
-                    Solid Color
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex gap-2">
-                    <Input
-                      type="color"
-                      value={customColor}
-                      onChange={(e) => setCustomColor(e.target.value)}
-                      className="w-20 h-10"
-                    />
-                    <Button onClick={handleSolidColor} variant="outline" className="flex-1">
-                      Apply Color
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Gradient */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Gradient Background</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex gap-2">
-                    <div className="flex-1 space-y-2">
-                      <Label className="text-xs">Start Color</Label>
-                      <Input
-                        type="color"
-                        value={gradientStart}
-                        onChange={(e) => setGradientStart(e.target.value)}
-                        className="w-full h-10"
-                      />
-                    </div>
-                    <div className="flex-1 space-y-2">
-                      <Label className="text-xs">End Color</Label>
-                      <Input
-                        type="color"
-                        value={gradientEnd}
-                        onChange={(e) => setGradientEnd(e.target.value)}
-                        className="w-full h-10"
-                      />
-                    </div>
-                  </div>
-                  <Button onClick={handleGradient} variant="outline" className="w-full">
-                    Apply Gradient
-                  </Button>
                 </CardContent>
               </Card>
 
               {/* Reset to Default */}
-              <Card>
-                <CardContent className="pt-6">
-                  <Button onClick={handleResetToDefault} variant="outline" className="w-full">
-                    Reset to Default Background
-                  </Button>
-                </CardContent>
-              </Card>
+              <div className="flex justify-end">
+                <Button onClick={handleResetToDefault} variant="outline" size="sm">
+                  Reset to Default
+                </Button>
+              </div>
             </TabsContent>
 
-            <TabsContent value="advanced" className="space-y-6 pt-6">
+            <TabsContent value="advanced" className="space-y-4 pt-4">
               {/* Favicon Upload */}
               <Card>
-                <CardHeader>
-                  <CardTitle>Custom Favicon</CardTitle>
-                  <CardDescription>
-                    Upload a custom favicon (PNG, ICO, SVG). Recommended size: 32x32 or 64x64 pixels.
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Custom Favicon</CardTitle>
+                  <CardDescription className="text-sm">
+                    Upload favicon (PNG, ICO, SVG) - 32x32 or 64x64 pixels
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -625,10 +598,8 @@ export default function AdminSettings() {
                     accept="image/*"
                     onChange={handleFaviconUpload}
                     disabled={uploading}
+                    className="text-sm"
                   />
-                  {uploading && (
-                    <span className="text-sm text-muted-foreground mt-2 block">Uploading...</span>
-                  )}
                 </CardContent>
               </Card>
             </TabsContent>
