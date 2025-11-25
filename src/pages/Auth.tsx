@@ -536,19 +536,19 @@ const Auth = () => {
                 {loading ? "Signing in..." : "Sign In"}
               </Button>
               
-              <div className="text-center space-y-2">
+              <div className="text-center space-y-3 pt-2">
                 <button
                   type="button"
                   onClick={handleRequestOtp}
                   disabled={loading}
-                  className="text-sm text-primary hover:text-primary/80 transition-colors block w-full"
+                  className="text-base text-foreground/80 hover:text-foreground transition-colors block w-full font-medium"
                 >
                   Send me a code instead
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowResetPassword(true)}
-                  className="text-sm text-primary hover:text-primary/80 transition-colors block w-full"
+                  className="text-base text-foreground/80 hover:text-foreground transition-colors block w-full font-medium"
                 >
                   Forgot password?
                 </button>
