@@ -18,10 +18,9 @@ interface ThemeSettingsDialogProps {
 }
 
 export const ThemeSettingsDialog = ({ open, onOpenChange }: ThemeSettingsDialogProps) => {
-  const { isGlassTheme, toggleGlassTheme, glassIntensity, setGlassIntensity, sidebarOpacity, setSidebarOpacity } = useTheme();
+  const { isGlassTheme, toggleGlassTheme, glassIntensity, setGlassIntensity } = useTheme();
   const { appBackground, setAppBackground, refreshBackgrounds } = useBackground();
   const [localIntensity, setLocalIntensity] = useState(glassIntensity);
-  const [localSidebarOpacity, setLocalSidebarOpacity] = useState(sidebarOpacity);
   const [backgroundOpacity, setBackgroundOpacity] = useState(appBackground.opacity);
   const [uploading, setUploading] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -39,13 +38,8 @@ export const ThemeSettingsDialog = ({ open, onOpenChange }: ThemeSettingsDialogP
     setLocalIntensity(value[0]);
   };
 
-  const handleSidebarOpacityChange = (value: number[]) => {
-    setLocalSidebarOpacity(value[0]);
-  };
-
   const handleSaveIntensity = async () => {
     await setGlassIntensity(localIntensity);
-    await setSidebarOpacity(localSidebarOpacity);
     onOpenChange(false);
   };
 
@@ -374,43 +368,23 @@ export const ThemeSettingsDialog = ({ open, onOpenChange }: ThemeSettingsDialogP
 
             {/* Glass Intensity Slider */}
             {isGlassTheme && (
-              <>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label>Glass Effect Intensity</Label>
-                    <span className="text-sm text-muted-foreground">{localIntensity}%</span>
-                  </div>
-                  <Slider
-                    value={[localIntensity]}
-                    onValueChange={handleIntensityChange}
-                    min={0}
-                    max={100}
-                    step={5}
-                    className="w-full"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Adjust card opacity (0% = transparent glass, 100% = completely solid)
-                  </p>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label>Glass Effect Intensity</Label>
+                  <span className="text-sm text-muted-foreground">{localIntensity}%</span>
                 </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label>Sidebar Opacity</Label>
-                    <span className="text-sm text-muted-foreground">{localSidebarOpacity}%</span>
-                  </div>
-                  <Slider
-                    value={[localSidebarOpacity]}
-                    onValueChange={handleSidebarOpacityChange}
-                    min={0}
-                    max={100}
-                    step={5}
-                    className="w-full"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Adjust sidebar transparency independently from cards
-                  </p>
-                </div>
-              </>
+                <Slider
+                  value={[localIntensity]}
+                  onValueChange={handleIntensityChange}
+                  min={0}
+                  max={100}
+                  step={5}
+                  className="w-full"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Adjust glass effect for cards and sidebar (0% = transparent glass, 100% = completely solid)
+                </p>
+              </div>
             )}
           </TabsContent>
 
