@@ -25,6 +25,7 @@ export default function AdminSettings() {
   const [localAuthPageOpacity, setLocalAuthPageOpacity] = useState(authPageOpacity);
   const [backgroundOpacity, setBackgroundOpacity] = useState(appBackground.opacity);
   const [uploading, setUploading] = useState(false);
+  const [uploadingAuth, setUploadingAuth] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [customColor, setCustomColor] = useState(appBackground.color || '#0066cc');
   const [gradientStart, setGradientStart] = useState(appBackground.gradientStart || '#0066cc');
@@ -268,6 +269,59 @@ export default function AdminSettings() {
         description: error.message,
         variant: "destructive",
       });
+    }
+  };
+
+  const handleAuthBackgroundUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingAuth(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const filePath = `auth-background-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      await supabase
+        .from('app_settings')
+        .upsert({
+          setting_key: 'auth_background',
+          setting_value: publicUrl,
+        }, {
+          onConflict: 'setting_key',
+        });
+
+      toast({
+        title: "Success",
+        description: "Sign-in background image uploaded successfully",
+      });
+    } catch (error: any) {
+      console.error('Error uploading auth background:', error);
+      toast({
+        title: "Upload failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingAuth(false);
     }
   };
 
@@ -607,6 +661,28 @@ export default function AdminSettings() {
                   </CardContent>
                 </Card>
               </div>
+
+              {/* Sign-in Background - Full Width */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Upload className="h-4 w-4" />
+                    Sign-in Background
+                  </CardTitle>
+                  <CardDescription className="text-sm">
+                    Upload a custom background for the sign-in page
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAuthBackgroundUpload}
+                    disabled={uploadingAuth}
+                    className="text-sm"
+                  />
+                </CardContent>
+              </Card>
 
               {/* Generate with AI - Full Width */}
               <Card>
