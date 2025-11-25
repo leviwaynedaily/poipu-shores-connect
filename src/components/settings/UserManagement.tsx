@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserPlus, Shield, Clock, Mail, UserCheck, UserX } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
 
 interface Profile {
   id: string;
@@ -200,18 +201,17 @@ export function UserManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">User Management</h2>
-          <p className="text-muted-foreground">Invite and manage community members</p>
-        </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <UserPlus className="mr-2 h-4 w-4" />
-              Invite User
-            </Button>
-          </DialogTrigger>
+      <PageHeader
+        title="User Management"
+        description="Invite and manage community members"
+        actions={
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <UserPlus className="mr-2 h-4 w-4" />
+                Invite User
+              </Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Invite New User</DialogTitle>
@@ -266,7 +266,8 @@ export function UserManagement() {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
+        }
+      />
 
       <Card>
         <CardHeader>
