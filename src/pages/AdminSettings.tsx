@@ -271,6 +271,48 @@ export default function AdminSettings() {
     }
   };
 
+  const convertIcoToPng = (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width || 32;
+          canvas.height = img.height || 32;
+          const ctx = canvas.getContext('2d');
+          
+          if (!ctx) {
+            reject(new Error('Could not get canvas context'));
+            return;
+          }
+          
+          ctx.drawImage(img, 0, 0);
+          URL.revokeObjectURL(url);
+          
+          canvas.toBlob((blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error('Failed to convert image to PNG'));
+            }
+          }, 'image/png');
+        } catch (error) {
+          URL.revokeObjectURL(url);
+          reject(error);
+        }
+      };
+      
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Failed to load image'));
+      };
+      
+      img.src = url;
+    });
+  };
+
   const handleFaviconUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -278,7 +320,7 @@ export default function AdminSettings() {
     if (!file.type.startsWith('image/')) {
       toast({
         title: "Invalid file type",
-        description: "Please upload an image file (PNG, ICO, SVG, etc.)",
+        description: "Please upload an image file (PNG, JPG, ICO, SVG, etc.)",
         variant: "destructive",
       });
       return;
@@ -286,12 +328,27 @@ export default function AdminSettings() {
 
     setUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
+      let uploadFile: File | Blob = file;
+      let fileName = file.name;
+      
+      // Convert ICO files to PNG
+      if (file.name.toLowerCase().endsWith('.ico') || file.type === 'image/x-icon' || file.type === 'image/vnd.microsoft.icon') {
+        const pngBlob = await convertIcoToPng(file);
+        uploadFile = pngBlob;
+        fileName = file.name.replace(/\.ico$/i, '.png');
+        
+        toast({
+          title: "Converting",
+          description: "ICO file converted to PNG format",
+        });
+      }
+      
+      const fileExt = fileName.split('.').pop();
       const filePath = `favicon-${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file);
+        .upload(filePath, uploadFile);
 
       if (uploadError) throw uploadError;
 
