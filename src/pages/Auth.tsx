@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBackground } from "@/contexts/BackgroundContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +23,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const { user, signIn, resetPassword } = useAuth();
   const { homeBackground } = useBackground();
+  const { isGlassTheme, authPageOpacity } = useTheme();
   const { toast } = useToast();
   
   const [email, setEmail] = useState("");
@@ -132,7 +134,15 @@ const Auth = () => {
       )}
       
       <div className="flex-1 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md relative z-10 shadow-xl">
+        <Card 
+          className={`w-full max-w-md relative z-10 shadow-xl ${
+            isGlassTheme ? "backdrop-blur-sm" : ""
+          }`}
+          style={isGlassTheme ? {
+            backgroundColor: `hsl(var(--card) / ${5 + (authPageOpacity * 0.95)}%)`,
+            borderColor: `hsl(var(--border) / ${15 + (authPageOpacity * 0.85)}%)`
+          } : undefined}
+        >
         <CardHeader className="text-center pb-4">
           <div className="flex justify-center mb-4">
             <img src={logo} alt="Poipu Shores - Kauai, Hawaii" className="w-full max-w-md" />

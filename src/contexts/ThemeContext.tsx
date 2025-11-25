@@ -10,6 +10,8 @@ interface ThemeContextType {
   setGlassIntensity: (intensity: number) => Promise<void>;
   sidebarOpacity: number;
   setSidebarOpacity: (opacity: number) => Promise<void>;
+  authPageOpacity: number;
+  setAuthPageOpacity: (opacity: number) => Promise<void>;
   showThemeDialog: boolean;
   setShowThemeDialog: (show: boolean) => void;
   loading: boolean;
@@ -21,6 +23,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const [isGlassTheme, setIsGlassTheme] = useState(false);
   const [glassIntensity, setGlassIntensityState] = useState(90);
   const [sidebarOpacity, setSidebarOpacityState] = useState(90);
+  const [authPageOpacity, setAuthPageOpacityState] = useState(90);
   const [showThemeDialog, setShowThemeDialog] = useState(false);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
@@ -36,7 +39,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('glass_theme_enabled, glass_intensity, sidebar_opacity')
+          .select('glass_theme_enabled, glass_intensity, sidebar_opacity, auth_page_opacity')
           .eq('id', user.id)
           .single();
 
@@ -44,6 +47,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
         setIsGlassTheme(data?.glass_theme_enabled ?? false);
         setGlassIntensityState(data?.glass_intensity ?? 90);
         setSidebarOpacityState(data?.sidebar_opacity ?? 90);
+        setAuthPageOpacityState(data?.auth_page_opacity ?? 90);
       } catch (error) {
         console.error('Error loading theme preference:', error);
       } finally {
@@ -130,6 +134,30 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // Set auth page opacity
+  const setAuthPageOpacity = async (opacity: number) => {
+    if (!user) {
+      toast.error('Please sign in to use theme preferences');
+      return;
+    }
+
+    setAuthPageOpacityState(opacity);
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ auth_page_opacity: opacity })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      toast.success('Auth page opacity updated');
+    } catch (error) {
+      console.error('Error saving auth page opacity:', error);
+      toast.error('Failed to save auth page opacity');
+    }
+  };
+
 
   // Load saved favicon
   useEffect(() => {
@@ -181,6 +209,8 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
       setGlassIntensity,
       sidebarOpacity,
       setSidebarOpacity,
+      authPageOpacity,
+      setAuthPageOpacity,
       showThemeDialog,
       setShowThemeDialog,
       loading 
