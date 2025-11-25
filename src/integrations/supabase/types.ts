@@ -601,6 +601,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_user_has_phone: {
+        Args: { user_email: string }
+        Returns: {
+          has_phone: boolean
+          phone_number: string
+        }[]
+      }
       cleanup_old_assistant_messages: { Args: never; Returns: undefined }
       has_role: {
         Args: {

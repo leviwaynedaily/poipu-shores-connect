@@ -69,7 +69,20 @@ const Auth = () => {
     
     try {
       z.string().email().parse(email);
+      setLoading(true);
+      
+      // Check if user has a phone number registered
+      const { data, error } = await supabase
+        .rpc('check_user_has_phone', { user_email: email });
+      
+      if (data && data.length > 0) {
+        const userData = data[0];
+        setUserHasPhone(userData.has_phone);
+        setUserPhone(userData.phone_number || '');
+      }
+      
       setEmailVerified(true);
+      setLoading(false);
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast({
@@ -78,6 +91,7 @@ const Auth = () => {
           variant: "destructive",
         });
       }
+      setLoading(false);
     }
   };
 
@@ -167,11 +181,16 @@ const Auth = () => {
   };
 
   const handleRequestOtp = async () => {
-    // For security, we only offer email OTP initially
-    // Since we can't check if user has a phone without authentication
-    // They'll need to have entered a valid registered email
-    setShowOtpLogin(true);
-    setOtpMethod('email'); // Default to email since we can't verify phone without auth
+    // Check if user has phone, and show appropriate options
+    if (userHasPhone) {
+      // Show choice between email and phone
+      setShowOtpLogin(true);
+      setOtpMethod(null); // Show selection screen
+    } else {
+      // Only email available
+      setShowOtpLogin(true);
+      setOtpMethod('email');
+    }
   };
 
   const handleSendOtp = async (e: React.FormEvent) => {
@@ -186,7 +205,7 @@ const Auth = () => {
         const { error } = await supabase.auth.signInWithOtp({
           email,
           options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
+            shouldCreateUser: false, // Don't create new users via OTP
           },
         });
         
@@ -387,17 +406,26 @@ const Auth = () => {
                 </button>
               </div>
             </form>
-          ) : showOtpLogin && !otpSent ? (
-            <form onSubmit={handleSendOtp} className="space-y-5">
+          ) : showOtpLogin && !otpMethod ? (
+            <div className="space-y-5">
               <div className="space-y-2 text-center">
-                <h3 className="text-lg font-medium">We'll send a code to your email</h3>
-                <p className="text-sm text-muted-foreground">
-                  A 6-digit code will be sent to {email}
-                </p>
+                <h3 className="text-xl font-semibold">How would you like to receive your sign-in code?</h3>
               </div>
               
-              <Button type="submit" className="w-full text-lg py-6" disabled={loading}>
-                {loading ? "Sending..." : "Send Code"}
+              <Button 
+                onClick={() => setOtpMethod('email')} 
+                className="w-full text-lg py-6"
+                variant="outline"
+              >
+                📧 Send to my email
+              </Button>
+              
+              <Button 
+                onClick={() => setOtpMethod('phone')} 
+                className="w-full text-lg py-6"
+                variant="outline"
+              >
+                📱 Text to my phone
               </Button>
               
               <div className="text-center mt-4">
@@ -412,6 +440,33 @@ const Auth = () => {
                   Sign in with password instead
                 </button>
               </div>
+            </div>
+          ) : showOtpLogin && otpMethod && !otpSent ? (
+            <form onSubmit={handleSendOtp} className="space-y-5">
+              <div className="space-y-2 text-center">
+                <p className="text-sm text-muted-foreground">
+                  {otpMethod === 'email' 
+                    ? `We'll send a 6-digit code to ${email}` 
+                    : `We'll text a 6-digit code to ${formatPhoneNumber(userPhone)}`
+                  }
+                </p>
+              </div>
+              
+              <Button type="submit" className="w-full text-lg py-6" disabled={loading}>
+                {loading ? "Sending..." : "Send Code"}
+              </Button>
+              
+              <div className="text-center mt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOtpMethod(null);
+                  }}
+                  className="text-sm text-primary hover:text-primary/80 transition-colors"
+                >
+                  Choose different method
+                </button>
+              </div>
             </form>
           ) : showOtpLogin && otpSent ? (
             <form onSubmit={handleVerifyOtp} className="space-y-5">
@@ -419,7 +474,7 @@ const Auth = () => {
                 <div className="text-center space-y-2">
                   <h3 className="text-lg font-medium">Enter the 6-digit code</h3>
                   <p className="text-sm text-muted-foreground">
-                    Sent to {email}
+                    Sent to {otpMethod === 'email' ? email : formatPhoneNumber(userPhone)}
                   </p>
                 </div>
                 
