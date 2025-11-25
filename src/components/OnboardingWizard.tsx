@@ -30,15 +30,17 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { formatPhoneInput } from "@/lib/phoneUtils";
+import { useEffect } from "react";
 
 interface OnboardingWizardProps {
   open: boolean;
   onComplete: () => void;
+  source?: 'onboarding' | 'profile';
 }
 
 const TOTAL_STEPS = 5;
 
-export const OnboardingWizard = ({ open, onComplete }: OnboardingWizardProps) => {
+export const OnboardingWizard = ({ open, onComplete, source = 'onboarding' }: OnboardingWizardProps) => {
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -49,6 +51,26 @@ export const OnboardingWizard = ({ open, onComplete }: OnboardingWizardProps) =>
   const [phone, setPhone] = useState("");
   const [showContactInfo, setShowContactInfo] = useState(true);
   const [tourSlide, setTourSlide] = useState(0);
+
+  // Pre-populate data when launched from profile
+  useEffect(() => {
+    if (source === 'profile' && user && open) {
+      const fetchProfileData = async () => {
+        const { data } = await supabase
+          .from('profiles')
+          .select('phone, show_contact_info, avatar_url')
+          .eq('id', user.id)
+          .single();
+        
+        if (data) {
+          if (data.phone) setPhone(data.phone);
+          setShowContactInfo(data.show_contact_info);
+          if (data.avatar_url) setAvatarPreview(data.avatar_url);
+        }
+      };
+      fetchProfileData();
+    }
+  }, [source, user, open]);
 
   const tourSlides = [
     {
@@ -201,15 +223,23 @@ export const OnboardingWizard = ({ open, onComplete }: OnboardingWizardProps) =>
   const handleComplete = async () => {
     setLoading(true);
     try {
-      await supabase
-        .from("profiles")
-        .update({ onboarding_completed: true })
-        .eq("id", user?.id);
+      // Only mark onboarding complete if this is first-time onboarding
+      if (source === 'onboarding') {
+        await supabase
+          .from("profiles")
+          .update({ onboarding_completed: true })
+          .eq("id", user?.id);
 
-      toast({
-        title: "Welcome to Poipu Shores!",
-        description: "Your profile setup is complete",
-      });
+        toast({
+          title: "Welcome to Poipu Shores!",
+          description: "Your profile setup is complete",
+        });
+      } else {
+        toast({
+          title: "Tour completed!",
+          description: "You can restart the tour anytime from your profile",
+        });
+      }
       onComplete();
     } catch (error: any) {
       toast({
@@ -236,8 +266,8 @@ export const OnboardingWizard = ({ open, onComplete }: OnboardingWizardProps) =>
   const progress = (currentStep / TOTAL_STEPS) * 100;
 
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-2xl" hideClose>
+    <Dialog open={open} onOpenChange={source === 'profile' ? onComplete : undefined}>
+      <DialogContent className="sm:max-w-2xl" hideClose={source === 'onboarding'}>
         <div className="space-y-6">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -456,7 +486,7 @@ export const OnboardingWizard = ({ open, onComplete }: OnboardingWizardProps) =>
             )}
             {currentStep === TOTAL_STEPS && (
               <Button onClick={handleComplete} disabled={loading} className="ml-auto">
-                {loading ? "Loading..." : "Take me to Dashboard"}
+                {loading ? "Loading..." : source === 'profile' ? "Done" : "Take me to Dashboard"}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             )}
