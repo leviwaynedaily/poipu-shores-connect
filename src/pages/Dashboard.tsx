@@ -69,7 +69,7 @@ const Dashboard = () => {
       .from("announcements")
       .select(`
         *,
-        profiles!announcements_author_id_fkey (full_name)
+        profiles (full_name)
       `)
       .gte("created_at", ninetyDaysAgo.toISOString())
       .order("is_pinned", { ascending: false })
