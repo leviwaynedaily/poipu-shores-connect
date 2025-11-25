@@ -42,7 +42,7 @@ export function DocumentChat({ documentIds = [] }: DocumentChatProps) {
       if (!user.user) return;
 
       const { data, error } = await supabase
-        .from("document_chat_messages")
+        .from("community_assistant_messages")
         .select("*")
         .eq("user_id", user.user.id)
         .order("created_at", { ascending: true });
@@ -68,7 +68,7 @@ export function DocumentChat({ documentIds = [] }: DocumentChatProps) {
       if (!user.user) return;
 
       const { error } = await supabase
-        .from("document_chat_messages")
+        .from("community_assistant_messages")
         .insert({
           user_id: user.user.id,
           role,
@@ -93,29 +93,20 @@ export function DocumentChat({ documentIds = [] }: DocumentChatProps) {
     await saveMessage("user", userMessage.content);
 
     try {
-      const response = await fetch(`https://rvqqnfsgovlxocjjugww.supabase.co/functions/v1/document-chat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ2cXFuZnNnb3ZseG9jamp1Z3d3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4NTQ2MzgsImV4cCI6MjA3OTQzMDYzOH0.iUzJqQoHRUJ0nmPU1t44OL9I-ZYtCDofNxAN14phjBQ`,
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke("community-assistant", {
+        body: {
           messages: [...messages, userMessage].map((m) => ({
             role: m.role,
             content: m.content,
           })),
-          documentIds,
-        }),
+        },
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to get response");
-      }
+      if (error) throw error;
 
-      if (!response.body) throw new Error("No response body");
+      if (!data.body) throw new Error("No response body");
 
-      const reader = response.body.getReader();
+      const reader = data.body.getReader();
       const decoder = new TextDecoder();
       let assistantContent = "";
       let textBuffer = "";
