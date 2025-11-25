@@ -20,6 +20,7 @@ import Members from "./pages/Members";
 import Profile from "./pages/Profile";
 import Users from "./pages/Users";
 import AdminSettings from "./pages/AdminSettings";
+import Assistant from "./pages/Assistant";
 import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -126,6 +127,16 @@ const AppContent = () => {
                 <ProtectedRoute>
                   <Layout>
                     <AdminSettings />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/assistant"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Assistant />
                   </Layout>
                 </ProtectedRoute>
               }

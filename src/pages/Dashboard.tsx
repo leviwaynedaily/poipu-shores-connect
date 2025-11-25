@@ -12,7 +12,6 @@ import { EmergencyContacts } from "@/components/dashboard/EmergencyContacts";
 import { LiveCameraEmbed } from "@/components/dashboard/LiveCameraEmbed";
 import { PhotoCarousel } from "@/components/photos/PhotoCarousel";
 import { AnnouncementDialog } from "@/components/AnnouncementDialog";
-import { CommunityAssistantDialog } from "@/components/CommunityAssistantDialog";
 import chickenIcon from "@/assets/chicken-assistant.jpeg";
 
 interface Announcement {
@@ -29,7 +28,6 @@ interface Announcement {
 const Dashboard = () => {
   const { user } = useAuth();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [isAssistantOpen, setIsAssistantOpen] = useState(false);
   const [stats, setStats] = useState({
     totalMessages: 0,
     totalDocuments: 0,
@@ -73,30 +71,29 @@ const Dashboard = () => {
     <div className="space-y-6">
       <AnnouncementDialog />
 
-      <Card 
-        className="cursor-pointer hover:border-primary transition-colors"
-        onClick={() => setIsAssistantOpen(true)}
-      >
-        <CardHeader className="p-4 md:p-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 md:gap-4">
-            <img
-              src={chickenIcon}
-              alt="Community Assistant"
-              className="h-16 w-16 sm:h-20 sm:w-20 rounded-full object-cover ring-2 ring-primary/20 flex-shrink-0"
-            />
-            <div className="flex-1 min-w-0">
-              <CardTitle className="text-xl sm:text-2xl md:text-3xl mb-1 md:mb-2">Ask the Chicken</CardTitle>
-              <CardDescription className="text-sm sm:text-base md:text-lg">
-                Your AI assistant for documents, announcements, emergency info, and more!
-              </CardDescription>
+      <Link to="/assistant">
+        <Card className="cursor-pointer hover:border-primary transition-colors">
+          <CardHeader className="p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 md:gap-4">
+              <img
+                src={chickenIcon}
+                alt="Community Assistant"
+                className="h-16 w-16 sm:h-20 sm:w-20 rounded-full object-cover ring-2 ring-primary/20 flex-shrink-0"
+              />
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-xl sm:text-2xl md:text-3xl mb-1 md:mb-2">Ask the Chicken</CardTitle>
+                <CardDescription className="text-sm sm:text-base md:text-lg">
+                  Your AI assistant for documents, announcements, emergency info, and more!
+                </CardDescription>
+              </div>
+              <Button size="lg" className="h-10 sm:h-12 px-4 sm:px-6 w-full sm:w-auto shrink-0">
+                <MessageCircle className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                Start Chat
+              </Button>
             </div>
-            <Button size="lg" className="h-10 sm:h-12 px-4 sm:px-6 w-full sm:w-auto shrink-0">
-              <MessageCircle className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-              Start Chat
-            </Button>
-          </div>
-        </CardHeader>
-      </Card>
+          </CardHeader>
+        </Card>
+      </Link>
 
       <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
         <Link to="/chat">
@@ -207,8 +204,6 @@ const Dashboard = () => {
           </Card>
         </Link>
       </div>
-
-      <CommunityAssistantDialog open={isAssistantOpen} onOpenChange={setIsAssistantOpen} />
     </div>
   );
 };
