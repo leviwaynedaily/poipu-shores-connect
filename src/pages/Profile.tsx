@@ -9,9 +9,10 @@ import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, X, Save, User, Lock } from "lucide-react";
+import { Upload, X, Save, User, Lock, RotateCcw } from "lucide-react";
 import { formatPhoneInput } from "@/lib/phoneUtils";
 import { z } from "zod";
+import { OnboardingWizard } from "@/components/OnboardingWizard";
 
 const passwordSchema = z.object({
   newPassword: z.string().min(6, "Password must be at least 6 characters"),
@@ -35,6 +36,7 @@ const Profile = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   
   // Track initial state for change detection
   const [initialState, setInitialState] = useState({
@@ -435,8 +437,30 @@ const Profile = () => {
               </form>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Platform Tour</CardTitle>
+              <CardDescription>
+                Want a refresher on how to use the platform? Restart the onboarding tour.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowOnboarding(true)}
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Restart Tour
+              </Button>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
+      <OnboardingWizard 
+        open={showOnboarding} 
+        onComplete={() => setShowOnboarding(false)} 
+      />
     </div>
   );
 };
