@@ -100,22 +100,23 @@ const Announcements = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-        <div className="flex-1 min-w-0">
-          <h2 className="text-2xl sm:text-3xl font-bold text-foreground break-words">Announcements</h2>
-          <p className="text-sm sm:text-base md:text-lg text-muted-foreground">
-            Important updates and notifications
-          </p>
-        </div>
-        
-        {canPost && (
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="lg" className="text-sm sm:text-base md:text-lg w-full sm:w-auto shrink-0">
-                <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                New Announcement
-              </Button>
-            </DialogTrigger>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <div className="space-y-1.5">
+            <CardTitle className="text-3xl">Announcements</CardTitle>
+            <CardDescription className="text-lg">
+              Important updates and notifications
+            </CardDescription>
+          </div>
+          
+          {canPost && (
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="shrink-0">
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Announcement
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-xl sm:text-2xl">Create Announcement</DialogTitle>
@@ -155,9 +156,10 @@ const Announcements = () => {
                 </Button>
               </form>
             </DialogContent>
-          </Dialog>
-        )}
-      </div>
+            </Dialog>
+          )}
+        </CardHeader>
+      </Card>
 
       <div className="space-y-3 sm:space-y-4">
         {announcements.length === 0 ? (
