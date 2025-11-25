@@ -162,17 +162,13 @@ const Auth = () => {
           } : undefined}
         >
           <CardHeader>
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-center">
               <img 
                 src={authLogo} 
                 alt="Poipu Shores" 
-                className="h-24 w-auto"
+                className="h-40 w-auto"
               />
             </div>
-            <CardTitle className="text-2xl text-center">Welcome Back</CardTitle>
-            <CardDescription className="text-center">
-              {showResetPassword ? "Enter your email to reset your password" : "Sign in to your account"}
-            </CardDescription>
           </CardHeader>
         <CardContent>
           {!showResetPassword ? (
