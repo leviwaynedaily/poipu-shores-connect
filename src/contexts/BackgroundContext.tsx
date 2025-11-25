@@ -9,6 +9,8 @@ interface BackgroundSetting {
   gradientStart?: string;
   gradientEnd?: string;
   gradientDirection?: string;
+  overlayColor?: string;
+  overlayOpacity?: number;
 }
 
 interface BackgroundContextType {

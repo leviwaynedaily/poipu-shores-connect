@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBackground } from "@/contexts/BackgroundContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +21,7 @@ const loginSchema = z.object({
 const Auth = () => {
   const navigate = useNavigate();
   const { user, signIn, resetPassword } = useAuth();
+  const { homeBackground } = useBackground();
   const { toast } = useToast();
   
   const [email, setEmail] = useState("");
@@ -32,6 +34,35 @@ const Auth = () => {
       navigate("/dashboard");
     }
   }, [user, navigate]);
+
+  const getBackgroundStyle = () => {
+    switch (homeBackground.type) {
+      case "color":
+        return {
+          background: homeBackground.color || "#ffffff",
+        };
+      case "gradient":
+        return {
+          background: `linear-gradient(${homeBackground.gradientDirection || "to bottom"}, ${
+            homeBackground.gradientStart || "#ffffff"
+          }, ${homeBackground.gradientEnd || "#000000"})`,
+        };
+      case "generated":
+      case "uploaded":
+        return {
+          backgroundImage: `url(${homeBackground.url})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        };
+      default:
+        return {
+          backgroundImage: `url(${beachImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          filter: "brightness(0.7)",
+        };
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,19 +111,25 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
-      {/* Background Image */}
-      <div 
-        className="absolute inset-0 z-0"
-        style={{
-          backgroundImage: `url(${beachImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          filter: 'brightness(0.7)',
-        }}
-      />
+      {/* Background */}
+      <div className="absolute inset-0 z-0" style={getBackgroundStyle()} />
       
-      {/* Overlay */}
-      <div className="absolute inset-0 z-0 bg-gradient-to-br from-primary/20 via-background/60 to-secondary/20" />
+      {/* Color overlay for images */}
+      {(homeBackground.type === "uploaded" || homeBackground.type === "generated") && 
+       homeBackground.overlayColor && (
+        <div 
+          className="absolute inset-0 z-0" 
+          style={{
+            backgroundColor: homeBackground.overlayColor,
+            opacity: (homeBackground.overlayOpacity || 0) / 100,
+          }}
+        />
+      )}
+      
+      {/* Default gradient overlay */}
+      {homeBackground.type === "default" && (
+        <div className="absolute inset-0 z-0 bg-gradient-to-br from-primary/20 via-background/60 to-secondary/20" />
+      )}
       
       <div className="flex-1 flex items-center justify-center p-4">
         <Card className="w-full max-w-md relative z-10 bg-background/5 backdrop-blur-sm border border-border/15 shadow-xl">

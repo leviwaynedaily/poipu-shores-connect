@@ -22,6 +22,8 @@ interface BackgroundSetting {
   gradientStart?: string;
   gradientEnd?: string;
   gradientDirection?: string;
+  overlayColor?: string;
+  overlayOpacity?: number;
 }
 
 interface CommunityPhoto {
@@ -441,6 +443,76 @@ export default function Settings() {
       </TabsContent>
 
       <TabsContent value="colors" className="space-y-4">
+        {/* Image Overlay Card - shown when background is an image */}
+        {(background.type === "uploaded" || background.type === "generated") && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Image Color Overlay</CardTitle>
+              <CardDescription>Add a color tint over your background image</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Overlay Color</Label>
+                  {background.overlayColor && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setBackground((prev) => ({
+                          ...prev,
+                          overlayColor: undefined,
+                          overlayOpacity: undefined,
+                        }))
+                      }
+                    >
+                      <X className="mr-2 h-4 w-4" />
+                      Remove Overlay
+                    </Button>
+                  )}
+                </div>
+                <Input
+                  type="color"
+                  value={background.overlayColor || "#000000"}
+                  onChange={(e) =>
+                    setBackground((prev) => ({
+                      ...prev,
+                      overlayColor: e.target.value,
+                      overlayOpacity: prev.overlayOpacity || 30,
+                    }))
+                  }
+                  className="h-12 w-full cursor-pointer"
+                />
+              </div>
+              {background.overlayColor && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label>Overlay Intensity</Label>
+                    <span className="text-sm text-muted-foreground">
+                      {background.overlayOpacity || 0}%
+                    </span>
+                  </div>
+                  <Slider
+                    value={[background.overlayOpacity || 0]}
+                    onValueChange={(value) =>
+                      setBackground((prev) => ({
+                        ...prev,
+                        overlayOpacity: value[0],
+                      }))
+                    }
+                    min={0}
+                    max={100}
+                    step={1}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Higher values create a stronger color tint over your image
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle>Solid Color</CardTitle>
