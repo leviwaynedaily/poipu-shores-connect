@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Footer } from "@/components/Footer";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import beachImage from "@/assets/condo-oceanfront.jpeg";
 import logo from "@/assets/logo.png";
 
@@ -30,6 +31,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
+  const [authBackground, setAuthBackground] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -37,7 +39,33 @@ const Auth = () => {
     }
   }, [user, navigate]);
 
+  useEffect(() => {
+    const fetchAuthBackground = async () => {
+      const { data } = await supabase
+        .from('app_settings')
+        .select('setting_value')
+        .eq('setting_key', 'auth_background')
+        .maybeSingle();
+      
+      if (data?.setting_value) {
+        setAuthBackground(data.setting_value as string);
+      }
+    };
+    
+    fetchAuthBackground();
+  }, []);
+
   const getBackgroundStyle = () => {
+    // If custom auth background is set, use it
+    if (authBackground) {
+      return {
+        backgroundImage: `url(${authBackground})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      };
+    }
+
+    // Otherwise use home background settings
     switch (homeBackground.type) {
       case "color":
         return {
