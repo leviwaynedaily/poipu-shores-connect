@@ -34,6 +34,7 @@ export function UserManagement() {
   const [inviteRole, setInviteRole] = useState<"admin" | "owner">("owner");
   const [isInviting, setIsInviting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [resendingUserId, setResendingUserId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -128,6 +129,7 @@ export function UserManagement() {
   };
 
   const handleResendInvite = async (userId: string, fullName: string, unitNumber: string | null) => {
+    setResendingUserId(userId);
     try {
       const response = await fetch(`https://rvqqnfsgovlxocjjugww.supabase.co/functions/v1/resend-invite`, {
         method: "POST",
@@ -158,6 +160,8 @@ export function UserManagement() {
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setResendingUserId(null);
     }
   };
 
@@ -350,9 +354,10 @@ export function UserManagement() {
                               size="sm"
                               variant="secondary"
                               onClick={() => handleResendInvite(user.id, user.full_name, user.unit_number)}
+                              disabled={resendingUserId === user.id}
                             >
                               <Mail className="h-4 w-4 mr-1" />
-                              Resend
+                              {resendingUserId === user.id ? "Sending..." : "Resend"}
                             </Button>
                           )}
                           <Button
