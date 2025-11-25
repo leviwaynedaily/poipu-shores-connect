@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { UserPlus, Shield, Clock, Activity } from "lucide-react";
+import { UserPlus, Shield, Clock, Activity, Mail, UserCheck, UserX } from "lucide-react";
 import { Navigate } from "react-router-dom";
 
 interface Profile {
@@ -134,6 +134,40 @@ export default function Users() {
       });
     } finally {
       setIsInviting(false);
+    }
+  };
+
+  const handleResendInvite = async (userId: string, fullName: string, unitNumber: string | null) => {
+    try {
+      const response = await fetch(`https://rvqqnfsgovlxocjjugww.supabase.co/functions/v1/resend-invite`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          full_name: fullName,
+          unit_number: unitNumber,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to resend invite");
+      }
+
+      toast({
+        title: "Invite resent",
+        description: "Invitation email has been resent successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -266,6 +300,7 @@ export default function Users() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Unit</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Last Sign In</TableHead>
                   <TableHead>Roles</TableHead>
                   <TableHead>Actions</TableHead>
@@ -273,6 +308,7 @@ export default function Users() {
               </TableHeader>
               <TableBody>
                 {users.map((user) => {
+                  const hasLoggedIn = user.last_sign_in_at !== null;
                   const isActive = user.last_sign_in_at 
                     ? new Date(user.last_sign_in_at).getTime() > Date.now() - 24 * 60 * 60 * 1000
                     : false;
@@ -296,17 +332,22 @@ export default function Users() {
                   return (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          {user.full_name}
-                          {isActive && (
-                            <Badge variant="default" className="gap-1">
-                              <Activity className="h-3 w-3" />
-                              Active
-                            </Badge>
-                          )}
-                        </div>
+                        {user.full_name}
                       </TableCell>
                       <TableCell>{user.unit_number || "—"}</TableCell>
+                      <TableCell>
+                        {hasLoggedIn ? (
+                          <Badge variant={isActive ? "default" : "secondary"} className="gap-1">
+                            <UserCheck className="h-3 w-3" />
+                            {isActive ? "Active" : "Registered"}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="gap-1">
+                            <UserX className="h-3 w-3" />
+                            Pending
+                          </Badge>
+                        )}
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Clock className="h-4 w-4" />
@@ -328,6 +369,16 @@ export default function Users() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
+                          {!hasLoggedIn && (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => handleResendInvite(user.id, user.full_name, user.unit_number)}
+                            >
+                              <Mail className="h-4 w-4 mr-1" />
+                              Resend
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             variant={user.roles.includes("admin") ? "default" : "outline"}

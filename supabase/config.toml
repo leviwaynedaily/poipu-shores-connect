@@ -3,6 +3,9 @@ project_id = "rvqqnfsgovlxocjjugww"
 [functions.invite-user]
 verify_jwt = true
 
+[functions.resend-invite]
+verify_jwt = true
+
 [functions.document-chat]
 verify_jwt = false
 
