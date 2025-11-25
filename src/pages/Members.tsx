@@ -7,6 +7,7 @@ import { Search, Phone, Home } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatPhoneNumber } from "@/lib/phoneUtils";
 import { PageHeader } from "@/components/PageHeader";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface Member {
   id: string;
@@ -104,50 +105,60 @@ const Members = () => {
               </p>
             </div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filteredMembers.map((member) => (
-                <Card key={member.id} className="border-2">
-                  <CardHeader>
-                    <div className="flex items-center gap-3 mb-2">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage src={member.avatar_url || ""} />
-                        <AvatarFallback>
-                          {member.full_name.split(" ").map(n => n[0]).join("").toUpperCase() || "?"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <CardTitle className="text-xl truncate">{member.full_name}</CardTitle>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Owner</TableHead>
+                  <TableHead>Unit</TableHead>
+                  <TableHead>Contact</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredMembers.map((member) => (
+                  <TableRow key={member.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={member.avatar_url || ""} />
+                          <AvatarFallback>
+                            {member.full_name.split(" ").map(n => n[0]).join("").toUpperCase() || "?"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="font-medium">{member.full_name}</span>
                       </div>
-                    </div>
-                    {member.unit_number && (
-                      <Badge variant="secondary" className="text-base w-fit">
-                        <Home className="h-4 w-4 mr-1" />
-                        Unit {member.unit_number}
-                      </Badge>
-                    )}
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {member.show_contact_info ? (
-                      <>
-                        {member.phone && (
-                          <div className="flex items-center gap-2 text-base text-muted-foreground">
-                            <Phone className="h-4 w-4" />
-                            <a href={`tel:${member.phone}`} className="hover:text-foreground transition-colors">
-                              {formatPhoneNumber(member.phone)}
-                            </a>
-                          </div>
-                        )}
-                        {!member.phone && (
-                          <p className="text-sm text-muted-foreground">No contact info provided</p>
-                        )}
-                      </>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Contact info hidden by user</p>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </TableCell>
+                    <TableCell>
+                      {member.unit_number ? (
+                        <Badge variant="secondary" className="w-fit">
+                          <Home className="h-3 w-3 mr-1" />
+                          {member.unit_number}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {member.show_contact_info ? (
+                        <>
+                          {member.phone ? (
+                            <div className="flex items-center gap-2">
+                              <Phone className="h-4 w-4 text-muted-foreground" />
+                              <a href={`tel:${member.phone}`} className="hover:text-primary transition-colors">
+                                {formatPhoneNumber(member.phone)}
+                              </a>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">No contact info</span>
+                          )}
+                        </>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">Contact info hidden</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
 
           <div className="mt-6 pt-6 border-t">
