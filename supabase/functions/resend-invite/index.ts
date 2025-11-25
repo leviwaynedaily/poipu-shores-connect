@@ -83,22 +83,58 @@ serve(async (req) => {
     
     const { data: emailData, error: emailError } = await resend.emails.send({
       from: "Poipu Shores <noreply@poipu-shores.com>",
+      replyTo: "support@poipu-shores.com",
       to: [email],
       subject: "Poipu Shores - Complete Your Registration",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">Complete Your Poipu Shores Registration</h2>
-          <p>Hi ${full_name},</p>
-          <p>You were invited to join Poipu Shores but haven't completed your registration yet. Click the button below to set your password and access your account:</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${inviteLink}" style="background-color: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">Set Your Password</a>
-          </div>
-          <p>If the button doesn't work, copy and paste this link into your browser:</p>
-          <p style="word-break: break-all; color: #666;">${inviteLink}</p>
-          ${unit_number ? `<p style="margin-top: 20px;"><strong>Your Unit:</strong> ${unit_number}</p>` : ''}
-          <p style="color: #666; font-size: 14px; margin-top: 30px;">If you didn't expect this invitation, you can safely ignore this email.</p>
-        </div>
-      `,
+      headers: {
+        'X-Entity-Ref-ID': crypto.randomUUID(),
+      },
+      text: `Hi ${full_name},
+
+You were invited to join Poipu Shores but haven't completed your registration yet. Click the link below to set your password and access your account:
+
+${inviteLink}
+
+${unit_number ? `Your Unit: ${unit_number}\n\n` : ''}If you didn't expect this invitation, you can safely ignore this email.
+
+Best regards,
+The Poipu Shores Team`,
+      html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Complete Your Poipu Shores Registration</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f4;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f4f4;">
+    <tr>
+      <td align="center" style="padding: 20px 0;">
+        <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <tr>
+            <td style="padding: 40px 30px;">
+              <h2 style="color: #333333; font-family: Arial, sans-serif; font-size: 24px; margin: 0 0 20px 0;">Complete Your Poipu Shores Registration</h2>
+              <p style="color: #333333; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">Hi ${full_name},</p>
+              <p style="color: #333333; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">You were invited to join Poipu Shores but haven't completed your registration yet. Click the button below to set your password and access your account:</p>
+              <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td align="center" style="padding: 20px 0;">
+                    <a href="${inviteLink}" style="background-color: #0066cc; color: #ffffff; font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; text-decoration: none; padding: 14px 28px; border-radius: 4px; display: inline-block;">Set Your Password</a>
+                  </td>
+                </tr>
+              </table>
+              <p style="color: #666666; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; margin: 0 0 10px 0;">If the button doesn't work, copy and paste this link into your browser:</p>
+              <p style="color: #0066cc; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; margin: 0 0 20px 0; word-break: break-all;">${inviteLink}</p>
+              ${unit_number ? `<p style="color: #333333; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.6; margin: 20px 0;"><strong>Your Unit:</strong> ${unit_number}</p>` : ''}
+              <p style="color: #999999; font-family: Arial, sans-serif; font-size: 13px; line-height: 1.6; margin: 30px 0 0 0; padding-top: 20px; border-top: 1px solid #eeeeee;">If you didn't expect this invitation, you can safely ignore this email.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`,
     });
 
     if (emailError) {
