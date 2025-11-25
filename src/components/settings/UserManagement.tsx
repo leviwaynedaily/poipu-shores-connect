@@ -10,7 +10,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserPlus, Shield, Clock, Mail, UserCheck, UserX } from "lucide-react";
-import { PageHeader } from "@/components/PageHeader";
 
 interface Profile {
   id: string;
@@ -200,11 +199,13 @@ export function UserManagement() {
   };
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="User Management"
-        description="Invite and manage community members"
-        actions={
+    <Card>
+      <CardHeader>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <CardTitle>User Management</CardTitle>
+            <CardDescription>Invite and manage community members</CardDescription>
+          </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -212,69 +213,63 @@ export function UserManagement() {
                 Invite User
               </Button>
             </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Invite New User</DialogTitle>
-              <DialogDescription>
-                Send an invitation email to a new community member
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleInviteUser} className="space-y-4">
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="fullName">Full Name</Label>
-                <Input
-                  id="fullName"
-                  value={inviteFullName}
-                  onChange={(e) => setInviteFullName(e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="unitNumber">Unit Number</Label>
-                <Input
-                  id="unitNumber"
-                  value={inviteUnitNumber}
-                  onChange={(e) => setInviteUnitNumber(e.target.value)}
-                  placeholder="Optional"
-                />
-              </div>
-              <div>
-                <Label htmlFor="role">Initial Role</Label>
-                <Select value={inviteRole} onValueChange={(value: any) => setInviteRole(value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="owner">Owner</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button type="submit" className="w-full" disabled={isInviting}>
-                {isInviting ? "Sending..." : "Send Invitation"}
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
-        }
-      />
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Community Members</CardTitle>
-          <CardDescription>Manage roles and permissions</CardDescription>
-        </CardHeader>
-        <CardContent>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Invite New User</DialogTitle>
+                <DialogDescription>
+                  Send an invitation email to a new community member
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleInviteUser} className="space-y-4">
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="fullName">Full Name</Label>
+                  <Input
+                    id="fullName"
+                    value={inviteFullName}
+                    onChange={(e) => setInviteFullName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="unitNumber">Unit Number</Label>
+                  <Input
+                    id="unitNumber"
+                    value={inviteUnitNumber}
+                    onChange={(e) => setInviteUnitNumber(e.target.value)}
+                    placeholder="Optional"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="role">Initial Role</Label>
+                  <Select value={inviteRole} onValueChange={(value: any) => setInviteRole(value)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="owner">Owner</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button type="submit" className="w-full" disabled={isInviting}>
+                  {isInviting ? "Sending..." : "Send Invitation"}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </CardHeader>
+      <CardContent>
           {isLoading ? (
             <div className="text-center py-8">Loading users...</div>
           ) : (
@@ -384,7 +379,6 @@ export function UserManagement() {
             </Table>
           )}
         </CardContent>
-      </Card>
-    </div>
+    </Card>
   );
 }
