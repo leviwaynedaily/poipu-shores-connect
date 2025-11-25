@@ -596,7 +596,7 @@ export default function Settings() {
     <div className="container mx-auto py-8 px-4 max-w-6xl">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold mb-2">Theme Settings</h1>
+          <h1 className="text-4xl font-bold mb-2">Admin Settings</h1>
           <p className="text-muted-foreground">Customize your app's theme and backgrounds</p>
         </div>
         {hasChanges && (
