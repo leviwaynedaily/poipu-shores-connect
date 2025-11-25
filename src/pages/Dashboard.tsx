@@ -61,12 +61,17 @@ const Dashboard = () => {
   }, [user]);
 
   const fetchAnnouncements = async () => {
+    // Calculate date 90 days ago
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
     const { data } = await supabase
       .from("announcements")
       .select(`
         *,
         profiles!announcements_author_id_fkey (full_name)
       `)
+      .gte("created_at", ninetyDaysAgo.toISOString())
       .order("is_pinned", { ascending: false })
       .order("created_at", { ascending: false })
       .limit(5);
