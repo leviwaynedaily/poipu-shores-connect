@@ -79,7 +79,9 @@ serve(async (req) => {
     console.log(`Successfully generated reset link for ${email}`);
 
     // Send the email with password reset link
-    const { error: emailError } = await resend.emails.send({
+    console.log(`Attempting to send email to ${email} from noreply@poipu-shores.com`);
+    
+    const { data: emailData, error: emailError } = await resend.emails.send({
       from: "Poipu Shores <noreply@poipu-shores.com>",
       to: [email],
       subject: "Poipu Shores - Complete Your Registration",
@@ -103,6 +105,8 @@ serve(async (req) => {
       console.error("Failed to send invitation email:", emailError);
       throw new Error("Failed to send invitation email");
     }
+
+    console.log(`Email sent successfully to ${email}. Email ID:`, emailData?.id);
 
     return new Response(
       JSON.stringify({ 
