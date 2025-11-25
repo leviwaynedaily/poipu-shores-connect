@@ -74,14 +74,6 @@ export function AppSidebar() {
   const opacity = isGlassTheme ? 5 + (sidebarOpacity * 0.95) : 100;
   const borderOpacity = isGlassTheme ? 15 + (sidebarOpacity * 0.85) : 100;
 
-  // Debug logging
-  console.log('Sidebar opacity settings:', { 
-    sidebarOpacity, 
-    calculatedOpacity: opacity, 
-    isGlassTheme,
-    backgroundColor: isGlassTheme ? `hsl(var(--card) / ${opacity}%)` : `hsl(var(--card))`
-  });
-
   return (
     <Sidebar
       className={`${!open ? "w-20" : "w-64"} ${
