@@ -22,6 +22,7 @@ import Profile from "./pages/Profile";
 import Users from "./pages/Users";
 import AdminSettings from "./pages/AdminSettings";
 import Assistant from "./pages/Assistant";
+import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -41,6 +42,7 @@ const AppContent = () => {
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/accept-invite" element={<AcceptInvite />} />
+            <Route path="/install" element={<Install />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route
