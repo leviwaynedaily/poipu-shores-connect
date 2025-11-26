@@ -54,11 +54,11 @@ serve(async (req) => {
     // Generate a temporary password
     const tempPassword = crypto.randomUUID();
 
-    // Create the user without email confirmation
+    // Create the user with email confirmed (they'll set password via invite link)
     const { data: newUser, error: createError } = await supabaseClient.auth.admin.createUser({
       email,
       password: tempPassword,
-      email_confirm: false, // Don't confirm yet - they'll confirm via the invite link
+      email_confirm: true, // Email is confirmed - they just need to set a password
       user_metadata: {
         full_name,
         unit_number: unit_number || null,
@@ -120,14 +120,26 @@ serve(async (req) => {
       }
     }
 
-    // Generate an invite link (for signup with password)
-    const { data: inviteData, error: inviteError } = await supabaseClient.auth.admin.generateLink({
-      type: 'invite',
-      email: email,
-    });
+    // Generate a secure random token for custom invitation flow
+    const tokenBytes = new Uint8Array(32);
+    crypto.getRandomValues(tokenBytes);
+    const inviteToken = Array.from(tokenBytes)
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
 
-    if (inviteError || !inviteData.properties?.action_link) {
-      console.error("Failed to generate invite link:", inviteError);
+    // Store the token in pending_invites
+    const { error: tokenError } = await supabaseClient
+      .from("pending_invites")
+      .insert({
+        user_id: newUser.user.id,
+        token: inviteToken,
+        email,
+        full_name,
+        unit_number: unit_number || null,
+      });
+
+    if (tokenError) {
+      console.error("Failed to create invite token:", tokenError);
       // User was created, but we can't send email - return partial success
       return new Response(JSON.stringify({ 
         error: "User created but failed to generate invite link",
@@ -138,7 +150,7 @@ serve(async (req) => {
       });
     }
 
-    const inviteLink = inviteData.properties.action_link;
+    const inviteLink = `https://poipu-shores.com/accept-invite?token=${inviteToken}`;
     console.log(`Generated invite link for ${email}`);
 
     // Send invitation email

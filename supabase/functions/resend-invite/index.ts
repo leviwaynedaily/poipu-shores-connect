@@ -63,20 +63,40 @@ serve(async (req) => {
 
     const email = targetUser.user.email;
 
-    // Generate a password reset link (works for existing users who haven't logged in)
-    const { data: resetData, error: resetError } = await supabaseClient.auth.admin.generateLink({
-      type: 'recovery',
-      email: email,
-    });
+    // Generate a secure random token for custom invitation flow
+    const tokenBytes = new Uint8Array(32);
+    crypto.getRandomValues(tokenBytes);
+    const inviteToken = Array.from(tokenBytes)
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
 
-    if (resetError || !resetData.properties?.action_link) {
-      console.error("Failed to generate reset link:", resetError);
-      throw new Error("Failed to generate reset link");
+    // Store the token in pending_invites (or update existing)
+    // First, delete any existing unused tokens for this user
+    await supabaseClient
+      .from("pending_invites")
+      .delete()
+      .eq("user_id", user_id)
+      .is("used_at", null);
+
+    // Create new token
+    const { error: tokenError } = await supabaseClient
+      .from("pending_invites")
+      .insert({
+        user_id,
+        token: inviteToken,
+        email,
+        full_name,
+        unit_number: unit_number || null,
+      });
+
+    if (tokenError) {
+      console.error("Failed to create invite token:", tokenError);
+      throw new Error("Failed to generate invite link");
     }
 
-    const inviteLink = resetData.properties.action_link;
+    const inviteLink = `https://poipu-shores.com/accept-invite?token=${inviteToken}`;
     
-    console.log(`Successfully generated reset link for ${email}`);
+    console.log(`Successfully generated invite link for ${email}`);
 
     // Send the email with password reset link
     console.log(`Attempting to send email to ${email} from noreply@poipu-shores.com`);

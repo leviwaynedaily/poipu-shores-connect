@@ -11,6 +11,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import AcceptInvite from "./pages/AcceptInvite";
 import Dashboard from "./pages/Dashboard";
 import Announcements from "./pages/Announcements";
 import Chat from "./pages/Chat";
@@ -36,9 +37,10 @@ const AppContent = () => {
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
+          <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/accept-invite" element={<AcceptInvite />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route

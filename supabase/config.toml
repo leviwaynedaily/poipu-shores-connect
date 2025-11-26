@@ -44,3 +44,9 @@ verify_jwt = true
 
 [functions.batch-extract-documents]
 verify_jwt = true
+
+[functions.verify-invite]
+verify_jwt = false
+
+[functions.complete-invite]
+verify_jwt = false

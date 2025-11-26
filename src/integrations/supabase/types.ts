@@ -489,6 +489,42 @@ export type Database = {
         }
         Relationships: []
       }
+      pending_invites: {
+        Row: {
+          created_at: string | null
+          email: string
+          expires_at: string
+          full_name: string
+          id: string
+          token: string
+          unit_number: string | null
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          expires_at?: string
+          full_name: string
+          id?: string
+          token: string
+          unit_number?: string | null
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          expires_at?: string
+          full_name?: string
+          id?: string
+          token?: string
+          unit_number?: string | null
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           auth_page_opacity: number | null
