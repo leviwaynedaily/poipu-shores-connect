@@ -85,75 +85,105 @@ serve(async (req) => {
       from: "Poipu Shores <noreply@poipu-shores.com>",
       replyTo: "support@poipu-shores.com",
       to: [email],
-      subject: "Poipu Shores - Complete Your Registration",
+      subject: "Complete Your Poipu Shores Registration - Reminder",
       headers: {
         'X-Entity-Ref-ID': crypto.randomUUID(),
+        'List-Unsubscribe': '<mailto:unsubscribe@poipu-shores.com>',
+        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
       },
-      text: `Hi ${full_name},
+      text: `Complete Your Poipu Shores Registration - Reminder
 
-You were invited to join Poipu Shores but haven't completed your registration yet. Click the link below to set your password and access your account:
+Hi ${full_name},
 
-${inviteLink}
+You were invited to join Poipu Shores but haven't completed your registration yet. This is an account notification reminder to set your password and access your account.
 
-${unit_number ? `Your Unit: ${unit_number}\n\n` : ''}If you didn't expect this invitation, you can safely ignore this email.
+Complete your registration: ${inviteLink}
 
-Best regards,
-The Poipu Shores Team`,
-      html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+${unit_number ? `Your Unit: ${unit_number}\n\n` : ''}This is an automated account notification. If you didn't request this, please disregard this message.
+
+---
+Poipu Shores Community
+Koloa, Kauai, HI 96756
+
+Questions? Reply to this email or contact support@poipu-shores.com`,
+      html: `<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Complete Your Poipu Shores Registration</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="supported-color-schemes" content="light">
+  <!--[if mso]>
+  <style type="text/css">
+    table {border-collapse: collapse;}
+  </style>
+  <![endif]-->
 </head>
-<body style="margin: 0; padding: 0; background-color: #f4f4f4;">
-  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f4f4;">
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #ffffff;">
+  <!-- Preheader text (hidden) -->
+  <div style="display: none; max-height: 0px; overflow: hidden;">
+    Registration reminder ${unit_number ? `for Unit ${unit_number}` : ''} - Complete your Poipu Shores account setup
+  </div>
+  
+  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff;">
     <tr>
-      <td align="center" style="padding: 40px 0;">
-        <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden;">
+      <td style="padding: 40px 20px;">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin: 0 auto;">
+          
           <!-- Header -->
           <tr>
-            <td align="center" style="background-color: #1e40af; padding: 40px 30px;">
-              <h1 style="color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 32px; font-weight: 700; margin: 0; letter-spacing: -0.5px;">Poipu Shores</h1>
+            <td style="padding: 0 0 24px 0;">
+              <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #111827; line-height: 1.25;">Poipu Shores</h1>
             </td>
           </tr>
-          <!-- Content -->
+          
+          <!-- Main Content -->
           <tr>
-            <td style="padding: 40px 30px;">
-              <h2 style="color: #1e293b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 28px; font-weight: 600; margin: 0 0 20px 0;">Complete Your Registration</h2>
-              <p style="color: #334155; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">Hi ${full_name},</p>
-              <p style="color: #475569; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">You were invited to join Poipu Shores but haven't completed your registration yet. Click the button below to set your password and access your account:</p>
-              ${unit_number ? `<div style="background-color: #f1f5f9; border-left: 4px solid #3b82f6; padding: 16px 20px; margin: 0 0 30px 0; border-radius: 4px;">
-                <p style="color: #1e293b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 16px; font-weight: 600; margin: 0;"><strong>Your Unit:</strong> ${unit_number}</p>
-              </div>` : ''}
-              <!-- Button -->
-              <table border="0" cellpadding="0" cellspacing="0" width="100%">
+            <td style="padding: 0 0 24px 0;">
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.5; color: #111827;">Hi ${full_name},</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.5; color: #374151;">You were invited to join Poipu Shores but haven't completed your registration yet. This is an account notification reminder to set your password and access your account.</p>
+              ${unit_number ? `<p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.5; color: #374151;"><strong>Your Unit:</strong> ${unit_number}</p>` : ''}
+            </td>
+          </tr>
+          
+          <!-- CTA Button -->
+          <tr>
+            <td style="padding: 0 0 24px 0;">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td align="center" style="padding: 10px 0 30px 0;">
-                    <table border="0" cellpadding="0" cellspacing="0">
-                      <tr>
-                        <td align="center" style="background-color: #3b82f6; border-radius: 8px;">
-                          <a href="${inviteLink}" target="_blank" style="background-color: #3b82f6; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 16px; font-weight: 600; text-decoration: none; padding: 16px 36px; border-radius: 8px; display: inline-block; border: none;">Set Your Password</a>
-                        </td>
-                      </tr>
-                    </table>
+                  <td style="background-color: #2563eb; border-radius: 6px;">
+                    <a href="${inviteLink}" target="_blank" style="display: inline-block; padding: 14px 28px; font-size: 16px; font-weight: 500; color: #ffffff; text-decoration: none; border-radius: 6px;">Set Your Password</a>
                   </td>
                 </tr>
               </table>
-              <p style="color: #64748b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 14px; line-height: 1.6; margin: 0 0 10px 0;">If the button doesn't work, copy and paste this link into your browser:</p>
-              <p style="color: #3b82f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 13px; line-height: 1.6; margin: 0 0 20px 0; word-break: break-all; background-color: #f8fafc; padding: 12px; border-radius: 6px;">${inviteLink}</p>
-              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-                <p style="color: #94a3b8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 13px; line-height: 1.6; margin: 0;">If you didn't expect this invitation, you can safely ignore this email.</p>
-              </div>
             </td>
           </tr>
+          
+          <!-- Link Fallback -->
+          <tr>
+            <td style="padding: 0 0 32px 0; border-bottom: 1px solid #e5e7eb;">
+              <p style="margin: 0 0 8px 0; font-size: 14px; line-height: 1.5; color: #6b7280;">Or copy this link:</p>
+              <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #2563eb; word-break: break-all;">${inviteLink}</p>
+            </td>
+          </tr>
+          
+          <!-- Security Notice -->
+          <tr>
+            <td style="padding: 24px 0 32px 0; border-bottom: 1px solid #e5e7eb;">
+              <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #6b7280;">This is an automated account notification. If you didn't request this, please disregard this message.</p>
+            </td>
+          </tr>
+          
           <!-- Footer -->
           <tr>
-            <td align="center" style="background-color: #f8fafc; padding: 30px; border-top: 1px solid #e2e8f0;">
-              <p style="color: #64748b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 14px; line-height: 1.6; margin: 0 0 10px 0;">Poipu Shores Community</p>
-              <p style="color: #94a3b8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 12px; line-height: 1.6; margin: 0;">© ${new Date().getFullYear()} Poipu Shores. All rights reserved.</p>
+            <td style="padding: 24px 0 0 0;">
+              <p style="margin: 0 0 8px 0; font-size: 14px; line-height: 1.5; color: #111827; font-weight: 500;">Poipu Shores Community</p>
+              <p style="margin: 0 0 4px 0; font-size: 13px; line-height: 1.5; color: #6b7280;">Koloa, Kauai, HI 96756</p>
+              <p style="margin: 0 0 16px 0; font-size: 13px; line-height: 1.5; color: #6b7280;">Questions? Reply to this email or contact support@poipu-shores.com</p>
+              <p style="margin: 0; font-size: 12px; line-height: 1.5; color: #9ca3af;">© ${new Date().getFullYear()} Poipu Shores. All rights reserved.</p>
             </td>
           </tr>
+          
         </table>
       </td>
     </tr>
