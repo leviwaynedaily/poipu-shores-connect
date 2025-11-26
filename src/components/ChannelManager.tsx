@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Plus, X } from "lucide-react";
+import { Trash2, Plus, X, Pencil } from "lucide-react";
 
 interface Channel {
   id: string;
@@ -31,6 +31,7 @@ export const ChannelManager = ({ onClose }: ChannelManagerProps) => {
     is_private: false,
   });
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
 
   useEffect(() => {
     fetchChannels();
@@ -76,6 +77,38 @@ export const ChannelManager = ({ onClose }: ChannelManagerProps) => {
     }
   };
 
+  const handleUpdateChannel = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!editingChannel || !newChannel.name.trim()) return;
+
+    const { error } = await supabase
+      .from("chat_channels")
+      .update({
+        name: newChannel.name.trim(),
+        description: newChannel.description.trim() || null,
+        is_private: newChannel.is_private,
+      })
+      .eq("id", editingChannel.id);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: "Channel updated successfully",
+      });
+      setNewChannel({ name: "", description: "", is_private: false });
+      setEditingChannel(null);
+      setShowCreateForm(false);
+      fetchChannels();
+    }
+  };
+
   const handleDeleteChannel = async (channelId: string) => {
     const { error } = await supabase
       .from("chat_channels")
@@ -97,6 +130,16 @@ export const ChannelManager = ({ onClose }: ChannelManagerProps) => {
     }
   };
 
+  const handleEditChannel = (channel: Channel) => {
+    setEditingChannel(channel);
+    setNewChannel({
+      name: channel.name,
+      description: channel.description || "",
+      is_private: channel.is_private || false,
+    });
+    setShowCreateForm(true);
+  };
+
   return (
     <Card className="border-2">
       <CardHeader>
@@ -114,7 +157,7 @@ export const ChannelManager = ({ onClose }: ChannelManagerProps) => {
             Create New Channel
           </Button>
         ) : (
-          <form onSubmit={handleCreateChannel} className="space-y-4 p-4 border rounded-lg">
+          <form onSubmit={editingChannel ? handleUpdateChannel : handleCreateChannel} className="space-y-4 p-4 border rounded-lg">
             <div className="space-y-2">
               <Label htmlFor="channel-name">Channel Name</Label>
               <Input
@@ -147,8 +190,18 @@ export const ChannelManager = ({ onClose }: ChannelManagerProps) => {
             </div>
             
             <div className="flex gap-2">
-              <Button type="submit" className="flex-1">Create Channel</Button>
-              <Button type="button" variant="outline" onClick={() => setShowCreateForm(false)}>
+              <Button type="submit" className="flex-1">
+                {editingChannel ? "Update Channel" : "Create Channel"}
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => {
+                  setShowCreateForm(false);
+                  setEditingChannel(null);
+                  setNewChannel({ name: "", description: "", is_private: false });
+                }}
+              >
                 Cancel
               </Button>
             </div>
@@ -168,13 +221,22 @@ export const ChannelManager = ({ onClose }: ChannelManagerProps) => {
                   <p className="text-sm text-muted-foreground">{channel.description}</p>
                 )}
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleDeleteChannel(channel.id)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleEditChannel(channel)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDeleteChannel(channel.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           ))}
         </div>
