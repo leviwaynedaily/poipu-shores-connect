@@ -95,7 +95,17 @@ export default function Users() {
     setIsInviting(true);
 
     try {
+      // Get the current session token
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error("Not authenticated");
+      }
+
       const { data, error } = await supabase.functions.invoke('invite-user', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
         body: {
           email: inviteEmail,
           full_name: inviteFullName,
