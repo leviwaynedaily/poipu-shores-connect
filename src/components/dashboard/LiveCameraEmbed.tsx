@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { ExternalLink, Video } from "lucide-react";
 import { toast } from "sonner";
@@ -16,39 +17,34 @@ interface Webcam {
 }
 
 export const LiveCameraEmbed = () => {
-  const [webcam, setWebcam] = useState<Webcam | null>(null);
+  const [webcams, setWebcams] = useState<Webcam[]>([]);
+  const [selectedWebcam, setSelectedWebcam] = useState<Webcam | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchWebcam = async () => {
+    const fetchWebcams = async () => {
       try {
         const { data, error } = await supabase
           .from('webcams')
           .select('*')
           .eq('is_active', true)
-          .order('display_order', { ascending: true })
-          .limit(1)
-          .single();
+          .order('display_order', { ascending: true });
 
-        if (error) {
-          if (error.code === 'PGRST116') {
-            // No webcams found
-            setWebcam(null);
-          } else {
-            throw error;
-          }
-        } else {
-          setWebcam(data as Webcam);
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          setWebcams(data as Webcam[]);
+          setSelectedWebcam(data[0] as Webcam);
         }
       } catch (error) {
-        console.error('Error fetching webcam:', error);
-        toast.error('Failed to load webcam');
+        console.error('Error fetching webcams:', error);
+        toast.error('Failed to load webcams');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchWebcam();
+    fetchWebcams();
   }, []);
 
   if (loading) {
@@ -64,7 +60,7 @@ export const LiveCameraEmbed = () => {
     );
   }
 
-  if (!webcam) {
+  if (!selectedWebcam || webcams.length === 0) {
     return (
       <Card>
         <CardHeader>
@@ -85,18 +81,53 @@ export const LiveCameraEmbed = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Live Beach Cam</CardTitle>
-        <p className="text-xs text-muted-foreground">{webcam.location}</p>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg">Live Beach Cam</CardTitle>
+        </div>
+        <div className="mt-2">
+          <Select
+            value={selectedWebcam.id}
+            onValueChange={(value) => {
+              const webcam = webcams.find(w => w.id === value);
+              if (webcam) setSelectedWebcam(webcam);
+            }}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{selectedWebcam.name}</span>
+                  <span className="text-xs text-muted-foreground">• {selectedWebcam.location}</span>
+                  {selectedWebcam.webcam_type === 'external' && (
+                    <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                  )}
+                </div>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {webcams.map((webcam) => (
+                <SelectItem key={webcam.id} value={webcam.id}>
+                  <div className="flex items-center gap-2">
+                    <span>{webcam.name}</span>
+                    <span className="text-xs text-muted-foreground">• {webcam.location}</span>
+                    {webcam.webcam_type === 'external' && (
+                      <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                    )}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </CardHeader>
       <CardContent>
-        {webcam.webcam_type === 'youtube' ? (
+        {selectedWebcam.webcam_type === 'youtube' ? (
           <div className="relative w-full aspect-video bg-muted rounded-lg overflow-hidden">
             <iframe
-              src={webcam.url}
+              src={selectedWebcam.url}
               className="absolute inset-0 w-full h-full"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
-              title={webcam.name}
+              title={selectedWebcam.name}
             />
           </div>
         ) : (
@@ -107,7 +138,7 @@ export const LiveCameraEmbed = () => {
                 This camera cannot be embedded
               </p>
               <Button
-                onClick={() => window.open(webcam.url, '_blank')}
+                onClick={() => window.open(selectedWebcam.url, '_blank')}
                 variant="default"
               >
                 <ExternalLink className="mr-2 h-4 w-4" />
