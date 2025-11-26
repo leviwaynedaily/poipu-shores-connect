@@ -41,7 +41,12 @@ const AcceptInvite = () => {
         .maybeSingle();
       
       if (data?.setting_value) {
-        setAuthLogo(data.setting_value as string);
+        let logoUrl = data.setting_value as string;
+        // Handle double-encoded JSON strings
+        if (logoUrl.startsWith('"') && logoUrl.endsWith('"')) {
+          logoUrl = logoUrl.slice(1, -1);
+        }
+        setAuthLogo(logoUrl);
       }
     };
     

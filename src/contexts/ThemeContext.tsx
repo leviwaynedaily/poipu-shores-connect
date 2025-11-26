@@ -170,7 +170,11 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
           .maybeSingle();
 
         if (!error && data?.setting_value) {
-          const faviconUrl = data.setting_value as string;
+          let faviconUrl = data.setting_value as string;
+          // Handle double-encoded JSON strings
+          if (faviconUrl.startsWith('"') && faviconUrl.endsWith('"')) {
+            faviconUrl = faviconUrl.slice(1, -1);
+          }
           const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement || document.createElement('link');
           link.type = 'image/x-icon';
           link.rel = 'icon';
