@@ -123,13 +123,8 @@ export function UserManagement() {
     setIsInviting(true);
 
     try {
-      const response = await fetch(`https://rvqqnfsgovlxocjjugww.supabase.co/functions/v1/invite-user`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke('invite-user', {
+        body: {
           email: inviteEmail,
           full_name: inviteFullName,
           unit_number: inviteUnitNumber,
@@ -137,13 +132,11 @@ export function UserManagement() {
           role: inviteRole,
           relationship_type: inviteRelationshipType,
           is_primary_contact: inviteIsPrimaryContact,
-        }),
+        },
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to invite user");
+      if (error) {
+        throw new Error(error.message || "Failed to invite user");
       }
 
       toast({
@@ -388,13 +381,8 @@ export function UserManagement() {
         }
         
         try {
-          const response = await fetch(`https://rvqqnfsgovlxocjjugww.supabase.co/functions/v1/invite-user`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-            },
-            body: JSON.stringify({
+          const { data, error } = await supabase.functions.invoke('invite-user', {
+            body: {
               email: entry.email,
               full_name: entry.full_name || entry.email.split('@')[0],
               unit_number: entry.unit_number || null,
@@ -402,15 +390,13 @@ export function UserManagement() {
               role: entry.role,
               relationship_type: 'primary',
               is_primary_contact: false,
-            }),
+            },
           });
 
-          const data = await response.json();
-
-          if (response.ok) {
-            results.push({ email: entry.email, success: true });
+          if (error) {
+            results.push({ email: entry.email, success: false, error: error.message || 'Failed to invite' });
           } else {
-            results.push({ email: entry.email, success: false, error: data.error || 'Failed to invite' });
+            results.push({ email: entry.email, success: true });
           }
         } catch (error: any) {
           results.push({ email: entry.email, success: false, error: error.message });
