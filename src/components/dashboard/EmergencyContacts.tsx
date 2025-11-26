@@ -59,10 +59,14 @@ export const EmergencyContacts = ({ compact = false }: EmergencyContactsProps) =
 
   if (loading) {
     return compact ? (
-      <div className="space-y-2">
-        <h3 className="text-base font-semibold px-1">Emergency Contacts</h3>
-        <Skeleton className="h-32 w-full" />
-      </div>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Emergency Contacts</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-32 w-full" />
+        </CardContent>
+      </Card>
     ) : (
       <Card>
         <CardHeader>

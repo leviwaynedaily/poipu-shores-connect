@@ -67,12 +67,16 @@ export const LiveCameraEmbed = ({ compact = false }: LiveCameraEmbedProps) => {
   if (!selectedWebcam || webcams.length === 0) {
     if (compact) {
       return (
-        <div className="space-y-2">
-          <h3 className="text-base font-semibold px-1">Live Beach Cam</h3>
-          <div className="flex items-center justify-center h-24 bg-card border rounded-lg text-center">
-            <p className="text-sm text-muted-foreground">No webcam configured</p>
-          </div>
-        </div>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Live Beach Cam</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center h-24 text-center">
+              <p className="text-sm text-muted-foreground">No webcam configured</p>
+            </div>
+          </CardContent>
+        </Card>
       );
     }
     
@@ -96,20 +100,24 @@ export const LiveCameraEmbed = ({ compact = false }: LiveCameraEmbedProps) => {
   // Compact mobile view - thumbnail with button
   if (compact) {
     return (
-      <div className="space-y-2">
-        <h3 className="text-base font-semibold px-1">Live Beach Cam</h3>
-        <div className="relative h-24 bg-muted border rounded-lg overflow-hidden">
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-            <Video className="h-8 w-8 text-muted-foreground" />
-            <Button
-              size="sm"
-              onClick={() => window.open(selectedWebcam.url, '_blank')}
-            >
-              Watch Live
-            </Button>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Live Beach Cam</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="relative h-24 rounded-lg overflow-hidden">
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-muted">
+              <Video className="h-8 w-8 text-muted-foreground" />
+              <Button
+                size="sm"
+                onClick={() => window.open(selectedWebcam.url, '_blank')}
+              >
+                Watch Live
+              </Button>
+            </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     );
   }
 
