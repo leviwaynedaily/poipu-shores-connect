@@ -38,7 +38,7 @@ interface OnboardingWizardProps {
   source?: 'onboarding' | 'profile';
 }
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
 
 export const OnboardingWizard = ({ open, onComplete, source = 'onboarding' }: OnboardingWizardProps) => {
   const { user } = useAuth();
@@ -51,26 +51,32 @@ export const OnboardingWizard = ({ open, onComplete, source = 'onboarding' }: On
   const [phone, setPhone] = useState("");
   const [showContactInfo, setShowContactInfo] = useState(true);
   const [tourSlide, setTourSlide] = useState(0);
+  const [fullName, setFullName] = useState("");
+  const [hasPhone, setHasPhone] = useState(false);
 
-  // Pre-populate data when launched from profile
+  // Pre-populate data and check for existing phone
   useEffect(() => {
-    if (source === 'profile' && user && open) {
+    if (user && open) {
       const fetchProfileData = async () => {
         const { data } = await supabase
           .from('profiles')
-          .select('phone, show_contact_info, avatar_url')
+          .select('phone, show_contact_info, avatar_url, full_name')
           .eq('id', user.id)
           .single();
         
         if (data) {
-          if (data.phone) setPhone(data.phone);
+          if (data.full_name) setFullName(data.full_name);
+          if (data.phone) {
+            setPhone(data.phone);
+            setHasPhone(true);
+          }
           setShowContactInfo(data.show_contact_info);
           if (data.avatar_url) setAvatarPreview(data.avatar_url);
         }
       };
       fetchProfileData();
     }
-  }, [source, user, open]);
+  }, [user, open]);
 
   const tourSlides = [
     {
@@ -179,8 +185,8 @@ export const OnboardingWizard = ({ open, onComplete, source = 'onboarding' }: On
       }
     }
 
-    if (currentStep === 3) {
-      // Save contact info
+    if (currentStep === 3 && !hasPhone) {
+      // Save contact info only if we asked for it
       setLoading(true);
       try {
         await supabase
@@ -206,15 +212,23 @@ export const OnboardingWizard = ({ open, onComplete, source = 'onboarding' }: On
       }
     }
 
-    if (currentStep < TOTAL_STEPS) {
+    // Skip step 3 if user already has phone
+    if (currentStep === 2 && hasPhone) {
+      setCurrentStep(4);
+    } else if (currentStep < TOTAL_STEPS) {
       setCurrentStep(currentStep + 1);
     }
   };
 
   const handleBack = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-      if (currentStep === 4) {
+      // Skip step 3 when going back if user has phone
+      if (currentStep === 4 && hasPhone) {
+        setCurrentStep(2);
+      } else {
+        setCurrentStep(currentStep - 1);
+      }
+      if (currentStep === 4 || currentStep === 5) {
         setTourSlide(0);
       }
     }
@@ -256,8 +270,13 @@ export const OnboardingWizard = ({ open, onComplete, source = 'onboarding' }: On
     if (currentStep === TOTAL_STEPS) {
       await handleComplete();
     } else {
-      setCurrentStep(currentStep + 1);
-      if (currentStep === 4) {
+      // Skip step 3 if user already has phone
+      if (currentStep === 2 && hasPhone) {
+        setCurrentStep(4);
+      } else {
+        setCurrentStep(currentStep + 1);
+      }
+      if (currentStep === 4 || currentStep === 5) {
         setTourSlide(0);
       }
     }
@@ -286,6 +305,9 @@ export const OnboardingWizard = ({ open, onComplete, source = 'onboarding' }: On
                 <Users className="w-12 h-12 text-primary" />
               </div>
               <div className="space-y-3">
+                <DialogTitle className="text-2xl">
+                  {fullName ? `Welcome ${fullName}!` : 'Welcome to Poipu Shores!'}
+                </DialogTitle>
                 <DialogDescription className="text-lg">
                   Let's get you set up! We'll guide you through customizing your profile and exploring the features of your community portal.
                 </DialogDescription>
@@ -331,8 +353,8 @@ export const OnboardingWizard = ({ open, onComplete, source = 'onboarding' }: On
             </div>
           )}
 
-          {/* Step 3: Contact Information */}
-          {currentStep === 3 && (
+          {/* Step 3: Contact Information - Only show if no phone */}
+          {currentStep === 3 && !hasPhone && (
             <div className="space-y-6 py-4">
               <DialogDescription>
                 Add your contact information to help neighbors reach you when needed.
@@ -423,8 +445,33 @@ export const OnboardingWizard = ({ open, onComplete, source = 'onboarding' }: On
             </div>
           )}
 
-          {/* Step 5: Completion */}
+          {/* Step 5: Ask the Chicken */}
           {currentStep === 5 && (
+            <div className="space-y-6 py-8 text-center">
+              <div className="mx-auto w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center text-5xl">
+                🐔
+              </div>
+              <div className="space-y-3">
+                <DialogTitle className="text-2xl">Need Help?</DialogTitle>
+                <DialogDescription className="text-lg">
+                  Meet your friendly community assistant - the Poipu Shores Chicken! 
+                </DialogDescription>
+                <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                  Have questions about the community, need to find a document, or want recommendations? 
+                  The Chicken is here to help! You can find it in the Assistant section anytime.
+                </p>
+                <div className="pt-4">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary">
+                    <MessageSquare className="w-4 h-4" />
+                    <span className="text-sm font-medium">Try saying "Hello Chicken!"</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 6: Completion */}
+          {currentStep === 6 && (
             <div className="space-y-6 py-8 text-center">
               <div className="mx-auto w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
                 <CheckCircle2 className="w-12 h-12 text-primary" />
@@ -454,6 +501,10 @@ export const OnboardingWizard = ({ open, onComplete, source = 'onboarding' }: On
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                     <span>Share photos from community events</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                    <span>Ask the Chicken assistant for help anytime</span>
                   </li>
                 </ul>
               </div>
