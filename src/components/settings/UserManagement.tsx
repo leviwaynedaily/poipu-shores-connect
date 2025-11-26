@@ -123,7 +123,17 @@ export function UserManagement() {
     setIsInviting(true);
 
     try {
+      // Get the current session token
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error("Not authenticated");
+      }
+
       const { data, error } = await supabase.functions.invoke('invite-user', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
         body: {
           email: inviteEmail,
           full_name: inviteFullName,
@@ -381,7 +391,18 @@ export function UserManagement() {
         }
         
         try {
+          // Get the current session token
+          const { data: { session } } = await supabase.auth.getSession();
+          
+          if (!session) {
+            results.push({ email: entry.email, success: false, error: 'Not authenticated' });
+            continue;
+          }
+
           const { data, error } = await supabase.functions.invoke('invite-user', {
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
             body: {
               email: entry.email,
               full_name: entry.full_name || entry.email.split('@')[0],
