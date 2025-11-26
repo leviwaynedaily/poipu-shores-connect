@@ -265,22 +265,23 @@ const Profile = () => {
   return (
     <div className="space-y-6 max-w-4xl">
       <Card>
-        <CardHeader>
+        <CardHeader className="p-4 sm:p-6">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-3xl">My Profile</CardTitle>
-              <CardDescription className="text-lg">
+              <CardTitle className="text-xl sm:text-2xl md:text-3xl">My Profile</CardTitle>
+              <CardDescription className="text-sm sm:text-base">
                 Manage your personal information and security
               </CardDescription>
             </div>
             {hasChanges && (
-              <Button onClick={() => handleSubmit()} disabled={loading} size="lg">
+              <Button onClick={() => handleSubmit()} disabled={loading} size="sm" className="sm:size-default">
                 {loading ? (
                   "Saving..."
                 ) : (
                   <>
                     <Save className="mr-2 h-4 w-4" />
-                    Save Changes
+                    <span className="hidden sm:inline">Save Changes</span>
+                    <span className="sm:hidden">Save</span>
                   </>
                 )}
               </Button>
