@@ -94,7 +94,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             </div>
           </header>
 
-          <div className="p-4 md:p-6 flex-1">
+          <div className="p-3 sm:p-4 md:p-6 flex-1">
             {children}
           </div>
           <Footer />

@@ -78,6 +78,7 @@ export function AppSidebar() {
     <Sidebar
       className={`${!open ? "w-20" : "w-64"}`}
       collapsible="icon"
+      variant="sidebar"
     >
       <SidebarContent>
         <SidebarGroup>
@@ -103,14 +104,14 @@ export function AppSidebar() {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <SidebarMenuButton asChild>
-                          <NavLink
-                            to={item.url}
-                            end
-                            className="flex items-center gap-3 py-4 text-base"
-                            activeClassName="bg-accent text-accent-foreground font-semibold"
-                          >
-                            <item.icon className="h-5 w-5" />
-                          </NavLink>
+                        <NavLink
+                          to={item.url}
+                          end
+                          className="flex items-center justify-center gap-3 py-4 text-base min-h-[44px]"
+                          activeClassName="bg-accent text-accent-foreground font-semibold"
+                        >
+                          <item.icon className="h-5 w-5" />
+                        </NavLink>
                         </SidebarMenuButton>
                       </TooltipTrigger>
                       <TooltipContent side="right" className="font-medium">
@@ -122,7 +123,7 @@ export function AppSidebar() {
                       <NavLink
                         to={item.url}
                         end
-                        className="flex items-center gap-3 py-4 text-base"
+                        className="flex items-center gap-3 py-4 text-base min-h-[44px]"
                         activeClassName="bg-accent text-accent-foreground font-semibold"
                       >
                         <item.icon className="h-5 w-5" />
