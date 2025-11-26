@@ -53,9 +53,11 @@ const Members = () => {
           full_name,
           phone,
           show_contact_info,
-          avatar_url
+          avatar_url,
+          is_active
         )
       `)
+      .eq('profiles.is_active', true)
       .order("unit_number", { ascending: true })
       .order("is_primary_contact", { ascending: false });
 
