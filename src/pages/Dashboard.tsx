@@ -96,32 +96,8 @@ const Dashboard = () => {
     <div className="space-y-6">
       <AnnouncementDialog />
 
-      {/* Quick Stats - Mobile Compact / Desktop Cards */}
-      {isMobile ? (
-        <Card>
-          <CardContent className="flex items-center justify-around py-3 px-2">
-            <Link to="/announcements" className="flex items-center gap-1.5 hover:text-primary transition-colors">
-              <Pin className="h-4 w-4" />
-              <span className="font-semibold">{announcements.length}</span>
-            </Link>
-            <span className="text-muted-foreground">|</span>
-            <Link to="/chat" className="flex items-center gap-1.5 hover:text-primary transition-colors">
-              <MessageSquare className="h-4 w-4" />
-              <span className="font-semibold">{stats.totalMessages}</span>
-            </Link>
-            <span className="text-muted-foreground">|</span>
-            <Link to="/documents" className="flex items-center gap-1.5 hover:text-primary transition-colors">
-              <FileText className="h-4 w-4" />
-              <span className="font-semibold">{stats.totalDocuments}</span>
-            </Link>
-            <span className="text-muted-foreground">|</span>
-            <Link to="/members" className="flex items-center gap-1.5 hover:text-primary transition-colors">
-              <Users className="h-4 w-4" />
-              <span className="font-semibold">{stats.totalUsers}</span>
-            </Link>
-          </CardContent>
-        </Card>
-      ) : (
+      {/* Quick Stats - Desktop Only */}
+      {!isMobile && (
         <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6">
           <Link to="/announcements">
             <Card className="cursor-pointer hover:border-primary transition-colors h-full">
@@ -174,9 +150,9 @@ const Dashboard = () => {
                 <div className="text-2xl font-bold">{stats.totalUsers}</div>
                 <p className="text-xs text-muted-foreground">Registered users</p>
               </CardContent>
-            </Card>
-          </Link>
-        </div>
+          </Card>
+        </Link>
+      </div>
       )}
 
       {/* Ask the Chicken - Compact on Mobile */}
