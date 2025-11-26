@@ -42,7 +42,7 @@ serve(async (req) => {
       });
     }
 
-    const { email, full_name, unit_number, role, relationship_type, is_primary_contact } = await req.json();
+    const { email, full_name, unit_number, phone, role, relationship_type, is_primary_contact } = await req.json();
 
     if (!email || !full_name) {
       return new Response(JSON.stringify({ error: "Email and full name are required" }), {
@@ -74,6 +74,20 @@ serve(async (req) => {
     }
 
     console.log(`User created successfully: ${email}`);
+
+    // Update profile with phone number if provided
+    if (phone) {
+      const { error: phoneError } = await supabaseClient
+        .from("profiles")
+        .update({ phone })
+        .eq("id", newUser.user.id);
+      
+      if (phoneError) {
+        console.error("Failed to update phone number:", phoneError);
+      } else {
+        console.log(`Updated phone number for user ${email}`);
+      }
+    }
 
     // Assign role if specified
     if (role && (role === "admin" || role === "owner" || role === "board")) {

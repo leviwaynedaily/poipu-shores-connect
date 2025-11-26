@@ -38,6 +38,7 @@ export function UserManagement() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteFullName, setInviteFullName] = useState("");
   const [inviteUnitNumber, setInviteUnitNumber] = useState("");
+  const [invitePhone, setInvitePhone] = useState("");
   const [inviteRole, setInviteRole] = useState<"admin" | "owner" | "board">("owner");
   const [inviteRelationshipType, setInviteRelationshipType] = useState<"primary" | "spouse" | "co-owner" | "family">("primary");
   const [inviteIsPrimaryContact, setInviteIsPrimaryContact] = useState(false);
@@ -55,7 +56,13 @@ export function UserManagement() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<UserWithRoles | null>(null);
   const [bulkInviteDialogOpen, setBulkInviteDialogOpen] = useState(false);
-  const [bulkInviteText, setBulkInviteText] = useState("");
+  const [bulkInviteEntries, setBulkInviteEntries] = useState<Array<{
+    email: string;
+    full_name: string;
+    unit_number: string;
+    phone: string;
+    role: "admin" | "owner" | "board";
+  }>>([{ email: "", full_name: "", unit_number: "", phone: "", role: "owner" }]);
   const [bulkInviting, setBulkInviting] = useState(false);
   const [bulkInviteResults, setBulkInviteResults] = useState<{ email: string; success: boolean; error?: string }[]>([]);
 
@@ -119,6 +126,7 @@ export function UserManagement() {
           email: inviteEmail,
           full_name: inviteFullName,
           unit_number: inviteUnitNumber,
+          phone: invitePhone,
           role: inviteRole,
           relationship_type: inviteRelationshipType,
           is_primary_contact: inviteIsPrimaryContact,
@@ -139,6 +147,7 @@ export function UserManagement() {
       setInviteEmail("");
       setInviteFullName("");
       setInviteUnitNumber("");
+      setInvitePhone("");
       setInviteRole("owner");
       setInviteRelationshipType("primary");
       setInviteIsPrimaryContact(false);
@@ -361,18 +370,13 @@ export function UserManagement() {
     setBulkInviteResults([]);
     
     try {
-      // Parse CSV format: email,full_name,unit_number,role
-      const lines = bulkInviteText.split('\n').filter(line => line.trim());
       const results: { email: string; success: boolean; error?: string }[] = [];
       
-      for (const line of lines) {
-        const parts = line.split(',').map(p => p.trim());
-        if (parts.length < 1) continue;
-        
-          const [email, fullName = '', unitNumber = '', role = 'owner'] = parts;
-        
-        if (!email || !email.includes('@')) {
-          results.push({ email, success: false, error: 'Invalid email format' });
+      for (const entry of bulkInviteEntries) {
+        if (!entry.email || !entry.email.includes('@')) {
+          if (entry.email) {
+            results.push({ email: entry.email, success: false, error: 'Invalid email format' });
+          }
           continue;
         }
         
@@ -384,10 +388,11 @@ export function UserManagement() {
               Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
             },
             body: JSON.stringify({
-              email,
-              full_name: fullName || email.split('@')[0],
-              unit_number: unitNumber || null,
-              role: (role === 'admin' || role === 'owner' || role === 'board') ? role : 'owner',
+              email: entry.email,
+              full_name: entry.full_name || entry.email.split('@')[0],
+              unit_number: entry.unit_number || null,
+              phone: entry.phone || null,
+              role: entry.role,
               relationship_type: 'primary',
               is_primary_contact: false,
             }),
@@ -396,12 +401,12 @@ export function UserManagement() {
           const data = await response.json();
 
           if (response.ok) {
-            results.push({ email, success: true });
+            results.push({ email: entry.email, success: true });
           } else {
-            results.push({ email, success: false, error: data.error || 'Failed to invite' });
+            results.push({ email: entry.email, success: false, error: data.error || 'Failed to invite' });
           }
         } catch (error: any) {
-          results.push({ email, success: false, error: error.message });
+          results.push({ email: entry.email, success: false, error: error.message });
         }
       }
       
@@ -488,27 +493,126 @@ export function UserManagement() {
                   Bulk Invite
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Bulk Invite Users</DialogTitle>
                   <DialogDescription>
-                    Paste CSV data with one user per line. Format: email,full_name,unit_number,role
+                    Add multiple users with their details. Click "Add Another User" to invite more people.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="bulkData">User Data (CSV format)</Label>
-                    <textarea
-                      id="bulkData"
-                      className="w-full min-h-[200px] p-3 border rounded-md font-mono text-sm"
-                      placeholder="john@example.com,John Smith,101,owner&#10;jane@example.com,Jane Doe,102,admin&#10;bob@example.com,Bob Wilson,103,owner"
-                      value={bulkInviteText}
-                      onChange={(e) => setBulkInviteText(e.target.value)}
-                    />
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Each line should have: email (required), full name (optional), unit number (optional), role (optional: owner, board, or admin)
-                    </p>
-                  </div>
+                  {bulkInviteEntries.map((entry, index) => (
+                    <Card key={index} className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <h4 className="font-semibold">User {index + 1}</h4>
+                        {bulkInviteEntries.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const newEntries = bulkInviteEntries.filter((_, i) => i !== index);
+                              setBulkInviteEntries(newEntries);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label htmlFor={`bulk-email-${index}`}>Email *</Label>
+                          <Input
+                            id={`bulk-email-${index}`}
+                            type="email"
+                            placeholder="user@example.com"
+                            value={entry.email}
+                            onChange={(e) => {
+                              const newEntries = [...bulkInviteEntries];
+                              newEntries[index].email = e.target.value;
+                              setBulkInviteEntries(newEntries);
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor={`bulk-name-${index}`}>Full Name</Label>
+                          <Input
+                            id={`bulk-name-${index}`}
+                            placeholder="John Smith"
+                            value={entry.full_name}
+                            onChange={(e) => {
+                              const newEntries = [...bulkInviteEntries];
+                              newEntries[index].full_name = e.target.value;
+                              setBulkInviteEntries(newEntries);
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor={`bulk-unit-${index}`}>Unit Number</Label>
+                          <Input
+                            id={`bulk-unit-${index}`}
+                            placeholder="101"
+                            value={entry.unit_number}
+                            onChange={(e) => {
+                              const newEntries = [...bulkInviteEntries];
+                              newEntries[index].unit_number = e.target.value;
+                              setBulkInviteEntries(newEntries);
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor={`bulk-phone-${index}`}>Phone Number</Label>
+                          <Input
+                            id={`bulk-phone-${index}`}
+                            type="tel"
+                            placeholder="(808) 555-1234"
+                            value={entry.phone}
+                            onChange={(e) => {
+                              const newEntries = [...bulkInviteEntries];
+                              newEntries[index].phone = e.target.value;
+                              setBulkInviteEntries(newEntries);
+                            }}
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <Label htmlFor={`bulk-role-${index}`}>Role</Label>
+                          <Select 
+                            value={entry.role} 
+                            onValueChange={(value: any) => {
+                              const newEntries = [...bulkInviteEntries];
+                              newEntries[index].role = value;
+                              setBulkInviteEntries(newEntries);
+                            }}
+                          >
+                            <SelectTrigger id={`bulk-role-${index}`}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="owner">Owner</SelectItem>
+                              <SelectItem value="board">Board Member</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      setBulkInviteEntries([
+                        ...bulkInviteEntries,
+                        { email: "", full_name: "", unit_number: "", phone: "", role: "owner" }
+                      ]);
+                    }}
+                    disabled={bulkInviting}
+                  >
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Add Another User
+                  </Button>
 
                   {bulkInviteResults.length > 0 && (
                     <div className="max-h-[200px] overflow-y-auto border rounded-md p-3">
@@ -534,7 +638,7 @@ export function UserManagement() {
                       variant="outline"
                       onClick={() => {
                         setBulkInviteDialogOpen(false);
-                        setBulkInviteText("");
+                        setBulkInviteEntries([{ email: "", full_name: "", unit_number: "", phone: "", role: "owner" }]);
                         setBulkInviteResults([]);
                       }}
                       disabled={bulkInviting}
@@ -543,7 +647,7 @@ export function UserManagement() {
                     </Button>
                     <Button
                       onClick={handleBulkInvite}
-                      disabled={bulkInviting || !bulkInviteText.trim()}
+                      disabled={bulkInviting || !bulkInviteEntries.some(e => e.email.trim())}
                     >
                       {bulkInviting ? "Inviting..." : "Send Invitations"}
                     </Button>
@@ -592,6 +696,16 @@ export function UserManagement() {
                     value={inviteUnitNumber}
                     onChange={(e) => setInviteUnitNumber(e.target.value)}
                     placeholder="Optional"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={invitePhone}
+                    onChange={(e) => setInvitePhone(e.target.value)}
+                    placeholder="(808) 555-1234"
                   />
                 </div>
                 {inviteUnitNumber && (
