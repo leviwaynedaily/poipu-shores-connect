@@ -191,18 +191,19 @@ const Members = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                        {member.relationship_type ? (
-                          <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
+                          {member.relationship_type && member.relationship_type !== 'primary' && (
                             <span className="capitalize">{member.relationship_type}</span>
-                            {member.is_primary_contact && (
-                              <Badge variant="secondary" className="text-xs">
-                                Primary Contact
-                              </Badge>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
+                          )}
+                          {member.is_primary_contact && (
+                            <Badge variant="secondary" className="text-xs">
+                              Primary Contact
+                            </Badge>
+                          )}
+                          {!member.relationship_type && !member.is_primary_contact && (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         {member.show_contact_info && member.phone ? (
