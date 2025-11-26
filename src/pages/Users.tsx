@@ -95,24 +95,17 @@ export default function Users() {
     setIsInviting(true);
 
     try {
-      const response = await fetch(`https://rvqqnfsgovlxocjjugww.supabase.co/functions/v1/invite-user`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke('invite-user', {
+        body: {
           email: inviteEmail,
           full_name: inviteFullName,
           unit_number: inviteUnitNumber,
           role: inviteRole,
-        }),
+        },
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to invite user");
+      if (error) {
+        throw new Error(error.message || "Failed to invite user");
       }
 
       toast({
