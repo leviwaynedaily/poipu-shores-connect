@@ -98,27 +98,29 @@ const Dashboard = () => {
 
       {/* Quick Stats - Mobile Compact / Desktop Cards */}
       {isMobile ? (
-        <div className="flex items-center justify-around py-3 px-2 bg-card border rounded-lg text-sm">
-          <Link to="/announcements" className="flex items-center gap-1.5 hover:text-primary transition-colors">
-            <Pin className="h-4 w-4" />
-            <span className="font-semibold">{announcements.length}</span>
-          </Link>
-          <span className="text-muted-foreground">|</span>
-          <Link to="/chat" className="flex items-center gap-1.5 hover:text-primary transition-colors">
-            <MessageSquare className="h-4 w-4" />
-            <span className="font-semibold">{stats.totalMessages}</span>
-          </Link>
-          <span className="text-muted-foreground">|</span>
-          <Link to="/documents" className="flex items-center gap-1.5 hover:text-primary transition-colors">
-            <FileText className="h-4 w-4" />
-            <span className="font-semibold">{stats.totalDocuments}</span>
-          </Link>
-          <span className="text-muted-foreground">|</span>
-          <Link to="/members" className="flex items-center gap-1.5 hover:text-primary transition-colors">
-            <Users className="h-4 w-4" />
-            <span className="font-semibold">{stats.totalUsers}</span>
-          </Link>
-        </div>
+        <Card>
+          <CardContent className="flex items-center justify-around py-3 px-2">
+            <Link to="/announcements" className="flex items-center gap-1.5 hover:text-primary transition-colors">
+              <Pin className="h-4 w-4" />
+              <span className="font-semibold">{announcements.length}</span>
+            </Link>
+            <span className="text-muted-foreground">|</span>
+            <Link to="/chat" className="flex items-center gap-1.5 hover:text-primary transition-colors">
+              <MessageSquare className="h-4 w-4" />
+              <span className="font-semibold">{stats.totalMessages}</span>
+            </Link>
+            <span className="text-muted-foreground">|</span>
+            <Link to="/documents" className="flex items-center gap-1.5 hover:text-primary transition-colors">
+              <FileText className="h-4 w-4" />
+              <span className="font-semibold">{stats.totalDocuments}</span>
+            </Link>
+            <span className="text-muted-foreground">|</span>
+            <Link to="/members" className="flex items-center gap-1.5 hover:text-primary transition-colors">
+              <Users className="h-4 w-4" />
+              <span className="font-semibold">{stats.totalUsers}</span>
+            </Link>
+          </CardContent>
+        </Card>
       ) : (
         <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6">
           <Link to="/announcements">
@@ -244,14 +246,16 @@ const Dashboard = () => {
         
         {/* Announcements - Compact on Mobile */}
         {isMobile ? (
-          <div className="space-y-2">
-            <Link to="/announcements" className="flex items-center justify-between px-1 group">
-              <h3 className="text-base font-semibold">Announcements</h3>
-              <span className="text-sm text-primary group-hover:underline font-medium">View All →</span>
-            </Link>
-            <div className="space-y-1.5">
+          <Card>
+            <CardHeader className="pb-3">
+              <Link to="/announcements" className="flex items-center justify-between group">
+                <CardTitle className="text-base">Announcements</CardTitle>
+                <span className="text-sm text-primary group-hover:underline font-medium">View All →</span>
+              </Link>
+            </CardHeader>
+            <CardContent className="space-y-1.5 pt-0">
               {announcements.length === 0 ? (
-                <p className="text-sm text-muted-foreground px-1">No announcements yet.</p>
+                <p className="text-sm text-muted-foreground">No announcements yet.</p>
               ) : (
                 announcements.slice(0, 3).map((announcement) => (
                   <Link key={announcement.id} to="/announcements" className="block hover:bg-accent/50 rounded px-2 py-1.5 transition-colors">
@@ -262,8 +266,8 @@ const Dashboard = () => {
                   </Link>
                 ))
               )}
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         ) : (
           <Link to="/announcements">
             <Card className="cursor-pointer hover:border-primary transition-colors h-full">

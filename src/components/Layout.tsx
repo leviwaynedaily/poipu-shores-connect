@@ -1,6 +1,7 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Footer } from "@/components/Footer";
+import { BottomNav } from "@/components/BottomNav";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useBackground } from "@/contexts/BackgroundContext";
 import beachImage from "@/assets/condo-oceanfront.jpeg";
@@ -94,10 +95,11 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             </div>
           </header>
 
-          <div className="p-3 sm:p-4 md:p-6 flex-1">
+          <div className="p-3 sm:p-4 md:p-6 flex-1 pb-20 md:pb-6">
             {children}
           </div>
           <Footer />
+          <BottomNav />
         </main>
       </div>
     </SidebarProvider>

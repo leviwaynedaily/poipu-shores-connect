@@ -80,14 +80,16 @@ export const EmergencyContacts = ({ compact = false }: EmergencyContactsProps) =
   // Compact mobile view
   if (compact) {
     return (
-      <div className="space-y-2">
-        <div className="flex items-center justify-between px-1">
-          <h3 className="text-base font-semibold">Emergency Contacts</h3>
-          {contacts.length > 3 && (
-            <span className="text-xs text-muted-foreground">Top 3</span>
-          )}
-        </div>
-        <div className="space-y-1.5">
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">Emergency Contacts</CardTitle>
+            {contacts.length > 3 && (
+              <span className="text-xs text-muted-foreground">Top 3</span>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-1.5 pt-0">
           {displayedContacts.map((contact) => (
             <a
               key={contact.id}
@@ -101,8 +103,8 @@ export const EmergencyContacts = ({ compact = false }: EmergencyContactsProps) =
               <Phone className="h-3 w-3 text-muted-foreground shrink-0" />
             </a>
           ))}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     );
   }
 
