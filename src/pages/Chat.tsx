@@ -432,8 +432,8 @@ const Chat = () => {
       <Card>
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 pb-3 sm:pb-6">
           <div className="space-y-1">
-            <CardTitle className="text-2xl sm:text-3xl">Community Chat</CardTitle>
-            <CardDescription className="text-sm sm:text-lg">
+            <CardTitle className="text-xl sm:text-2xl md:text-3xl">Community Chat</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
               Connect with your neighbors and community
             </CardDescription>
           </div>
