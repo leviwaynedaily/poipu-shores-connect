@@ -551,31 +551,32 @@ export function PhotoGallery() {
                   </div>
                 </div>
               </DialogHeader>
-              <div className="relative">
-                {/* Navigation buttons */}
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="absolute left-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full shadow-lg"
-                  onClick={() => navigatePhoto('prev')}
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full shadow-lg"
-                  onClick={() => navigatePhoto('next')}
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </Button>
+              <div className="space-y-4">
+                <div className="relative">
+                  {/* Navigation buttons */}
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full shadow-lg"
+                    onClick={() => navigatePhoto('prev')}
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full shadow-lg"
+                    onClick={() => navigatePhoto('next')}
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </Button>
 
-                <div className="space-y-4">
                   <img
                     src={getPhotoUrl(selectedPhoto.file_path)}
                     alt={selectedPhoto.title}
                     className="w-full max-h-[60vh] object-contain rounded-lg"
                   />
+                </div>
                   
                   {selectedPhoto.caption && (
                     <div>
@@ -727,7 +728,6 @@ export function PhotoGallery() {
                     Use arrow keys ← → to navigate between photos
                   </div>
                 </div>
-              </div>
             </>
           )}
         </DialogContent>
