@@ -88,17 +88,20 @@ export function UserManagement() {
   const fetchUsers = async () => {
     setIsLoading(true);
     try {
+      console.log('Fetching users...');
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("*")
         .order("created_at", { ascending: false });
 
+      console.log('Profiles response:', { profiles, error: profilesError });
       if (profilesError) throw profilesError;
 
       const { data: rolesData, error: rolesError } = await supabase
         .from("user_roles")
         .select("user_id, role");
 
+      console.log('Roles response:', { rolesData, error: rolesError });
       if (rolesError) throw rolesError;
 
       // Fetch unit ownership data
@@ -106,6 +109,7 @@ export function UserManagement() {
         .from("unit_owners")
         .select("user_id, unit_number");
 
+      console.log('Units response:', { unitsData, error: unitsError });
       if (unitsError) throw unitsError;
 
       const userRolesMap = new Map<string, string[]>();
