@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserPlus, Shield, Clock, Mail, UserCheck, UserX, Trash2, Archive, RotateCcw, Users, Pencil } from "lucide-react";
+import { UserPlus, Shield, Clock, Mail, UserCheck, UserX, Trash2, Archive, RotateCcw, Users, Pencil, MoreVertical, KeyRound } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
@@ -72,6 +72,11 @@ export function UserManagement() {
   const [editUnitNumber, setEditUnitNumber] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
+  const [selectedResetUser, setSelectedResetUser] = useState<UserWithRoles | null>(null);
+  const [resetMethod, setResetMethod] = useState<"email" | "sms" | "both" | "show">("show");
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [resetPasswordResult, setResetPasswordResult] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -549,6 +554,65 @@ export function UserManagement() {
       });
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!selectedResetUser) return;
+
+    setIsResettingPassword(true);
+    setResetPasswordResult(null);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error("Not authenticated");
+      }
+
+      const { data, error } = await supabase.functions.invoke('reset-password', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: {
+          user_id: selectedResetUser.id,
+          notification_method: resetMethod,
+        },
+      });
+
+      if (error) throw error;
+
+      if (resetMethod === 'show' && data.temp_password) {
+        setResetPasswordResult(data.temp_password);
+        toast({
+          title: "Password Reset!",
+          description: (
+            <div className="space-y-2">
+              <p>New password for {selectedResetUser.full_name}:</p>
+              <div className="bg-muted p-2 rounded">
+                <p className="font-mono text-sm">{data.temp_password}</p>
+              </div>
+            </div>
+          ),
+          duration: 10000,
+        });
+      } else {
+        toast({
+          title: "Password Reset Successfully",
+          description: `Password reset notification sent${resetMethod === 'both' ? ' via email and SMS' : resetMethod === 'email' ? ' via email' : ' via SMS'}.`,
+        });
+        setResetPasswordDialogOpen(false);
+        setSelectedResetUser(null);
+        setResetMethod("show");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsResettingPassword(false);
     }
   };
 
@@ -1058,6 +1122,31 @@ export function UserManagement() {
                                   </DropdownMenuCheckboxItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
+                              <DropdownMenu>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button size="sm" variant="ghost">
+                                        <MoreVertical className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>More actions</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                                <DropdownMenuContent align="end" className="w-48">
+                                  <DropdownMenuCheckboxItem
+                                    onSelect={() => {
+                                      setSelectedResetUser(user);
+                                      setResetPasswordDialogOpen(true);
+                                    }}
+                                  >
+                                    <KeyRound className="h-4 w-4 mr-2" />
+                                    Reset Password
+                                  </DropdownMenuCheckboxItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </>
                           )}
                           {!isArchived && (
@@ -1267,6 +1356,72 @@ export function UserManagement() {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={resetPasswordDialogOpen} onOpenChange={(open) => {
+        setResetPasswordDialogOpen(open);
+        if (!open) {
+          setSelectedResetUser(null);
+          setResetMethod("show");
+          setResetPasswordResult(null);
+        }
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogDescription>
+              Generate a new temporary password for {selectedResetUser?.full_name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Notification Method</Label>
+              <Select value={resetMethod} onValueChange={(value: any) => setResetMethod(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="show">Show Password (I'll tell them)</SelectItem>
+                  <SelectItem value="email">Send Email</SelectItem>
+                  {selectedResetUser?.phone && <SelectItem value="sms">Send SMS</SelectItem>}
+                  {selectedResetUser?.phone && <SelectItem value="both">Send Email & SMS</SelectItem>}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-2">
+                User will be required to change password on next login
+              </p>
+            </div>
+
+            {resetPasswordResult && (
+              <div className="bg-muted p-4 rounded-lg">
+                <p className="text-sm font-medium mb-2">New Temporary Password:</p>
+                <p className="font-mono text-lg">{resetPasswordResult}</p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Share this password with the user. They will be required to change it upon login.
+                </p>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setResetPasswordDialogOpen(false);
+                  setSelectedResetUser(null);
+                  setResetMethod("show");
+                  setResetPasswordResult(null);
+                }}
+              >
+                {resetPasswordResult ? "Close" : "Cancel"}
+              </Button>
+              {!resetPasswordResult && (
+                <Button onClick={handleResetPassword} disabled={isResettingPassword}>
+                  {isResettingPassword ? "Resetting..." : "Reset Password"}
+                </Button>
+              )}
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </>
