@@ -494,10 +494,13 @@ export type Database = {
           auth_page_opacity: number | null
           avatar_url: string | null
           created_at: string
+          deactivated_at: string | null
+          deactivation_reason: string | null
           full_name: string
           glass_intensity: number | null
           glass_theme_enabled: boolean
           id: string
+          is_active: boolean
           last_sign_in_at: string | null
           onboarding_completed: boolean | null
           phone: string | null
@@ -510,10 +513,13 @@ export type Database = {
           auth_page_opacity?: number | null
           avatar_url?: string | null
           created_at?: string
+          deactivated_at?: string | null
+          deactivation_reason?: string | null
           full_name: string
           glass_intensity?: number | null
           glass_theme_enabled?: boolean
           id: string
+          is_active?: boolean
           last_sign_in_at?: string | null
           onboarding_completed?: boolean | null
           phone?: string | null
@@ -526,10 +532,13 @@ export type Database = {
           auth_page_opacity?: number | null
           avatar_url?: string | null
           created_at?: string
+          deactivated_at?: string | null
+          deactivation_reason?: string | null
           full_name?: string
           glass_intensity?: number | null
           glass_theme_enabled?: boolean
           id?: string
+          is_active?: boolean
           last_sign_in_at?: string | null
           onboarding_completed?: boolean | null
           phone?: string | null

@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserPlus, Shield, Clock, Mail, UserCheck, UserX, Trash2 } from "lucide-react";
+import { UserPlus, Shield, Clock, Mail, UserCheck, UserX, Trash2, Archive, RotateCcw } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
 interface Profile {
@@ -19,6 +19,9 @@ interface Profile {
   phone: string | null;
   created_at: string;
   last_sign_in_at: string | null;
+  is_active: boolean;
+  deactivated_at: string | null;
+  deactivation_reason: string | null;
 }
 
 interface UserWithRoles extends Profile {
@@ -39,6 +42,12 @@ export function UserManagement() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [resendingUserId, setResendingUserId] = useState<string | null>(null);
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
+  const [deactivatingUserId, setDeactivatingUserId] = useState<string | null>(null);
+  const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserWithRoles | null>(null);
+  const [deactivationReason, setDeactivationReason] = useState("sold_unit");
+  const [removeFromUnit, setRemoveFromUnit] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -214,6 +223,88 @@ export function UserManagement() {
     }
   };
 
+  const handleDeactivateUser = async () => {
+    if (!selectedUser) return;
+
+    setDeactivatingUserId(selectedUser.id);
+    try {
+      const response = await fetch(`https://rvqqnfsgovlxocjjugww.supabase.co/functions/v1/deactivate-user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify({
+          userId: selectedUser.id,
+          reason: deactivationReason,
+          removeFromUnit,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to deactivate user");
+      }
+
+      toast({
+        title: "User deactivated",
+        description: `${selectedUser.full_name} has been deactivated successfully`,
+      });
+
+      setDeactivateDialogOpen(false);
+      setSelectedUser(null);
+      setDeactivationReason("sold_unit");
+      setRemoveFromUnit(false);
+      fetchUsers();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setDeactivatingUserId(null);
+    }
+  };
+
+  const handleReactivateUser = async (userId: string, fullName: string) => {
+    setDeactivatingUserId(userId);
+    try {
+      const response = await fetch(`https://rvqqnfsgovlxocjjugww.supabase.co/functions/v1/reactivate-user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify({
+          userId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to reactivate user");
+      }
+
+      toast({
+        title: "User reactivated",
+        description: `${fullName} has been reactivated successfully`,
+      });
+
+      fetchUsers();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setDeactivatingUserId(null);
+    }
+  };
+
   const handleToggleRole = async (userId: string, role: "admin" | "owner", currentlyHas: boolean) => {
     try {
       if (currentlyHas) {
@@ -248,6 +339,7 @@ export function UserManagement() {
   };
 
   return (
+    <>
     <Card>
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
@@ -255,6 +347,15 @@ export function UserManagement() {
             <CardTitle>User Management</CardTitle>
             <CardDescription>Invite and manage community members</CardDescription>
           </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowArchived(!showArchived)}
+            >
+              <Archive className="mr-2 h-4 w-4" />
+              {showArchived ? "Hide" : "Show"} Archived
+            </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -344,6 +445,7 @@ export function UserManagement() {
               </form>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -362,11 +464,12 @@ export function UserManagement() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => {
+                {users.filter(u => showArchived || u.is_active).map((user) => {
                   const hasLoggedIn = user.last_sign_in_at !== null;
-                  const isActive = user.last_sign_in_at 
+                  const isUserActive = user.last_sign_in_at 
                     ? new Date(user.last_sign_in_at).getTime() > Date.now() - 24 * 60 * 60 * 1000
                     : false;
+                  const isArchived = !user.is_active;
                   
                   const formatLastSignIn = (timestamp: string | null) => {
                     if (!timestamp) return "Never";
@@ -385,14 +488,26 @@ export function UserManagement() {
                   };
                   
                   return (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium">{user.full_name}</TableCell>
+                    <TableRow key={user.id} className={isArchived ? "opacity-50" : ""}>
+                      <TableCell className="font-medium">
+                        {user.full_name}
+                        {isArchived && (
+                          <span className="ml-2 text-xs text-muted-foreground">
+                            (Archived)
+                          </span>
+                        )}
+                      </TableCell>
                       <TableCell>{user.unit_number || "—"}</TableCell>
                       <TableCell>
-                        {hasLoggedIn ? (
-                          <Badge variant={isActive ? "default" : "secondary"} className="gap-1">
+                        {isArchived ? (
+                          <Badge variant="destructive" className="gap-1">
+                            <Archive className="h-3 w-3" />
+                            Archived
+                          </Badge>
+                        ) : hasLoggedIn ? (
+                          <Badge variant={isUserActive ? "default" : "secondary"} className="gap-1">
                             <UserCheck className="h-3 w-3" />
-                            {isActive ? "Active" : "Registered"}
+                            {isUserActive ? "Active" : "Registered"}
                           </Badge>
                         ) : (
                           <Badge variant="outline" className="gap-1">
@@ -422,7 +537,17 @@ export function UserManagement() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          {!hasLoggedIn && (
+                          {isArchived ? (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => handleReactivateUser(user.id, user.full_name)}
+                              disabled={deactivatingUserId === user.id}
+                            >
+                              <RotateCcw className="h-4 w-4 mr-1" />
+                              {deactivatingUserId === user.id ? "Reactivating..." : "Reactivate"}
+                            </Button>
+                          ) : !hasLoggedIn && (
                             <>
                               <Button
                                 size="sm"
@@ -444,8 +569,19 @@ export function UserManagement() {
                               </Button>
                             </>
                           )}
-                          {hasLoggedIn && (
+                          {hasLoggedIn && !isArchived && (
                             <>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => {
+                                  setSelectedUser(user);
+                                  setDeactivateDialogOpen(true);
+                                }}
+                              >
+                                <Archive className="h-4 w-4 mr-1" />
+                                Deactivate
+                              </Button>
                               <Button
                                 size="sm"
                                 variant={user.roles.includes("admin") ? "default" : "outline"}
@@ -470,7 +606,78 @@ export function UserManagement() {
               </TableBody>
             </Table>
           )}
-        </CardContent>
-    </Card>
+         </CardContent>
+     </Card>
+
+      <Dialog open={deactivateDialogOpen} onOpenChange={setDeactivateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Deactivate User</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to deactivate {selectedUser?.full_name}?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="reason">Reason</Label>
+              <Select value={deactivationReason} onValueChange={setDeactivationReason}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sold_unit">Sold unit</SelectItem>
+                  <SelectItem value="no_longer_owner">No longer owner</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {selectedUser?.unit_number && (
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="removeFromUnit"
+                  checked={removeFromUnit}
+                  onCheckedChange={(checked) => setRemoveFromUnit(checked as boolean)}
+                />
+                <Label htmlFor="removeFromUnit" className="cursor-pointer">
+                  Remove from unit ownership
+                </Label>
+              </div>
+            )}
+
+            <div className="rounded-lg bg-muted p-4 space-y-2">
+              <p className="text-sm font-medium">This will:</p>
+              <ul className="text-sm space-y-1 list-disc list-inside text-muted-foreground">
+                <li>Prevent them from logging in</li>
+                <li>Hide them from the Members directory</li>
+                <li>Preserve their activity history</li>
+                {removeFromUnit && <li>Remove them from unit ownership records</li>}
+              </ul>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setDeactivateDialogOpen(false);
+                  setSelectedUser(null);
+                  setDeactivationReason("sold_unit");
+                  setRemoveFromUnit(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeactivateUser}
+                disabled={deactivatingUserId === selectedUser?.id}
+              >
+                {deactivatingUserId === selectedUser?.id ? "Deactivating..." : "Deactivate"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
