@@ -155,10 +155,10 @@ const Dashboard = () => {
       </div>
       )}
 
-      {/* Ask the Chicken - Compact on Mobile */}
+      {/* Ask the Chicken */}
       <Link to="/assistant">
         <Card className="cursor-pointer hover:border-primary transition-colors">
-          <CardHeader className={isMobile ? "p-3" : "p-4 sm:p-6"}>
+          <CardHeader className="p-4 sm:p-6">
             <div className={isMobile ? "flex items-center gap-3" : "flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4"}>
               <img
                 src={chickenIcon}
@@ -182,58 +182,17 @@ const Dashboard = () => {
         </Card>
       </Link>
 
+      {/* Announcements */}
       <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
-        <LiveCameraEmbed compact={isMobile} />
-        <WeatherAndBeachConditions compact={isMobile} />
-      </div>
-
-      {/* Community Photos - Simplified on Mobile */}
-      {isMobile ? (
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Community Photos</CardTitle>
-              <Link to="/photos" className="text-sm text-primary hover:underline font-medium">
-                View All →
-              </Link>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <PhotoCarousel compact={isMobile} />
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0 p-4 sm:p-6">
-            <div>
-              <CardTitle className="text-xl sm:text-2xl">Community Photos</CardTitle>
-              <CardDescription className="text-sm sm:text-base md:text-lg">Recent photos from Poipu Shores</CardDescription>
-            </div>
-            <Link to="/photos">
-              <button className="text-sm text-primary hover:underline font-medium whitespace-nowrap">
-                View All Photos →
-              </button>
-            </Link>
-          </CardHeader>
-          <CardContent className="p-4 sm:p-6">
-            <PhotoCarousel compact={false} />
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
-        <EmergencyContacts compact={isMobile} />
-        
-        {/* Announcements - Compact on Mobile */}
         {isMobile ? (
           <Card>
-            <CardHeader className="pb-3">
+            <CardHeader className="p-4 sm:p-6">
               <Link to="/announcements" className="flex items-center justify-between group">
                 <CardTitle className="text-base">Announcements</CardTitle>
                 <span className="text-sm text-primary group-hover:underline font-medium">View All →</span>
               </Link>
             </CardHeader>
-            <CardContent className="space-y-1.5 pt-0">
+            <CardContent className="space-y-1.5 p-4 sm:p-6 pt-0">
               {announcements.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No announcements yet.</p>
               ) : (
@@ -279,6 +238,47 @@ const Dashboard = () => {
             </Card>
           </Link>
         )}
+        <WeatherAndBeachConditions compact={isMobile} />
+      </div>
+
+      {/* Community Photos */}
+      {isMobile ? (
+        <Card>
+          <CardHeader className="p-4 sm:p-6">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">Community Photos</CardTitle>
+              <Link to="/photos" className="text-sm text-primary hover:underline font-medium">
+                View All →
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-6 pt-0">
+            <PhotoCarousel compact={isMobile} />
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0 p-4 sm:p-6">
+            <div>
+              <CardTitle className="text-xl sm:text-2xl">Community Photos</CardTitle>
+              <CardDescription className="text-sm sm:text-base md:text-lg">Recent photos from Poipu Shores</CardDescription>
+            </div>
+            <Link to="/photos">
+              <button className="text-sm text-primary hover:underline font-medium whitespace-nowrap">
+                View All Photos →
+              </button>
+            </Link>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-6">
+            <PhotoCarousel compact={false} />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Emergency Contacts & Live Camera */}
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
+        <EmergencyContacts compact={isMobile} />
+        <LiveCameraEmbed compact={isMobile} />
       </div>
     </div>
   );
