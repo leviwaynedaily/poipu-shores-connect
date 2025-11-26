@@ -4,10 +4,11 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Send, Loader2, Trash2 } from "lucide-react";
+import { Send, Loader2, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { TypingIndicator } from "@/components/TypingIndicator";
+import { useNavigate } from "react-router-dom";
 import chickenIcon from "@/assets/chicken-assistant.jpeg";
 
 interface Message {
@@ -18,6 +19,7 @@ interface Message {
 const Assistant = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +34,7 @@ const Assistant = () => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages]);
+  }, [messages, isLoadingHistory]);
 
   const loadChatHistory = async () => {
     try {
@@ -216,12 +218,17 @@ const Assistant = () => {
               </p>
             </div>
           </div>
-          {messages.length > 0 && (
-            <Button variant="ghost" size="sm" onClick={clearHistory}>
-              <Trash2 className="h-4 w-4 mr-2" />
-              Clear History
+          <div className="flex items-center gap-2">
+            {messages.length > 0 && (
+              <Button variant="ghost" size="sm" onClick={clearHistory}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Clear History
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+              <X className="h-5 w-5" />
             </Button>
-          )}
+          </div>
         </div>
       </CardHeader>
 
