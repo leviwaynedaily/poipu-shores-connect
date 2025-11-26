@@ -18,16 +18,42 @@ serve(async (req) => {
     const supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
     const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
-    const authHeader = req.headers.get("Authorization")!;
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
-
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    // Get authenticated user from JWT (already verified by Supabase)
+    console.log("Checking authorization header...");
+    const authHeader = req.headers.get("Authorization");
+    console.log("Auth header present:", !!authHeader);
+    
+    if (!authHeader) {
+      console.error("No authorization header found");
+      return new Response(JSON.stringify({ error: "Unauthorized: No auth header" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const token = authHeader.replace("Bearer ", "");
+    console.log("Token length:", token.length);
+    console.log("Getting user from token...");
+    
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+
+    if (authError) {
+      console.error("Auth error:", authError.message, authError.status);
+      return new Response(JSON.stringify({ error: `Unauthorized: ${authError.message}` }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!user) {
+      console.error("No user found from token");
+      return new Response(JSON.stringify({ error: "Unauthorized: No user" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    console.log(`Authenticated user: ${user.email} (${user.id})`);
 
     const { data: roles } = await supabaseClient
       .from("user_roles")
