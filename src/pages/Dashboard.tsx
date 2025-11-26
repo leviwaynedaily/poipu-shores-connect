@@ -213,15 +213,19 @@ const Dashboard = () => {
 
       {/* Community Photos - Simplified on Mobile */}
       {isMobile ? (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between px-1">
-            <h3 className="text-base font-semibold">Community Photos</h3>
-            <Link to="/photos" className="text-sm text-primary hover:underline font-medium">
-              View All →
-            </Link>
-          </div>
-          <PhotoCarousel compact={isMobile} />
-        </div>
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">Community Photos</CardTitle>
+              <Link to="/photos" className="text-sm text-primary hover:underline font-medium">
+                View All →
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <PhotoCarousel compact={isMobile} />
+          </CardContent>
+        </Card>
       ) : (
         <Card>
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0 p-4 sm:p-6">

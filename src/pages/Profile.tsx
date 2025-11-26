@@ -264,26 +264,30 @@ const Profile = () => {
 
   return (
     <div className="space-y-6 max-w-4xl">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-foreground">My Profile</h2>
-          <p className="text-lg text-muted-foreground">
-            Manage your personal information and security
-          </p>
-        </div>
-        {hasChanges && (
-          <Button onClick={() => handleSubmit()} disabled={loading} size="lg">
-            {loading ? (
-              "Saving..."
-            ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                Save Changes
-              </>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-3xl">My Profile</CardTitle>
+              <CardDescription className="text-lg">
+                Manage your personal information and security
+              </CardDescription>
+            </div>
+            {hasChanges && (
+              <Button onClick={() => handleSubmit()} disabled={loading} size="lg">
+                {loading ? (
+                  "Saving..."
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
             )}
-          </Button>
-        )}
-      </div>
+          </div>
+        </CardHeader>
+      </Card>
 
       <Tabs defaultValue="profile" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
