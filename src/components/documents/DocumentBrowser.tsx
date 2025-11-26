@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { MobileDocumentList } from "./MobileDocumentList";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -88,6 +90,7 @@ interface DocumentBrowserProps {
 
 export function DocumentBrowser({ canManage, refreshTrigger, onFolderChange }: DocumentBrowserProps) {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [folders, setFolders] = useState<FolderItem[]>([]);
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
@@ -664,9 +667,40 @@ export function DocumentBrowser({ canManage, refreshTrigger, onFolderChange }: D
         </div>
       </div>
 
-      {/* Files and Folders Table */}
+      {/* Files and Folders */}
       {isLoading ? (
         <div className="text-center py-8">Loading...</div>
+      ) : isMobile ? (
+        <MobileDocumentList
+          folders={folders}
+          documents={documents}
+          canManage={canManage}
+          selectedDocuments={selectedDocuments}
+          onFolderClick={(folderId) => setCurrentFolderId(folderId)}
+          onDocumentView={(doc) => setViewingDocument({ id: doc.id, title: doc.title, filePath: doc.file_path, fileType: doc.file_type })}
+          onDocumentDownload={handleDownload}
+          onToggleDocument={handleToggleDocument}
+          onRenameFolder={(id, name) => {
+            setRenameTarget({ id, name, type: "folder" });
+            setNewFolderName(name);
+            setShowRenameDialog(true);
+          }}
+          onRenameDocument={(id, name) => {
+            setRenameTarget({ id, name, type: "document" });
+            setNewFolderName(name);
+            setShowRenameDialog(true);
+          }}
+          onMoveFolder={(id) => {
+            setMoveTarget({ id, type: "folder" });
+            setShowMoveDialog(true);
+          }}
+          onMoveDocument={(id) => {
+            setMoveTarget({ id, type: "document" });
+            setShowMoveDialog(true);
+          }}
+          onDeleteFolder={(id, name) => setDeleteFolderConfirm({ id, name })}
+          onDeleteDocument={handleDeleteDocument}
+        />
       ) : (
         <div
           onDragOver={canManage ? handleDragOver : undefined}
