@@ -18,7 +18,6 @@ import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMe
 interface Profile {
   id: string;
   full_name: string;
-  unit_number: string | null;
   phone: string | null;
   created_at: string;
   last_sign_in_at: string | null;
@@ -29,6 +28,7 @@ interface Profile {
 
 interface UserWithRoles extends Profile {
   roles: string[];
+  units: string[]; // Array of unit numbers from unit_owners table
 }
 
 export function UserManagement() {
@@ -98,6 +98,13 @@ export function UserManagement() {
 
       if (rolesError) throw rolesError;
 
+      // Fetch unit ownership data
+      const { data: unitsData, error: unitsError } = await supabase
+        .from("unit_owners")
+        .select("user_id, unit_number");
+
+      if (unitsError) throw unitsError;
+
       const userRolesMap = new Map<string, string[]>();
       rolesData?.forEach((role) => {
         if (!userRolesMap.has(role.user_id)) {
@@ -106,9 +113,18 @@ export function UserManagement() {
         userRolesMap.get(role.user_id)!.push(role.role);
       });
 
+      const userUnitsMap = new Map<string, string[]>();
+      unitsData?.forEach((unit) => {
+        if (!userUnitsMap.has(unit.user_id)) {
+          userUnitsMap.set(unit.user_id, []);
+        }
+        userUnitsMap.get(unit.user_id)!.push(unit.unit_number);
+      });
+
       const usersWithRoles = profiles?.map((profile) => ({
         ...profile,
         roles: userRolesMap.get(profile.id) || [],
+        units: userUnitsMap.get(profile.id) || [],
       })) || [];
 
       setUsers(usersWithRoles);
@@ -506,7 +522,7 @@ export function UserManagement() {
     setEditingUser(user);
     setEditEmail("");
     setEditFullName(user.full_name);
-    setEditUnitNumber(user.unit_number || "");
+    setEditUnitNumber(user.units[0] || "");
     setEditPhone(user.phone || "");
     setEditDialogOpen(true);
   };
@@ -956,7 +972,7 @@ export function UserManagement() {
                           </span>
                         )}
                       </TableCell>
-                      <TableCell>{user.unit_number || "—"}</TableCell>
+                      <TableCell>{user.units.join(", ") || "—"}</TableCell>
                       <TableCell>
                         {isArchived ? (
                           <Badge variant="destructive" className="gap-1">
@@ -1042,7 +1058,7 @@ export function UserManagement() {
                               <Button
                                 size="sm"
                                 variant="secondary"
-                                onClick={() => handleResendInvite(user.id, user.full_name, user.unit_number)}
+                                onClick={() => handleResendInvite(user.id, user.full_name, user.units[0])}
                                 disabled={resendingUserId === user.id}
                               >
                                 <Mail className="h-4 w-4 mr-1" />
@@ -1200,7 +1216,7 @@ export function UserManagement() {
               </Select>
             </div>
 
-            {selectedUser?.unit_number && (
+            {selectedUser?.units && selectedUser.units.length > 0 && (
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="removeFromUnit"
