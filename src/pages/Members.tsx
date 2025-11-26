@@ -3,11 +3,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Search, Phone } from "lucide-react";
+import { Search, Phone, Edit2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Interface for member
 interface Member {
@@ -19,6 +25,12 @@ interface Member {
   unit_number: string | null;
   relationship_type: string | null;
   is_primary_contact: boolean | null;
+  unit_owner_id: string | null;
+}
+
+interface EditDialogState {
+  open: boolean;
+  member: Member | null;
 }
 
 const Members = () => {
@@ -26,6 +38,11 @@ const Members = () => {
   const [filteredMembers, setFilteredMembers] = useState<Member[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [editDialog, setEditDialog] = useState<EditDialogState>({ open: false, member: null });
+  const [saving, setSaving] = useState(false);
+  const { isAdmin, isOwner } = useAuth();
+  
+  const isAdminOrOwner = isAdmin || isOwner;
 
   useEffect(() => {
     fetchMembers();
@@ -49,6 +66,7 @@ const Members = () => {
           show_contact_info,
           avatar_url,
           unit_owners (
+            id,
             unit_number,
             relationship_type,
             is_primary_contact
@@ -76,6 +94,7 @@ const Members = () => {
           unit_number: unitOwner?.unit_number || null,
           relationship_type: unitOwner?.relationship_type || null,
           is_primary_contact: unitOwner?.is_primary_contact || null,
+          unit_owner_id: unitOwner?.id || null,
         };
       }) || [];
 
@@ -114,6 +133,36 @@ const Members = () => {
     setFilteredMembers(filtered);
   };
 
+  const handleEditMember = (member: Member) => {
+    setEditDialog({ open: true, member });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editDialog.member || !editDialog.member.unit_owner_id) return;
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('unit_owners')
+        .update({
+          relationship_type: editDialog.member.relationship_type,
+          is_primary_contact: editDialog.member.is_primary_contact,
+        })
+        .eq('id', editDialog.member.unit_owner_id);
+
+      if (error) throw error;
+
+      toast.success('Member updated successfully');
+      setEditDialog({ open: false, member: null });
+      fetchMembers();
+    } catch (error) {
+      console.error('Error updating member:', error);
+      toast.error('Failed to update member');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -148,6 +197,7 @@ const Members = () => {
                   <TableHead>Unit</TableHead>
                   <TableHead>Relationship</TableHead>
                   <TableHead>Contact</TableHead>
+                  {isAdminOrOwner && <TableHead className="w-[80px]">Actions</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -161,7 +211,7 @@ const Members = () => {
                   </TableRow>
                 ) : filteredMembers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={isAdminOrOwner ? 5 : 4} className="text-center py-8 text-muted-foreground">
                       {searchTerm ? "No members found matching your search" : "No members found"}
                     </TableCell>
                   </TableRow>
@@ -218,6 +268,19 @@ const Members = () => {
                           <span className="text-muted-foreground text-sm">Not shared</span>
                         )}
                       </TableCell>
+                      {isAdminOrOwner && (
+                        <TableCell>
+                          {member.unit_owner_id && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditMember(member)}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))
                 )}
@@ -234,6 +297,75 @@ const Members = () => {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={editDialog.open} onOpenChange={(open) => setEditDialog({ open, member: null })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Member Information</DialogTitle>
+            <DialogDescription>
+              Update unit ownership details for {editDialog.member?.full_name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="relationship">Relationship Type</Label>
+              <Select
+                value={editDialog.member?.relationship_type || "primary"}
+                onValueChange={(value) => 
+                  setEditDialog(prev => ({
+                    ...prev,
+                    member: prev.member ? { ...prev.member, relationship_type: value } : null
+                  }))
+                }
+              >
+                <SelectTrigger id="relationship">
+                  <SelectValue placeholder="Select relationship type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="owner">Owner</SelectItem>
+                  <SelectItem value="renter">Renter</SelectItem>
+                  <SelectItem value="family">Family Member</SelectItem>
+                  <SelectItem value="agent">Property Agent</SelectItem>
+                  <SelectItem value="primary">Primary</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="primary-contact">Primary Contact</Label>
+                <div className="text-sm text-muted-foreground">
+                  Main contact person for Unit {editDialog.member?.unit_number}
+                </div>
+              </div>
+              <Switch
+                id="primary-contact"
+                checked={editDialog.member?.is_primary_contact || false}
+                onCheckedChange={(checked) =>
+                  setEditDialog(prev => ({
+                    ...prev,
+                    member: prev.member ? { ...prev.member, is_primary_contact: checked } : null
+                  }))
+                }
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setEditDialog({ open: false, member: null })}
+              disabled={saving}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit} disabled={saving}>
+              {saving ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
