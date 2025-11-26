@@ -62,7 +62,20 @@ export function AppSidebar() {
         .eq("id", user.id)
         .single();
       
-      if (data) setProfile(data);
+      if (data) {
+        // Fetch unit number from unit_owners
+        const { data: unitsData } = await supabase
+          .from("unit_owners")
+          .select("unit_number")
+          .eq("user_id", user.id)
+          .limit(1)
+          .single();
+        
+        setProfile({
+          ...data,
+          unit_number: unitsData?.unit_number || null,
+        });
+      }
     };
 
     fetchProfile();

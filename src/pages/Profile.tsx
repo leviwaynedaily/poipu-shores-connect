@@ -61,9 +61,17 @@ const Profile = () => {
       .single();
     
     if (data) {
+      // Fetch unit numbers from unit_owners table
+      const { data: unitsData } = await supabase
+        .from("unit_owners")
+        .select("unit_number")
+        .eq("user_id", user.id);
+      
+      const unitNumber = unitsData?.[0]?.unit_number || "";
+      
       const state = {
         fullName: data.full_name || "",
-        unitNumber: data.unit_number || "",
+        unitNumber: unitNumber,
         phone: data.phone || "",
         showContactInfo: data.show_contact_info ?? true,
       };
@@ -201,7 +209,6 @@ const Profile = () => {
         .from("profiles")
         .update({
           full_name: fullName,
-          unit_number: unitNumber,
           phone: phone.replace(/\D/g, ""), // Store only digits
           show_contact_info: showContactInfo,
           avatar_url: uploadedAvatarUrl,
@@ -209,6 +216,38 @@ const Profile = () => {
         .eq("id", user.id);
 
       if (error) throw error;
+
+      // Update unit ownership if unit number changed
+      if (unitNumber) {
+        // First, get existing unit ownership
+        const { data: existingUnits } = await supabase
+          .from("unit_owners")
+          .select("unit_number")
+          .eq("user_id", user.id);
+
+        const oldUnitNumber = existingUnits?.[0]?.unit_number;
+
+        if (oldUnitNumber !== unitNumber) {
+          if (oldUnitNumber) {
+            // Update existing unit ownership
+            await supabase
+              .from("unit_owners")
+              .update({ unit_number: unitNumber })
+              .eq("user_id", user.id)
+              .eq("unit_number", oldUnitNumber);
+          } else {
+            // Insert new unit ownership
+            await supabase
+              .from("unit_owners")
+              .insert({
+                user_id: user.id,
+                unit_number: unitNumber,
+                relationship_type: "primary",
+                is_primary_contact: true,
+              });
+          }
+        }
+      }
 
       setAvatarUrl(uploadedAvatarUrl);
       setAvatarFile(null);

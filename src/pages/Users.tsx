@@ -17,7 +17,6 @@ import { Navigate } from "react-router-dom";
 interface Profile {
   id: string;
   full_name: string;
-  unit_number: string | null;
   phone: string | null;
   created_at: string;
   last_sign_in_at: string | null;
@@ -29,6 +28,7 @@ interface UserRole {
 
 interface UserWithRoles extends Profile {
   roles: string[];
+  units: string[]; // Array of unit numbers from unit_owners table
 }
 
 export default function Users() {
@@ -65,6 +65,13 @@ export default function Users() {
 
       if (rolesError) throw rolesError;
 
+      // Fetch unit ownership data
+      const { data: unitsData, error: unitsError } = await supabase
+        .from("unit_owners")
+        .select("user_id, unit_number");
+
+      if (unitsError) throw unitsError;
+
       const userRolesMap = new Map<string, string[]>();
       rolesData?.forEach((role) => {
         if (!userRolesMap.has(role.user_id)) {
@@ -73,9 +80,18 @@ export default function Users() {
         userRolesMap.get(role.user_id)!.push(role.role);
       });
 
+      const userUnitsMap = new Map<string, string[]>();
+      unitsData?.forEach((unit) => {
+        if (!userUnitsMap.has(unit.user_id)) {
+          userUnitsMap.set(unit.user_id, []);
+        }
+        userUnitsMap.get(unit.user_id)!.push(unit.unit_number);
+      });
+
       const usersWithRoles = profiles?.map((profile) => ({
         ...profile,
         roles: userRolesMap.get(profile.id) || [],
+        units: userUnitsMap.get(profile.id) || [],
       })) || [];
 
       setUsers(usersWithRoles);
@@ -347,7 +363,7 @@ export default function Users() {
                       <TableCell className="font-medium">
                         {user.full_name}
                       </TableCell>
-                      <TableCell>{user.unit_number || "—"}</TableCell>
+                      <TableCell>{user.units.join(", ") || "—"}</TableCell>
                       <TableCell>
                         {hasLoggedIn ? (
                           <Badge variant={isActive ? "default" : "secondary"} className="gap-1">
@@ -386,7 +402,7 @@ export default function Users() {
                             <Button
                               size="sm"
                               variant="secondary"
-                              onClick={() => handleResendInvite(user.id, user.full_name, user.unit_number)}
+                              onClick={() => handleResendInvite(user.id, user.full_name, user.units[0])}
                             >
                               <Mail className="h-4 w-4 mr-1" />
                               Resend

@@ -603,7 +603,6 @@ export type Database = {
           phone: string | null
           show_contact_info: boolean
           sidebar_opacity: number | null
-          unit_number: string | null
           updated_at: string
         }
         Insert: {
@@ -622,7 +621,6 @@ export type Database = {
           phone?: string | null
           show_contact_info?: boolean
           sidebar_opacity?: number | null
-          unit_number?: string | null
           updated_at?: string
         }
         Update: {
@@ -641,7 +639,6 @@ export type Database = {
           phone?: string | null
           show_contact_info?: boolean
           sidebar_opacity?: number | null
-          unit_number?: string | null
           updated_at?: string
         }
         Relationships: []
