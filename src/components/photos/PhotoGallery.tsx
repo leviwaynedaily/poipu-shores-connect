@@ -515,7 +515,7 @@ export function PhotoGallery() {
       </div>
 
       <Dialog open={!!selectedPhoto} onOpenChange={() => setSelectedPhoto(null)}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           {selectedPhoto && (
             <>
               <DialogHeader>
