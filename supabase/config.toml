@@ -6,6 +6,24 @@ verify_jwt = true
 [functions.resend-invite]
 verify_jwt = true
 
+[functions.update-user]
+verify_jwt = true
+
+[functions.delete-invite]
+verify_jwt = true
+
+[functions.delete-user]
+verify_jwt = true
+
+[functions.deactivate-user]
+verify_jwt = true
+
+[functions.reactivate-user]
+verify_jwt = true
+
+[functions.track-login]
+verify_jwt = false
+
 [functions.document-chat]
 verify_jwt = false
 

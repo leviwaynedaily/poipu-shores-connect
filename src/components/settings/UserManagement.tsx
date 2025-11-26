@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserPlus, Shield, Clock, Mail, UserCheck, UserX, Trash2, Archive, RotateCcw, Users } from "lucide-react";
+import { UserPlus, Shield, Clock, Mail, UserCheck, UserX, Trash2, Archive, RotateCcw, Users, Pencil } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
@@ -65,6 +65,13 @@ export function UserManagement() {
   }>>([{ email: "", full_name: "", unit_number: "", phone: "", role: "owner" }]);
   const [bulkInviting, setBulkInviting] = useState(false);
   const [bulkInviteResults, setBulkInviteResults] = useState<{ email: string; success: boolean; error?: string }[]>([]);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserWithRoles | null>(null);
+  const [editEmail, setEditEmail] = useState("");
+  const [editFullName, setEditFullName] = useState("");
+  const [editUnitNumber, setEditUnitNumber] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -470,6 +477,61 @@ export function UserManagement() {
         description: error.message,
         variant: "destructive",
       });
+    }
+  };
+
+  const handleEditUser = (user: UserWithRoles) => {
+    setEditingUser(user);
+    setEditEmail("");
+    setEditFullName(user.full_name);
+    setEditUnitNumber(user.unit_number || "");
+    setEditPhone(user.phone || "");
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+
+    setIsUpdating(true);
+    try {
+      const response = await fetch(`https://rvqqnfsgovlxocjjugww.supabase.co/functions/v1/update-user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify({
+          userId: editingUser.id,
+          email: editEmail || undefined,
+          full_name: editFullName,
+          unit_number: editUnitNumber || null,
+          phone: editPhone || null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update user");
+      }
+
+      toast({
+        title: "User updated",
+        description: `${editFullName} has been updated successfully`,
+      });
+
+      setEditDialogOpen(false);
+      setEditingUser(null);
+      fetchUsers();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -922,6 +984,21 @@ export function UserManagement() {
                                 <TooltipTrigger asChild>
                                   <Button
                                     size="sm"
+                                    variant="outline"
+                                    onClick={() => handleEditUser(user)}
+                                  >
+                                    <Pencil className="h-4 w-4 mr-1" />
+                                    Edit
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Edit user information</p>
+                                </TooltipContent>
+                              </Tooltip>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="sm"
                                     variant="destructive"
                                     onClick={() => {
                                       setSelectedUser(user);
@@ -1104,6 +1181,75 @@ export function UserManagement() {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription>
+              Update user information for {editingUser?.full_name}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleUpdateUser} className="space-y-4">
+            <div>
+              <Label htmlFor="editEmail">Email</Label>
+              <Input
+                id="editEmail"
+                type="email"
+                value={editEmail}
+                onChange={(e) => setEditEmail(e.target.value)}
+                placeholder="Leave empty to keep current email"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Leave empty if you don't want to change the email
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="editFullName">Full Name</Label>
+              <Input
+                id="editFullName"
+                value={editFullName}
+                onChange={(e) => setEditFullName(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="editUnitNumber">Unit Number</Label>
+              <Input
+                id="editUnitNumber"
+                value={editUnitNumber}
+                onChange={(e) => setEditUnitNumber(e.target.value)}
+                placeholder="Optional"
+              />
+            </div>
+            <div>
+              <Label htmlFor="editPhone">Phone Number</Label>
+              <Input
+                id="editPhone"
+                type="tel"
+                value={editPhone}
+                onChange={(e) => setEditPhone(e.target.value)}
+                placeholder="(808) 555-1234"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setEditDialogOpen(false);
+                  setEditingUser(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isUpdating}>
+                {isUpdating ? "Updating..." : "Update User"}
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
     </>
