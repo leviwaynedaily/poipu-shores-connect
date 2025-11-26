@@ -454,7 +454,7 @@ const Chat = () => {
         <ChannelManager onClose={() => setShowChannelManager(false)} />
       )}
 
-      <Card className="h-[calc(100dvh-12rem)] sm:h-[calc(100dvh-14rem)] md:h-[calc(100vh-16rem)] flex flex-col">
+      <Card className="h-[calc(100dvh-18rem)] sm:h-[calc(100dvh-14rem)] md:h-[calc(100vh-16rem)] flex flex-col">
         <CardHeader className="border-b space-y-2 sm:space-y-3 flex-shrink-0 p-3 sm:p-6">
           <CardTitle className="text-lg sm:text-xl">
             {currentChannel?.name || "Select a Channel"}
