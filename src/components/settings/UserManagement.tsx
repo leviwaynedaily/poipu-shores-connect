@@ -917,7 +917,7 @@ export function UserManagement() {
                         </div>
                       </TableCell>
                        <TableCell>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 justify-end">
                           {isArchived ? (
                             <>
                               <Tooltip>
@@ -956,23 +956,8 @@ export function UserManagement() {
                                 </TooltipContent>
                               </Tooltip>
                             </>
-                          ) : !hasLoggedIn && (
+                          ) : !hasLoggedIn ? (
                             <>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleEditUser(user)}
-                                  >
-                                    <Pencil className="h-4 w-4 mr-1" />
-                                    Edit
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Edit user information</p>
-                                </TooltipContent>
-                              </Tooltip>
                               <Button
                                 size="sm"
                                 variant="secondary"
@@ -992,24 +977,8 @@ export function UserManagement() {
                                 {deletingUserId === user.id ? "Deleting..." : "Delete"}
                               </Button>
                             </>
-                          )}
-                          {hasLoggedIn && !isArchived && (
+                          ) : (
                             <>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleEditUser(user)}
-                                  >
-                                    <Pencil className="h-4 w-4 mr-1" />
-                                    Edit
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Edit user information</p>
-                                </TooltipContent>
-                              </Tooltip>
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <Button
@@ -1073,6 +1042,22 @@ export function UserManagement() {
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </>
+                          )}
+                          {!isArchived && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleEditUser(user)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Edit user information</p>
+                              </TooltipContent>
+                            </Tooltip>
                           )}
                         </div>
                       </TableCell>
