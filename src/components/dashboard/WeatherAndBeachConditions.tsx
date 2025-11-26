@@ -62,7 +62,11 @@ const getUVColor = (uv: number) => {
   return 'text-red-600';
 };
 
-export const WeatherAndBeachConditions = () => {
+interface WeatherAndBeachConditionsProps {
+  compact?: boolean;
+}
+
+export const WeatherAndBeachConditions = ({ compact = false }: WeatherAndBeachConditionsProps) => {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [beachConditions, setBeachConditions] = useState<BeachData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -116,6 +120,33 @@ export const WeatherAndBeachConditions = () => {
 
   if (!weather || !beachConditions) return null;
 
+  // Compact mobile view
+  if (compact) {
+    return (
+      <div className="space-y-2">
+        <h3 className="text-base font-semibold px-1">Weather & Beach</h3>
+        <div className="flex items-center justify-between px-3 py-2 bg-card border rounded-lg text-sm">
+          <div className="flex items-center gap-2">
+            {getWeatherIcon(weather.current.conditions)}
+            <span className="font-semibold">{weather.current.temp}°F</span>
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Droplets className="h-4 w-4" />
+            <span>{weather.current.humidity}%</span>
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Waves className="h-4 w-4" />
+            <span>{beachConditions.waveHeight}ft</span>
+          </div>
+          <Badge className={getSurfQualityColor(beachConditions.surfQuality)} variant="secondary">
+            {beachConditions.surfQuality}
+          </Badge>
+        </div>
+      </div>
+    );
+  }
+
+  // Full desktop view
   return (
     <Card>
       <CardHeader>

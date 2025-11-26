@@ -15,7 +15,11 @@ interface Photo {
   };
 }
 
-export function PhotoCarousel() {
+interface PhotoCarouselProps {
+  compact?: boolean;
+}
+
+export function PhotoCarousel({ compact = false }: PhotoCarouselProps) {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -36,7 +40,7 @@ export function PhotoCarousel() {
         `)
         .eq("is_approved", true)
         .order("created_at", { ascending: false })
-        .limit(4);
+        .limit(compact ? 2 : 4);
 
       if (error) throw error;
       setPhotos((data as any) || []);
@@ -54,9 +58,9 @@ export function PhotoCarousel() {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-4 gap-4">
-        {[1, 2, 3, 4].map((i) => (
-          <Skeleton key={i} className="w-full h-48" />
+      <div className={compact ? "grid grid-cols-2 gap-2" : "grid grid-cols-4 gap-4"}>
+        {(compact ? [1, 2] : [1, 2, 3, 4]).map((i) => (
+          <Skeleton key={i} className={compact ? "w-full h-24" : "w-full h-48"} />
         ))}
       </div>
     );
@@ -64,14 +68,16 @@ export function PhotoCarousel() {
 
   if (photos.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">No photos yet. Be the first to share!</p>
+      <div className={compact ? "text-center py-6" : "text-center py-12"}>
+        <p className={compact ? "text-sm text-muted-foreground" : "text-muted-foreground"}>
+          No photos yet. Be the first to share!
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className={compact ? "grid grid-cols-2 gap-2" : "grid grid-cols-1 md:grid-cols-4 gap-4"}>
       {photos.map((photo) => (
         <div
           key={photo.id}
@@ -81,14 +87,18 @@ export function PhotoCarousel() {
           <img
             src={getPhotoUrl(photo.file_path)}
             alt={photo.title}
-            className="w-full h-48 object-cover transition-transform group-hover:scale-105"
+            className={compact ? "w-full h-24 object-cover transition-transform group-hover:scale-105" : "w-full h-48 object-cover transition-transform group-hover:scale-105"}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent">
-            <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
-              <h4 className="font-semibold text-sm line-clamp-1">{photo.title}</h4>
-              <p className="text-xs opacity-90 mt-0.5">
-                by {photo.profiles.full_name}
-              </p>
+            <div className={compact ? "absolute bottom-0 left-0 right-0 p-2 text-white" : "absolute bottom-0 left-0 right-0 p-3 text-white"}>
+              <h4 className={compact ? "font-semibold text-xs line-clamp-1" : "font-semibold text-sm line-clamp-1"}>
+                {photo.title}
+              </h4>
+              {!compact && (
+                <p className="text-xs opacity-90 mt-0.5">
+                  by {photo.profiles.full_name}
+                </p>
+              )}
             </div>
           </div>
         </div>

@@ -26,7 +26,11 @@ const getCategoryIcon = (category: string) => {
   return icons[category] || '📞';
 };
 
-export const EmergencyContacts = () => {
+interface EmergencyContactsProps {
+  compact?: boolean;
+}
+
+export const EmergencyContacts = ({ compact = false }: EmergencyContactsProps) => {
   const [contacts, setContacts] = useState<EmergencyContact[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -54,7 +58,12 @@ export const EmergencyContacts = () => {
   }, []);
 
   if (loading) {
-    return (
+    return compact ? (
+      <div className="space-y-2">
+        <h3 className="text-base font-semibold px-1">Emergency Contacts</h3>
+        <Skeleton className="h-32 w-full" />
+      </div>
+    ) : (
       <Card>
         <CardHeader>
           <CardTitle>Emergency Contacts</CardTitle>
@@ -66,6 +75,38 @@ export const EmergencyContacts = () => {
     );
   }
 
+  const displayedContacts = compact ? contacts.slice(0, 3) : contacts;
+
+  // Compact mobile view
+  if (compact) {
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center justify-between px-1">
+          <h3 className="text-base font-semibold">Emergency Contacts</h3>
+          {contacts.length > 3 && (
+            <span className="text-xs text-muted-foreground">Top 3</span>
+          )}
+        </div>
+        <div className="space-y-1.5">
+          {displayedContacts.map((contact) => (
+            <a
+              key={contact.id}
+              href={`tel:${contact.phone}`}
+              className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent/50 transition-colors"
+            >
+              <span className="text-lg">{getCategoryIcon(contact.category)}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium line-clamp-1">{contact.name}</p>
+              </div>
+              <Phone className="h-3 w-3 text-muted-foreground shrink-0" />
+            </a>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Full desktop view
   return (
     <Card>
       <CardHeader>
