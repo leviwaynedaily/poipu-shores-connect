@@ -958,6 +958,21 @@ export function UserManagement() {
                             </>
                           ) : !hasLoggedIn && (
                             <>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleEditUser(user)}
+                                  >
+                                    <Pencil className="h-4 w-4 mr-1" />
+                                    Edit
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Edit user information</p>
+                                </TooltipContent>
+                              </Tooltip>
                               <Button
                                 size="sm"
                                 variant="secondary"
