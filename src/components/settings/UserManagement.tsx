@@ -1057,6 +1057,31 @@ export function UserManagement() {
                                 <Trash2 className="h-4 w-4 mr-1" />
                                 {deletingUserId === user.id ? "Deleting..." : "Delete"}
                               </Button>
+                              <DropdownMenu>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button size="sm" variant="ghost">
+                                        <MoreVertical className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>More actions</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                                <DropdownMenuContent align="end" className="w-48">
+                                  <DropdownMenuCheckboxItem
+                                    onSelect={() => {
+                                      setSelectedResetUser(user);
+                                      setResetPasswordDialogOpen(true);
+                                    }}
+                                  >
+                                    <KeyRound className="h-4 w-4 mr-2" />
+                                    Reset Password
+                                  </DropdownMenuCheckboxItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </>
                           ) : (
                             <>

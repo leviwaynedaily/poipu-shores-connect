@@ -162,8 +162,9 @@ serve(async (req) => {
         subject: 'Welcome to Poipu Shores - Your Login Details',
         html: emailHtml,
       });
+      console.log('Email sent successfully to:', email);
     } catch (emailError) {
-      console.error('Email error:', emailError);
+      console.error('Email error for', email, ':', emailError);
     }
 
     // Send SMS if phone number exists
@@ -173,29 +174,36 @@ serve(async (req) => {
         const twilioAuthToken = Deno.env.get('TWILIO_AUTH_TOKEN');
         const twilioPhoneNumber = Deno.env.get('TWILIO_PHONE_NUMBER');
 
-        const smsMessage = `Welcome to Poipu Shores! Login at ${loginUrl} with email: ${email} and password: ${tempPassword}. An email with details was also sent. You'll need to change your password on first login.`;
+        if (!twilioAccountSid || !twilioAuthToken || !twilioPhoneNumber) {
+          console.error('Twilio credentials not configured - skipping SMS');
+        } else {
+          const smsMessage = `Welcome to Poipu Shores! Login at ${loginUrl} with email: ${email} and password: ${tempPassword}. An email with details was also sent. You'll need to change your password on first login.`;
 
-        const response = await fetch(
-          `https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`,
-          {
-            method: 'POST',
-            headers: {
-              'Authorization': 'Basic ' + btoa(`${twilioAccountSid}:${twilioAuthToken}`),
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-              To: phone,
-              From: twilioPhoneNumber!,
-              Body: smsMessage,
-            }),
+          const response = await fetch(
+            `https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`,
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': 'Basic ' + btoa(`${twilioAccountSid}:${twilioAuthToken}`),
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: new URLSearchParams({
+                To: phone,
+                From: twilioPhoneNumber,
+                Body: smsMessage,
+              }),
+            }
+          );
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('SMS error for', phone, ':', errorText);
+          } else {
+            console.log('SMS sent successfully to:', phone);
           }
-        );
-
-        if (!response.ok) {
-          console.error('SMS error:', await response.text());
         }
       } catch (smsError) {
-        console.error('SMS error:', smsError);
+        console.error('SMS error for', phone, ':', smsError);
       }
     }
 
