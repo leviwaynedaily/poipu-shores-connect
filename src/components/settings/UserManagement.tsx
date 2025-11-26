@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserPlus, Shield, Clock, Mail, UserCheck, UserX, Trash2, Archive, RotateCcw } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Profile {
   id: string;
@@ -383,6 +384,7 @@ export function UserManagement() {
   };
 
   return (
+    <TooltipProvider>
     <>
     <Card>
       <CardHeader>
@@ -583,27 +585,41 @@ export function UserManagement() {
                         <div className="flex gap-2">
                           {isArchived ? (
                             <>
-                              <Button
-                                size="sm"
-                                variant="secondary"
-                                onClick={() => handleReactivateUser(user.id, user.full_name)}
-                                disabled={deactivatingUserId === user.id}
-                              >
-                                <RotateCcw className="h-4 w-4 mr-1" />
-                                {deactivatingUserId === user.id ? "Reactivating..." : "Reactivate"}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => {
-                                  setUserToDelete(user);
-                                  setDeleteDialogOpen(true);
-                                }}
-                                disabled={deletingPermanentUserId === user.id}
-                              >
-                                <Trash2 className="h-4 w-4 mr-1" />
-                                {deletingPermanentUserId === user.id ? "Deleting..." : "Delete"}
-                              </Button>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    onClick={() => handleReactivateUser(user.id, user.full_name)}
+                                    disabled={deactivatingUserId === user.id}
+                                  >
+                                    <RotateCcw className="h-4 w-4 mr-1" />
+                                    {deactivatingUserId === user.id ? "Reactivating..." : "Reactivate"}
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Restore access and unban this user</p>
+                                </TooltipContent>
+                              </Tooltip>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => {
+                                      setUserToDelete(user);
+                                      setDeleteDialogOpen(true);
+                                    }}
+                                    disabled={deletingPermanentUserId === user.id}
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-1" />
+                                    {deletingPermanentUserId === user.id ? "Deleting..." : "Delete"}
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Permanently delete this user and all related data</p>
+                                </TooltipContent>
+                              </Tooltip>
                             </>
                           ) : !hasLoggedIn && (
                             <>
@@ -629,31 +645,52 @@ export function UserManagement() {
                           )}
                           {hasLoggedIn && !isArchived && (
                             <>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => {
-                                  setSelectedUser(user);
-                                  setDeactivateDialogOpen(true);
-                                }}
-                              >
-                                <Archive className="h-4 w-4 mr-1" />
-                                Deactivate
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant={user.roles.includes("admin") ? "default" : "outline"}
-                                onClick={() => handleToggleRole(user.id, "admin", user.roles.includes("admin"))}
-                              >
-                                <Shield className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant={user.roles.includes("owner") ? "default" : "outline"}
-                                onClick={() => handleToggleRole(user.id, "owner", user.roles.includes("owner"))}
-                              >
-                                Owner
-                              </Button>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => {
+                                      setSelectedUser(user);
+                                      setDeactivateDialogOpen(true);
+                                    }}
+                                  >
+                                    <Archive className="h-4 w-4 mr-1" />
+                                    Deactivate
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Archive user and prevent login (reversible)</p>
+                                </TooltipContent>
+                              </Tooltip>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant={user.roles.includes("admin") ? "default" : "outline"}
+                                    onClick={() => handleToggleRole(user.id, "admin", user.roles.includes("admin"))}
+                                  >
+                                    <Shield className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{user.roles.includes("admin") ? "Remove Admin role" : "Grant Admin role"}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant={user.roles.includes("owner") ? "default" : "outline"}
+                                    onClick={() => handleToggleRole(user.id, "owner", user.roles.includes("owner"))}
+                                  >
+                                    Owner
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{user.roles.includes("owner") ? "Remove Owner role" : "Grant Owner role"}</p>
+                                </TooltipContent>
+                              </Tooltip>
                             </>
                           )}
                         </div>
@@ -781,5 +818,6 @@ export function UserManagement() {
         </DialogContent>
       </Dialog>
     </>
+    </TooltipProvider>
   );
 }
