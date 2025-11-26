@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserPlus, Shield, Clock, Mail, UserCheck, UserX } from "lucide-react";
+import { UserPlus, Shield, Clock, Mail, UserCheck, UserX, Trash2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
 interface Profile {
@@ -38,6 +38,7 @@ export function UserManagement() {
   const [isInviting, setIsInviting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [resendingUserId, setResendingUserId] = useState<string | null>(null);
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -169,6 +170,47 @@ export function UserManagement() {
       });
     } finally {
       setResendingUserId(null);
+    }
+  };
+
+  const handleDeleteInvite = async (userId: string, fullName: string) => {
+    if (!confirm(`Are you sure you want to delete the invite for ${fullName}? This action cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingUserId(userId);
+    try {
+      const response = await fetch(`https://rvqqnfsgovlxocjjugww.supabase.co/functions/v1/delete-invite`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify({
+          user_id: userId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to delete invite");
+      }
+
+      toast({
+        title: "Invite deleted",
+        description: "User invitation has been deleted successfully",
+      });
+
+      fetchUsers();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingUserId(null);
     }
   };
 
@@ -381,30 +423,45 @@ export function UserManagement() {
                       <TableCell>
                         <div className="flex gap-2">
                           {!hasLoggedIn && (
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              onClick={() => handleResendInvite(user.id, user.full_name, user.unit_number)}
-                              disabled={resendingUserId === user.id}
-                            >
-                              <Mail className="h-4 w-4 mr-1" />
-                              {resendingUserId === user.id ? "Sending..." : "Resend"}
-                            </Button>
+                            <>
+                              <Button
+                                size="sm"
+                                variant="secondary"
+                                onClick={() => handleResendInvite(user.id, user.full_name, user.unit_number)}
+                                disabled={resendingUserId === user.id}
+                              >
+                                <Mail className="h-4 w-4 mr-1" />
+                                {resendingUserId === user.id ? "Sending..." : "Resend"}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleDeleteInvite(user.id, user.full_name)}
+                                disabled={deletingUserId === user.id}
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                {deletingUserId === user.id ? "Deleting..." : "Delete"}
+                              </Button>
+                            </>
                           )}
-                          <Button
-                            size="sm"
-                            variant={user.roles.includes("admin") ? "default" : "outline"}
-                            onClick={() => handleToggleRole(user.id, "admin", user.roles.includes("admin"))}
-                          >
-                            <Shield className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant={user.roles.includes("owner") ? "default" : "outline"}
-                            onClick={() => handleToggleRole(user.id, "owner", user.roles.includes("owner"))}
-                          >
-                            Owner
-                          </Button>
+                          {hasLoggedIn && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant={user.roles.includes("admin") ? "default" : "outline"}
+                                onClick={() => handleToggleRole(user.id, "admin", user.roles.includes("admin"))}
+                              >
+                                <Shield className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant={user.roles.includes("owner") ? "default" : "outline"}
+                                onClick={() => handleToggleRole(user.id, "owner", user.roles.includes("owner"))}
+                              >
+                                Owner
+                              </Button>
+                            </>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
