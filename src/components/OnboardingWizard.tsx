@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { formatPhoneInput } from "@/lib/phoneUtils";
 import { useEffect } from "react";
+import chickenIcon from "@/assets/chicken-assistant.jpeg";
 
 interface OnboardingWizardProps {
   open: boolean;
@@ -448,17 +449,21 @@ export const OnboardingWizard = ({ open, onComplete, source = 'onboarding' }: On
           {/* Step 5: Ask the Chicken */}
           {currentStep === 5 && (
             <div className="space-y-6 py-8 text-center">
-              <div className="mx-auto w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center text-5xl">
-                🐔
+              <div className="mx-auto w-32 h-32 rounded-full overflow-hidden bg-white shadow-lg">
+                <img 
+                  src={chickenIcon} 
+                  alt="Ask the Chicken Assistant" 
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div className="space-y-3">
                 <DialogTitle className="text-2xl">Need Help?</DialogTitle>
                 <DialogDescription className="text-lg">
-                  Meet your friendly community assistant - the Poipu Shores Chicken! 
+                  Meet <span className="font-semibold text-primary">Ask the Chicken</span> - your friendly community assistant! 
                 </DialogDescription>
                 <p className="text-sm text-muted-foreground max-w-md mx-auto">
                   Have questions about the community, need to find a document, or want recommendations? 
-                  The Chicken is here to help! You can find it in the Assistant section anytime.
+                  Ask the Chicken is here to help! You can find it in the Assistant section anytime.
                 </p>
                 <div className="pt-4">
                   <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary">
