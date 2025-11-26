@@ -69,7 +69,7 @@ export function AppSidebar() {
           .select("unit_number")
           .eq("user_id", user.id)
           .limit(1)
-          .single();
+          .maybeSingle();
         
         setProfile({
           ...data,

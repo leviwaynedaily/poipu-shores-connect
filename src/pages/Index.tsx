@@ -14,11 +14,11 @@ const Index = () => {
     const checkOnboardingStatus = async () => {
       if (!loading && user) {
         try {
-          const { data: profile } = await supabase
+      const { data: profile } = await supabase
             .from("profiles")
             .select("onboarding_completed")
             .eq("id", user.id)
-            .single();
+            .maybeSingle();
 
           if (profile && !profile.onboarding_completed) {
             setShowOnboarding(true);

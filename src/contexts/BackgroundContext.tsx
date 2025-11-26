@@ -54,13 +54,19 @@ export const BackgroundProvider = ({ children }: { children: React.ReactNode }) 
       .from("app_settings")
       .select("setting_value")
       .eq("setting_key", "home_background")
-      .single();
+      .maybeSingle();
 
     const { data: appData } = await supabase
       .from("app_settings")
       .select("setting_value")
       .eq("setting_key", "app_background")
-      .single();
+      .maybeSingle();
+
+    const { data: toggleData } = await supabase
+      .from("app_settings")
+      .select("setting_value")
+      .eq("setting_key", "use_same_background")
+      .maybeSingle();
 
     if (homeData?.setting_value) {
       const bgValue = homeData.setting_value as any;

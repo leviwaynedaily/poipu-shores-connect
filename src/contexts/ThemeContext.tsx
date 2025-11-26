@@ -41,7 +41,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
           .from('profiles')
           .select('glass_theme_enabled, glass_intensity, sidebar_opacity, auth_page_opacity')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
         setIsGlassTheme(data?.glass_theme_enabled ?? false);
@@ -167,7 +167,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
           .from('app_settings')
           .select('setting_value')
           .eq('setting_key', 'favicon_url')
-          .single();
+          .maybeSingle();
 
         if (!error && data?.setting_value) {
           const faviconUrl = data.setting_value as string;

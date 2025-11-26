@@ -142,12 +142,23 @@ export const AnnouncementDialog = () => {
   const markAsRead = async (announcementId: string) => {
     if (!user) return;
 
-    await supabase
+    // Use upsert to avoid duplicate key errors
+    const { error } = await supabase
       .from('announcement_reads')
-      .insert({
-        user_id: user.id,
-        announcement_id: announcementId
-      });
+      .upsert(
+        {
+          user_id: user.id,
+          announcement_id: announcementId
+        },
+        {
+          onConflict: 'user_id,announcement_id',
+          ignoreDuplicates: true
+        }
+      );
+
+    if (error) {
+      console.error('Error marking announcement as read:', error);
+    }
   };
 
   const handleNext = async () => {
