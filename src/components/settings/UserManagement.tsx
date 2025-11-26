@@ -77,6 +77,9 @@ export function UserManagement() {
   const [resetMethod, setResetMethod] = useState<"email" | "sms" | "both" | "show">("show");
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [resetPasswordResult, setResetPasswordResult] = useState<string | null>(null);
+  const [editRelationshipType, setEditRelationshipType] = useState<string>("primary");
+  const [editIsPrimaryContact, setEditIsPrimaryContact] = useState<boolean>(false);
+  const [editUnitOwnerId, setEditUnitOwnerId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -518,12 +521,37 @@ export function UserManagement() {
     }
   };
 
-  const handleEditUser = (user: UserWithRoles) => {
+  const handleEditUser = async (user: UserWithRoles) => {
     setEditingUser(user);
     setEditEmail("");
     setEditFullName(user.full_name);
     setEditUnitNumber(user.units[0] || "");
     setEditPhone(user.phone || "");
+    
+    // Fetch unit ownership details if user has a unit
+    if (user.units[0]) {
+      const { data } = await supabase
+        .from("unit_owners")
+        .select("id, relationship_type, is_primary_contact")
+        .eq("user_id", user.id)
+        .eq("unit_number", user.units[0])
+        .maybeSingle();
+      
+      if (data) {
+        setEditRelationshipType(data.relationship_type || "primary");
+        setEditIsPrimaryContact(data.is_primary_contact || false);
+        setEditUnitOwnerId(data.id);
+      } else {
+        setEditRelationshipType("primary");
+        setEditIsPrimaryContact(false);
+        setEditUnitOwnerId(null);
+      }
+    } else {
+      setEditRelationshipType("primary");
+      setEditIsPrimaryContact(false);
+      setEditUnitOwnerId(null);
+    }
+    
     setEditDialogOpen(true);
   };
 
@@ -545,6 +573,8 @@ export function UserManagement() {
           full_name: editFullName,
           unit_number: editUnitNumber || null,
           phone: editPhone || null,
+          relationship_type: editRelationshipType,
+          is_primary_contact: editIsPrimaryContact,
         }),
       });
 
@@ -1357,6 +1387,40 @@ export function UserManagement() {
                 placeholder="(808) 555-1234"
               />
             </div>
+            {editingUser?.units && editingUser.units.length > 0 && (
+              <>
+                <div>
+                  <Label htmlFor="editRelationship">Relationship Type</Label>
+                  <Select value={editRelationshipType} onValueChange={setEditRelationshipType}>
+                    <SelectTrigger id="editRelationship">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="owner">Owner</SelectItem>
+                      <SelectItem value="renter">Renter</SelectItem>
+                      <SelectItem value="family">Family Member</SelectItem>
+                      <SelectItem value="agent">Property Agent</SelectItem>
+                      <SelectItem value="primary">Primary</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="editPrimaryContact">Primary Contact</Label>
+                    <div className="text-sm text-muted-foreground">
+                      Main contact person for Unit {editUnitNumber}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="editPrimaryContact"
+                      checked={editIsPrimaryContact}
+                      onCheckedChange={(checked) => setEditIsPrimaryContact(checked as boolean)}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
             <div className="flex justify-end gap-2">
               <Button
                 type="button"

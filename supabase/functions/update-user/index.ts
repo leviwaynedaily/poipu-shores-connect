@@ -17,9 +17,9 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { userId, email, full_name, unit_number, phone } = await req.json();
+    const { userId, email, full_name, unit_number, phone, relationship_type, is_primary_contact } = await req.json();
 
-    console.log('Updating user:', { userId, email, full_name, unit_number, phone });
+    console.log('Updating user:', { userId, email, full_name, unit_number, phone, relationship_type, is_primary_contact });
 
     // Verify the requesting user is an admin
     const authHeader = req.headers.get('Authorization')!;
@@ -61,7 +61,6 @@ serve(async (req) => {
     // Update profile information
     const updateData: any = {};
     if (full_name !== undefined) updateData.full_name = full_name;
-    if (unit_number !== undefined) updateData.unit_number = unit_number;
     if (phone !== undefined) updateData.phone = phone;
 
     const { error: profileError } = await supabaseClient
@@ -70,6 +69,42 @@ serve(async (req) => {
       .eq('id', userId);
 
     if (profileError) throw profileError;
+
+    // Update unit ownership information
+    if (unit_number) {
+      // Check if unit_owners record exists
+      const { data: existingUnit } = await supabaseClient
+        .from('unit_owners')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('unit_number', unit_number)
+        .maybeSingle();
+
+      const unitUpdateData: any = {};
+      if (relationship_type !== undefined) unitUpdateData.relationship_type = relationship_type;
+      if (is_primary_contact !== undefined) unitUpdateData.is_primary_contact = is_primary_contact;
+
+      if (existingUnit) {
+        // Update existing unit_owners record
+        const { error: unitUpdateError } = await supabaseClient
+          .from('unit_owners')
+          .update(unitUpdateData)
+          .eq('id', existingUnit.id);
+
+        if (unitUpdateError) throw unitUpdateError;
+      } else if (Object.keys(unitUpdateData).length > 0) {
+        // Create new unit_owners record if relationship data is provided
+        const { error: unitInsertError } = await supabaseClient
+          .from('unit_owners')
+          .insert({
+            user_id: userId,
+            unit_number,
+            ...unitUpdateData,
+          });
+
+        if (unitInsertError) throw unitInsertError;
+      }
+    }
 
     console.log('User updated successfully');
 
