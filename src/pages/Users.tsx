@@ -95,7 +95,6 @@ export default function Users() {
     setIsInviting(true);
 
     try {
-      // Get the current session token
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
@@ -118,9 +117,20 @@ export default function Users() {
         throw new Error(error.message || "Failed to invite user");
       }
 
+      const tempPassword = data.temp_password;
+      
       toast({
-        title: "User invited",
-        description: `Invitation sent to ${inviteEmail}`,
+        title: "User Invited Successfully!",
+        description: (
+          <div className="space-y-2">
+            <p>Email sent to {inviteEmail}</p>
+            <div className="bg-muted p-2 rounded">
+              <p className="font-mono text-sm">Temp Password: {tempPassword}</p>
+            </div>
+            <p className="text-xs text-muted-foreground">Share this password with the user</p>
+          </div>
+        ),
+        duration: 10000,
       });
 
       setInviteEmail("");

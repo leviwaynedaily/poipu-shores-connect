@@ -1,326 +1,227 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
-import { Resend } from "https://esm.sh/resend@4.0.0";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { Resend } from 'https://esm.sh/resend@4.0.0';
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Hawaiian words for password generation
+const hawaiianWords = [
+  'aloha', 'mahalo', 'ohana', 'keiki', 'kai', 'makai', 'mauka', 'lanai',
+  'pono', 'kuleana', 'kokua', 'malama', 'pau', 'wiki', 'hale', 'mana',
+  'nani', 'aina', 'pua', 'mele', 'hula', 'wiki', 'lua', 'koa',
+  'kula', 'luna', 'moana', 'pali', 'wai', 'lani', 'kane', 'wahine'
+];
+
+// Generate a temporary password using Hawaiian words
+function generateTempPassword(): string {
+  const word1 = hawaiianWords[Math.floor(Math.random() * hawaiianWords.length)];
+  const word2 = hawaiianWords[Math.floor(Math.random() * hawaiianWords.length)];
+  const number = Math.floor(Math.random() * 99) + 1;
+  return `${word1}${word2}${number}`;
+}
+
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
+  if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
-    const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-
-    // Get authenticated user from JWT (already verified by Supabase)
-    console.log("Checking authorization header...");
-    const authHeader = req.headers.get("Authorization");
-    console.log("Auth header present:", !!authHeader);
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
+    const supabaseClient = createClient(supabaseUrl, supabaseServiceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+
+    const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      console.error("No authorization header found");
-      return new Response(JSON.stringify({ error: "Unauthorized: No auth header" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    const token = authHeader.replace("Bearer ", "");
-    console.log("Token length:", token.length);
-    console.log("Getting user from token...");
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
     
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
-
-    if (authError) {
-      console.error("Auth error:", authError.message, authError.status);
-      return new Response(JSON.stringify({ error: `Unauthorized: ${authError.message}` }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (userError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    if (!user) {
-      console.error("No user found from token");
-      return new Response(JSON.stringify({ error: "Unauthorized: No user" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const { data: roleData, error: roleError } = await supabaseClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .single();
+
+    if (roleError || !roleData) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - Not an admin' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    console.log(`Authenticated user: ${user.email} (${user.id})`);
+    const { email, full_name, phone, role, unit_number, is_primary_owner } = await req.json();
 
-    const { data: roles } = await supabaseClient
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id);
+    // Generate temporary password
+    const tempPassword = generateTempPassword();
 
-    const isAdmin = roles?.some((r) => r.role === "admin");
-    if (!isAdmin) {
-      return new Response(JSON.stringify({ error: "Forbidden: Admin access required" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { email, full_name, unit_number, phone, role, relationship_type, is_primary_contact } = await req.json();
-
-    if (!email || !full_name) {
-      return new Response(JSON.stringify({ error: "Email and full name are required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Generate a temporary password
-    const tempPassword = crypto.randomUUID();
-
-    // Create the user with email confirmed (they'll set password via invite link)
+    // Create user with temp password and force password change on first login
     const { data: newUser, error: createError } = await supabaseClient.auth.admin.createUser({
       email,
       password: tempPassword,
-      email_confirm: true, // Email is confirmed - they just need to set a password
+      email_confirm: true,
       user_metadata: {
         full_name,
-        unit_number: unit_number || null,
+        phone,
+        force_password_change: true
       },
     });
 
-    if (createError) {
-      console.error("Failed to create user:", createError);
-      return new Response(JSON.stringify({ error: createError.message }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (createError || !newUser.user) {
+      throw createError || new Error('Failed to create user');
     }
 
-    console.log(`User created successfully: ${email}`);
+    // Update user profile
+    const { error: profileError } = await supabaseClient
+      .from('profiles')
+      .update({
+        full_name,
+        phone,
+        unit_number,
+      })
+      .eq('id', newUser.user.id);
 
-    // Update profile with phone number if provided
-    if (phone) {
-      const { error: phoneError } = await supabaseClient
-        .from("profiles")
-        .update({ phone })
-        .eq("id", newUser.user.id);
-      
-      if (phoneError) {
-        console.error("Failed to update phone number:", phoneError);
-      } else {
-        console.log(`Updated phone number for user ${email}`);
-      }
+    if (profileError) {
+      throw profileError;
     }
 
-    // Assign role if specified
-    if (role && (role === "admin" || role === "owner" || role === "board")) {
-      const { error: roleError } = await supabaseClient
-        .from("user_roles")
-        .insert({ user_id: newUser.user.id, role });
-      
-      if (roleError) {
-        console.error("Failed to assign role:", roleError);
-      } else {
-        console.log(`Assigned role ${role} to user ${email}`);
-      }
+    // Add role if specified
+    if (role && ['admin', 'board', 'owner'].includes(role)) {
+      await supabaseClient
+        .from('user_roles')
+        .insert({
+          user_id: newUser.user.id,
+          role: role
+        });
     }
 
-    // Create unit_owners entry if unit_number is provided
+    // Add unit ownership if unit_number is provided
     if (unit_number) {
-      const { error: unitOwnerError } = await supabaseClient
-        .from("unit_owners")
+      await supabaseClient
+        .from('unit_owners')
         .insert({
           user_id: newUser.user.id,
           unit_number,
-          relationship_type: relationship_type || 'primary',
-          is_primary_contact: is_primary_contact || false,
+          relationship_type: 'owner',
+          is_primary_contact: is_primary_owner || false,
         });
-      
-      if (unitOwnerError) {
-        console.error("Failed to assign unit:", unitOwnerError);
-      } else {
-        console.log(`Assigned unit ${unit_number} to user ${email} as ${relationship_type || 'primary'}`);
+    }
+
+    // Send email notification
+    const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
+    const loginUrl = 'https://poipu-shores.com';
+
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2563eb;">Welcome to Poipu Shores!</h2>
+        <p>Hello ${full_name},</p>
+        <p>You've been invited to join the Poipu Shores community platform.</p>
+        
+        <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <p style="margin: 0 0 10px 0;"><strong>Login URL:</strong> ${loginUrl}</p>
+          <p style="margin: 0 0 10px 0;"><strong>Email:</strong> ${email}</p>
+          <p style="margin: 0;"><strong>Temporary Password:</strong> <code style="background-color: #e5e7eb; padding: 4px 8px; border-radius: 4px; font-size: 16px;">${tempPassword}</code></p>
+        </div>
+
+        ${phone ? '<p><em>An SMS with login details has also been sent to your phone.</em></p>' : ''}
+        ${unit_number ? `<p><strong>Your Unit:</strong> ${unit_number}</p>` : ''}
+        
+        <p style="color: #dc2626; font-weight: 600;">You will be required to change your password upon first login.</p>
+        
+        <p style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 12px;">
+          If you didn't expect this invitation, please contact the Poipu Shores admin.
+        </p>
+      </div>
+    `;
+
+    try {
+      await resend.emails.send({
+        from: 'Poipu Shores <onboarding@resend.dev>',
+        to: email,
+        subject: 'Welcome to Poipu Shores - Your Login Details',
+        html: emailHtml,
+      });
+    } catch (emailError) {
+      console.error('Email error:', emailError);
+    }
+
+    // Send SMS if phone number exists
+    if (phone) {
+      try {
+        const twilioAccountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
+        const twilioAuthToken = Deno.env.get('TWILIO_AUTH_TOKEN');
+        const twilioPhoneNumber = Deno.env.get('TWILIO_PHONE_NUMBER');
+
+        const smsMessage = `Welcome to Poipu Shores! Login at ${loginUrl} with email: ${email} and password: ${tempPassword}. An email with details was also sent. You'll need to change your password on first login.`;
+
+        const response = await fetch(
+          `https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Basic ' + btoa(`${twilioAccountSid}:${twilioAuthToken}`),
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+              To: phone,
+              From: twilioPhoneNumber!,
+              Body: smsMessage,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          console.error('SMS error:', await response.text());
+        }
+      } catch (smsError) {
+        console.error('SMS error:', smsError);
       }
     }
 
-    // Generate a secure random token for custom invitation flow
-    const tokenBytes = new Uint8Array(32);
-    crypto.getRandomValues(tokenBytes);
-    const inviteToken = Array.from(tokenBytes)
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
-
-    // Store the token in pending_invites
-    const { error: tokenError } = await supabaseClient
-      .from("pending_invites")
-      .insert({
-        user_id: newUser.user.id,
-        token: inviteToken,
-        email,
-        full_name,
-        unit_number: unit_number || null,
-      });
-
-    if (tokenError) {
-      console.error("Failed to create invite token:", tokenError);
-      // User was created, but we can't send email - return partial success
-      return new Response(JSON.stringify({ 
-        error: "User created but failed to generate invite link",
-        user: { id: newUser.user.id, email }
-      }), {
-        status: 207, // Multi-status
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const inviteLink = `https://poipu-shores.com/accept-invite?token=${inviteToken}`;
-    console.log(`Generated invite link for ${email}`);
-
-    // Send invitation email
-    const { error: emailError } = await resend.emails.send({
-      from: "Poipu Shores <noreply@poipu-shores.com>",
-      replyTo: "support@poipu-shores.com",
-      to: [email],
-      subject: "Complete Your Poipu Shores Registration",
-      headers: {
-        'X-Entity-Ref-ID': crypto.randomUUID(),
-        'List-Unsubscribe': '<mailto:unsubscribe@poipu-shores.com>',
-        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-      },
-      text: `Complete Your Poipu Shores Registration
-
-Hi ${full_name},
-
-You've been invited to join the Poipu Shores community platform. This is an account notification to complete your registration.
-
-Complete your registration: ${inviteLink}
-
-${unit_number ? `Your Unit: ${unit_number}\n\n` : ''}This is an automated account notification. If you didn't request this, please disregard this message.
-
----
-Poipu Shores Community
-Koloa, Kauai, HI 96756
-
-Questions? Reply to this email or contact support@poipu-shores.com`,
-      html: `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="light">
-  <meta name="supported-color-schemes" content="light">
-  <!--[if mso]>
-  <style type="text/css">
-    table {border-collapse: collapse;}
-  </style>
-  <![endif]-->
-</head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #ffffff;">
-  <!-- Preheader text (hidden) -->
-  <div style="display: none; max-height: 0px; overflow: hidden;">
-    Complete your Poipu Shores account registration ${unit_number ? `for Unit ${unit_number}` : ''} - Action required
-  </div>
-  
-  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff;">
-    <tr>
-      <td style="padding: 40px 20px;">
-        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin: 0 auto;">
-          
-          <!-- Header -->
-          <tr>
-            <td style="padding: 0 0 24px 0;">
-              <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #111827; line-height: 1.25;">Poipu Shores</h1>
-            </td>
-          </tr>
-          
-          <!-- Main Content -->
-          <tr>
-            <td style="padding: 0 0 24px 0;">
-              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.5; color: #111827;">Hi ${full_name},</p>
-              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.5; color: #374151;">You've been invited to join the Poipu Shores community platform. This is an account notification to complete your registration and set your password.</p>
-              ${unit_number ? `<p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.5; color: #374151;"><strong>Your Unit:</strong> ${unit_number}</p>` : ''}
-            </td>
-          </tr>
-          
-          <!-- CTA Button -->
-          <tr>
-            <td style="padding: 0 0 24px 0;">
-              <table role="presentation" border="0" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="background-color: #2563eb; border-radius: 6px;">
-                    <a href="${inviteLink}" target="_blank" style="display: inline-block; padding: 14px 28px; font-size: 16px; font-weight: 500; color: #ffffff; text-decoration: none; border-radius: 6px;">Complete Registration</a>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          
-          <!-- Link Fallback -->
-          <tr>
-            <td style="padding: 0 0 32px 0; border-bottom: 1px solid #e5e7eb;">
-              <p style="margin: 0 0 8px 0; font-size: 14px; line-height: 1.5; color: #6b7280;">Or copy this link:</p>
-              <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #2563eb; word-break: break-all;">${inviteLink}</p>
-            </td>
-          </tr>
-          
-          <!-- Security Notice -->
-          <tr>
-            <td style="padding: 24px 0 32px 0; border-bottom: 1px solid #e5e7eb;">
-              <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #6b7280;">This is an automated account notification. If you didn't request this, please disregard this message.</p>
-            </td>
-          </tr>
-          
-          <!-- Footer -->
-          <tr>
-            <td style="padding: 24px 0 0 0;">
-              <p style="margin: 0 0 8px 0; font-size: 14px; line-height: 1.5; color: #111827; font-weight: 500;">Poipu Shores Community</p>
-              <p style="margin: 0 0 4px 0; font-size: 13px; line-height: 1.5; color: #6b7280;">Koloa, Kauai, HI 96756</p>
-              <p style="margin: 0 0 16px 0; font-size: 13px; line-height: 1.5; color: #6b7280;">Questions? Reply to this email or contact support@poipu-shores.com</p>
-              <p style="margin: 0; font-size: 12px; line-height: 1.5; color: #9ca3af;">© ${new Date().getFullYear()} Poipu Shores. All rights reserved.</p>
-            </td>
-          </tr>
-          
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`,
-    });
-
-    if (emailError) {
-      console.error("Failed to send invitation email:", emailError);
-      // User was created but email failed - return partial success
-      return new Response(JSON.stringify({ 
-        error: "User created but failed to send email",
-        user: { id: newUser.user.id, email }
-      }), {
-        status: 207, // Multi-status
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    console.log(`Invitation email sent successfully to ${email}`);
-
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: "User invited successfully",
-        user: { id: newUser.user.id, email }
+      JSON.stringify({
+        success: true,
+        message: 'User invited successfully',
+        user_id: newUser.user.id,
+        temp_password: tempPassword
       }),
       {
         status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    console.error('Error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+    return new Response(
+      JSON.stringify({
+        error: errorMessage
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
   }
 });
