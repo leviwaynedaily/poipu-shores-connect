@@ -605,8 +605,8 @@ export function DocumentBrowser({ canManage, refreshTrigger, onFolderChange }: D
   return (
     <div className="space-y-4">
       {/* Breadcrumb Navigation */}
-      <div className="flex items-center justify-between">
-        <Breadcrumb>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <Breadcrumb className="overflow-x-auto max-w-full">
           <BreadcrumbList>
             {currentFolderId && (
               <BreadcrumbItem>
@@ -623,10 +623,10 @@ export function DocumentBrowser({ canManage, refreshTrigger, onFolderChange }: D
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
                   {index === breadcrumbs.length - 1 ? (
-                    <BreadcrumbPage>{crumb.name}</BreadcrumbPage>
+                    <BreadcrumbPage className="max-w-[200px] truncate">{crumb.name}</BreadcrumbPage>
                   ) : (
                     <BreadcrumbLink
-                      className="cursor-pointer"
+                      className="cursor-pointer max-w-[150px] truncate"
                       onClick={() => setCurrentFolderId(crumb.id)}
                     >
                       {crumb.name}
@@ -638,21 +638,25 @@ export function DocumentBrowser({ canManage, refreshTrigger, onFolderChange }: D
           </BreadcrumbList>
         </Breadcrumb>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           {canManage && selectedDocuments.size > 0 && (
             <Button 
               variant="destructive" 
               onClick={handleBulkDelete}
               disabled={isDeleting}
+              size="sm"
+              className="flex-1 sm:flex-none"
             >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete {selectedDocuments.size} Selected
+              <Trash2 className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Delete {selectedDocuments.size} Selected</span>
+              <span className="sm:hidden">Delete ({selectedDocuments.size})</span>
             </Button>
           )}
           {canManage && (
-            <Button onClick={() => setShowNewFolderDialog(true)}>
-              <FolderPlus className="mr-2 h-4 w-4" />
-              New Folder
+            <Button onClick={() => setShowNewFolderDialog(true)} size="sm" className="flex-1 sm:flex-none">
+              <FolderPlus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">New Folder</span>
+              <span className="sm:hidden">New</span>
             </Button>
           )}
         </div>
@@ -667,25 +671,26 @@ export function DocumentBrowser({ canManage, refreshTrigger, onFolderChange }: D
           onDrop={canManage ? (e) => handleDrop(e, null) : undefined}
           className={draggedDocument ? "ring-2 ring-primary/20 rounded-lg" : ""}
         >
-          <Table>
-          <TableHeader>
-            <TableRow>
-              {canManage && documents.length > 0 && (
-                <TableHead className="w-12">
-                  <Checkbox
-                    checked={selectedDocuments.size === documents.length && documents.length > 0}
-                    onCheckedChange={handleSelectAll}
-                  />
-                </TableHead>
-              )}
-              <TableHead>Name</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Size</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+          <div className="rounded-md border overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {canManage && documents.length > 0 && (
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={selectedDocuments.size === documents.length && documents.length > 0}
+                        onCheckedChange={handleSelectAll}
+                      />
+                    </TableHead>
+                  )}
+                  <TableHead className="min-w-[200px]">Name</TableHead>
+                  <TableHead className="hidden sm:table-cell">Type</TableHead>
+                  <TableHead className="min-w-[80px]">Size</TableHead>
+                  <TableHead className="hidden md:table-cell">Date</TableHead>
+                  <TableHead className="min-w-[100px]">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
             {folders.map((folder) => (
               <TableRow
                 key={folder.id}
@@ -699,22 +704,22 @@ export function DocumentBrowser({ canManage, refreshTrigger, onFolderChange }: D
                 {canManage && documents.length > 0 && <TableCell />}
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
-                    <Folder className="h-5 w-5 text-primary" />
-                    {folder.name}
+                    <Folder className="h-5 w-5 text-primary shrink-0" />
+                    <span className="truncate">{folder.name}</span>
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">
                   <Badge variant="secondary">Folder</Badge>
                 </TableCell>
                 <TableCell>—</TableCell>
-                <TableCell>
+                <TableCell className="hidden md:table-cell">
                   {new Date(folder.created_at).toLocaleDateString()}
                 </TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   {canManage && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -776,15 +781,15 @@ export function DocumentBrowser({ canManage, refreshTrigger, onFolderChange }: D
                     className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors"
                     onClick={() => setViewingDocument({ id: doc.id, title: doc.title, filePath: doc.file_path, fileType: doc.file_type })}
                   >
-                    <FileText className="h-5 w-5" />
-                    {doc.title}
+                    <FileText className="h-5 w-5 shrink-0" />
+                    <span className="truncate">{doc.title}</span>
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">
                   <Badge variant="outline">{doc.category}</Badge>
                 </TableCell>
                 <TableCell>{formatFileSize(doc.file_size)}</TableCell>
-                <TableCell>
+                <TableCell className="hidden md:table-cell">
                   {new Date(doc.created_at).toLocaleDateString()}
                 </TableCell>
                 <TableCell>
@@ -793,13 +798,15 @@ export function DocumentBrowser({ canManage, refreshTrigger, onFolderChange }: D
                       size="sm"
                       variant="outline"
                       onClick={() => handleDownload(doc.file_path, doc.title)}
+                      className="h-8 w-8 p-0 sm:h-9 sm:w-auto sm:px-3"
                     >
                       <Download className="h-4 w-4" />
+                      <span className="sr-only sm:not-sr-only sm:ml-2">Download</span>
                     </Button>
                     {canManage && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -853,6 +860,7 @@ export function DocumentBrowser({ canManage, refreshTrigger, onFolderChange }: D
             )}
           </TableBody>
         </Table>
+        </div>
         </div>
       )}
 
