@@ -3,32 +3,27 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Search, Phone, Home } from "lucide-react";
+import { Search, Phone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { formatPhoneNumber } from "@/lib/phoneUtils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { toast } from "sonner";
+import { PageHeader } from "@/components/PageHeader";
 
-interface UnitOwner {
-  unit_number: string;
-  relationship_type: string;
-  is_primary_contact: boolean;
-  profiles: {
-    id: string;
-    full_name: string;
-    phone: string | null;
-    show_contact_info: boolean;
-    avatar_url: string | null;
-  };
-}
-
-interface GroupedUnit {
-  unit_number: string;
-  owners: UnitOwner[];
+// Interface for member
+interface Member {
+  id: string;
+  full_name: string;
+  phone: string | null;
+  show_contact_info: boolean;
+  avatar_url: string | null;
+  unit_number: string | null;
+  relationship_type: string | null;
+  is_primary_contact: boolean | null;
 }
 
 const Members = () => {
-  const [units, setUnits] = useState<GroupedUnit[]>([]);
-  const [filteredUnits, setFilteredUnits] = useState<GroupedUnit[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [filteredMembers, setFilteredMembers] = useState<Member[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -37,106 +32,100 @@ const Members = () => {
   }, []);
 
   useEffect(() => {
-    filterUnits();
-  }, [searchTerm, units]);
+    filterMembers();
+  }, [searchTerm, members]);
 
   const fetchMembers = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("unit_owners")
-      .select(`
-        unit_number,
-        relationship_type,
-        is_primary_contact,
-        profiles!inner (
+    try {
+      setLoading(true);
+      
+      // Fetch all profiles with their unit information (if assigned)
+      const { data: membersData, error } = await supabase
+        .from("profiles")
+        .select(`
           id,
           full_name,
           phone,
           show_contact_info,
           avatar_url,
-          is_active
-        )
-      `)
-      .eq('profiles.is_active', true)
-      .order("unit_number", { ascending: true })
-      .order("is_primary_contact", { ascending: false });
+          unit_owners (
+            unit_number,
+            relationship_type,
+            is_primary_contact
+          )
+        `)
+        .eq("is_active", true)
+        .order("full_name");
 
-    if (!error && data) {
-      // Group by unit number
-      const grouped = data.reduce((acc: GroupedUnit[], item: any) => {
-        const existingUnit = acc.find(u => u.unit_number === item.unit_number);
-        const ownerData: UnitOwner = {
-          unit_number: item.unit_number,
-          relationship_type: item.relationship_type,
-          is_primary_contact: item.is_primary_contact,
-          profiles: item.profiles,
-        };
+      if (error) {
+        console.error("Error fetching members:", error);
+        toast.error("Failed to load members");
+        return;
+      }
+
+      // Transform data to flat member list
+      const membersList: Member[] = membersData?.map((profile: any) => {
+        const unitOwner = profile.unit_owners?.[0]; // Take first unit if multiple
         
-        if (existingUnit) {
-          existingUnit.owners.push(ownerData);
-        } else {
-          acc.push({
-            unit_number: item.unit_number,
-            owners: [ownerData],
-          });
-        }
-        return acc;
-      }, []);
+        return {
+          id: profile.id,
+          full_name: profile.full_name,
+          phone: profile.phone,
+          show_contact_info: profile.show_contact_info,
+          avatar_url: profile.avatar_url,
+          unit_number: unitOwner?.unit_number || null,
+          relationship_type: unitOwner?.relationship_type || null,
+          is_primary_contact: unitOwner?.is_primary_contact || null,
+        };
+      }) || [];
 
-      setUnits(grouped);
-      setFilteredUnits(grouped);
+      // Sort: members with units first (by unit number), then others (alphabetically)
+      membersList.sort((a, b) => {
+        if (a.unit_number && !b.unit_number) return -1;
+        if (!a.unit_number && b.unit_number) return 1;
+        if (a.unit_number && b.unit_number) {
+          return a.unit_number.localeCompare(b.unit_number, undefined, { numeric: true });
+        }
+        return a.full_name.localeCompare(b.full_name);
+      });
+      
+      setMembers(membersList);
+      setFilteredMembers(membersList);
+    } catch (error) {
+      console.error("Error in fetchMembers:", error);
+      toast.error("An error occurred while loading members");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  const filterUnits = () => {
+  const filterMembers = () => {
     if (!searchTerm.trim()) {
-      setFilteredUnits(units);
+      setFilteredMembers(members);
       return;
     }
 
-    const term = searchTerm.toLowerCase();
-    const filtered = units
-      .map(unit => ({
-        ...unit,
-        owners: unit.owners.filter(owner =>
-          owner.profiles.full_name.toLowerCase().includes(term) ||
-          unit.unit_number.toLowerCase().includes(term)
-        ),
-      }))
-      .filter(unit => unit.owners.length > 0);
-    
-    setFilteredUnits(filtered);
-  };
+    const searchLower = searchTerm.toLowerCase();
+    const filtered = members.filter(member =>
+      member.full_name.toLowerCase().includes(searchLower) ||
+      (member.unit_number && member.unit_number.toLowerCase().includes(searchLower))
+    );
 
-  const getRelationshipBadge = (type: string) => {
-    const variants: { [key: string]: string } = {
-      primary: "default",
-      spouse: "secondary",
-      "co-owner": "secondary",
-      family: "outline",
-    };
-    return variants[type] || "outline";
+    setFilteredMembers(filtered);
   };
-
-  const totalOwners = filteredUnits.reduce((sum, unit) => sum + unit.owners.length, 0);
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-3xl">Poipu Shores Owners</CardTitle>
-          <CardDescription className="text-lg">
-            Connect with your neighbors at Poipu Shores
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      <PageHeader
+        title="Poipu Shores Members"
+        description="Connect with your neighbors at Poipu Shores"
+      />
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Owner Directory</CardTitle>
-          <CardDescription className="text-lg">
-            Search and browse Poipu Shores owners
+          <CardTitle>Member Directory</CardTitle>
+          <CardDescription>
+            Search and browse Poipu Shores members
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -147,94 +136,101 @@ const Members = () => {
               placeholder="Search by name or unit number..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 text-lg py-6"
+              className="pl-10"
             />
           </div>
 
-          {loading ? (
-            <div className="text-center py-8">
-              <p className="text-lg text-muted-foreground">Loading owners...</p>
-            </div>
-          ) : filteredUnits.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-lg text-muted-foreground">
-                {searchTerm ? "No owners found matching your search." : "No owners found."}
-              </p>
-            </div>
-          ) : (
+          <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Member</TableHead>
                   <TableHead>Unit</TableHead>
-                  <TableHead>Owner</TableHead>
                   <TableHead>Relationship</TableHead>
                   <TableHead>Contact</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUnits.map((unit) => (
-                  unit.owners.map((owner, idx) => (
-                    <TableRow key={`${unit.unit_number}-${owner.profiles.id}`}>
-                      {idx === 0 ? (
-                        <TableCell rowSpan={unit.owners.length} className="font-medium align-top">
-                          <Badge variant="secondary" className="w-fit">
-                            <Home className="h-3 w-3 mr-1" />
-                            {unit.unit_number}
-                          </Badge>
-                        </TableCell>
-                      ) : null}
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-8">
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : filteredMembers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                      {searchTerm ? "No members found matching your search" : "No members found"}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredMembers.map((member) => (
+                    <TableRow key={member.id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="h-10 w-10">
-                            <AvatarImage src={owner.profiles.avatar_url || ""} />
+                            <AvatarImage src={member.avatar_url || undefined} />
                             <AvatarFallback>
-                              {owner.profiles.full_name.split(" ").map(n => n[0]).join("").toUpperCase() || "?"}
+                              {member.full_name.split(' ').map(n => n[0]).join('')}
                             </AvatarFallback>
                           </Avatar>
-                          <div className="flex flex-col">
-                            <span className="font-medium">{owner.profiles.full_name}</span>
-                            {owner.is_primary_contact && (
-                              <span className="text-xs text-muted-foreground">Primary Contact</span>
-                            )}
+                          <div>
+                            <div className="font-medium">{member.full_name}</div>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={getRelationshipBadge(owner.relationship_type) as any}>
-                          {owner.relationship_type.charAt(0).toUpperCase() + owner.relationship_type.slice(1)}
-                        </Badge>
+                        {member.unit_number ? (
+                          <div className="font-medium text-primary">
+                            Unit {member.unit_number}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
                       </TableCell>
                       <TableCell>
-                        {owner.profiles.show_contact_info ? (
-                          <>
-                            {owner.profiles.phone ? (
-                              <div className="flex items-center gap-2">
-                                <Phone className="h-4 w-4 text-muted-foreground" />
-                                <a href={`tel:${owner.profiles.phone}`} className="hover:text-primary transition-colors">
-                                  {formatPhoneNumber(owner.profiles.phone)}
-                                </a>
-                              </div>
-                            ) : (
-                              <span className="text-sm text-muted-foreground">No contact info</span>
+                        {member.relationship_type ? (
+                          <div className="flex items-center gap-2">
+                            <span className="capitalize">{member.relationship_type}</span>
+                            {member.is_primary_contact && (
+                              <Badge variant="secondary" className="text-xs">
+                                Primary Contact
+                              </Badge>
                             )}
-                          </>
+                          </div>
                         ) : (
-                          <span className="text-sm text-muted-foreground">Contact info hidden</span>
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {member.show_contact_info && member.phone ? (
+                          <a
+                            href={`tel:${member.phone}`}
+                            className="flex items-center gap-2 text-primary hover:underline"
+                          >
+                            <Phone className="h-4 w-4" />
+                            {member.phone}
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">Not shared</span>
                         )}
                       </TableCell>
                     </TableRow>
                   ))
-                ))}
+                )}
               </TableBody>
             </Table>
-          )}
-
-          <div className="mt-6 pt-6 border-t">
-            <p className="text-sm text-muted-foreground">
-              {filteredUnits.length} {filteredUnits.length === 1 ? 'Unit' : 'Units'} • {totalOwners} {totalOwners === 1 ? 'Owner' : 'Owners'}
-              {searchTerm && ` (filtered from ${units.length} units)`}
-            </p>
           </div>
+
+          {!loading && filteredMembers.length > 0 && (
+            <div className="flex items-center justify-between px-2 py-4">
+              <p className="text-sm text-muted-foreground">
+                {filteredMembers.length} {filteredMembers.length === 1 ? 'Member' : 'Members'}
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
