@@ -168,23 +168,25 @@ export default function Users() {
 
   const handleResendInvite = async (userId: string, fullName: string, unitNumber: string | null) => {
     try {
-      const response = await fetch(`https://rvqqnfsgovlxocjjugww.supabase.co/functions/v1/resend-invite`, {
-        method: "POST",
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error("Not authenticated");
+      }
+
+      const { data, error } = await supabase.functions.invoke('resend-invite', {
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({
+        body: {
           user_id: userId,
           full_name: fullName,
           unit_number: unitNumber,
-        }),
+        },
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to resend invite");
+      if (error) {
+        throw new Error(error.message || "Failed to resend invite");
       }
 
       toast({
