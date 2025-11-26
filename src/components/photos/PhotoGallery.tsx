@@ -9,7 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Search, Calendar, User, Trash2, Camera, MapPin, ChevronLeft, ChevronRight, Edit } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Search, Calendar, User, Trash2, Camera, MapPin, ChevronLeft, ChevronRight, Edit, Heart, MessageCircle, Send } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -32,6 +33,20 @@ interface Photo {
   profiles: {
     full_name: string;
   };
+  likes_count: number;
+  isLikedByUser?: boolean;
+  commentsCount?: number;
+}
+
+interface PhotoComment {
+  id: string;
+  content: string;
+  created_at: string;
+  user_id: string;
+  profiles: {
+    full_name: string;
+    avatar_url: string | null;
+  };
 }
 
 export function PhotoGallery() {
@@ -48,6 +63,8 @@ export function PhotoGallery() {
   const [editTitle, setEditTitle] = useState("");
   const [editTags, setEditTags] = useState("");
   const [updating, setUpdating] = useState(false);
+  const [comments, setComments] = useState<PhotoComment[]>([]);
+  const [newComment, setNewComment] = useState("");
 
   useEffect(() => {
     fetchPhotos();
@@ -71,7 +88,26 @@ export function PhotoGallery() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setPhotos((data as any) || []);
+      
+      // Fetch likes and comments count for each photo
+      const photosWithMetadata = await Promise.all(
+        ((data as any) || []).map(async (photo: any) => {
+          const [likesResult, commentsResult, userLikeResult] = await Promise.all([
+            supabase.from("photo_likes").select("id", { count: "exact" }).eq("photo_id", photo.id),
+            supabase.from("photo_comments").select("id", { count: "exact" }).eq("photo_id", photo.id),
+            user ? supabase.from("photo_likes").select("id").eq("photo_id", photo.id).eq("user_id", user.id).maybeSingle() : Promise.resolve({ data: null }),
+          ]);
+          
+          return {
+            ...photo,
+            likes_count: likesResult.count || 0,
+            commentsCount: commentsResult.count || 0,
+            isLikedByUser: !!userLikeResult.data,
+          };
+        })
+      );
+      
+      setPhotos(photosWithMetadata);
     } catch (error) {
       console.error("Error fetching photos:", error);
     } finally {
@@ -193,8 +229,131 @@ export function PhotoGallery() {
     }
   };
 
-  const handlePhotoClick = (photo: Photo) => {
+  const handlePhotoClick = async (photo: Photo) => {
     setSelectedPhoto(photo);
+    await fetchComments(photo.id);
+  };
+
+  const fetchComments = async (photoId: string) => {
+    const { data, error } = await supabase
+      .from("photo_comments")
+      .select(`
+        id,
+        content,
+        created_at,
+        user_id,
+        profiles!photo_comments_user_id_fkey (
+          full_name,
+          avatar_url
+        )
+      `)
+      .eq("photo_id", photoId)
+      .order("created_at", { ascending: true });
+
+    if (!error && data) {
+      setComments(data as any);
+    }
+  };
+
+  const handleLikeToggle = async (photo: Photo) => {
+    if (!user) return;
+
+    if (photo.isLikedByUser) {
+      // Unlike
+      const { error } = await supabase
+        .from("photo_likes")
+        .delete()
+        .eq("photo_id", photo.id)
+        .eq("user_id", user.id);
+
+      if (!error) {
+        setPhotos(prev =>
+          prev.map(p =>
+            p.id === photo.id
+              ? { ...p, likes_count: p.likes_count - 1, isLikedByUser: false }
+              : p
+          )
+        );
+        if (selectedPhoto?.id === photo.id) {
+          setSelectedPhoto({ ...selectedPhoto, likes_count: selectedPhoto.likes_count - 1, isLikedByUser: false });
+        }
+      }
+    } else {
+      // Like
+      const { error } = await supabase
+        .from("photo_likes")
+        .insert({ photo_id: photo.id, user_id: user.id });
+
+      if (!error) {
+        setPhotos(prev =>
+          prev.map(p =>
+            p.id === photo.id
+              ? { ...p, likes_count: p.likes_count + 1, isLikedByUser: true }
+              : p
+          )
+        );
+        if (selectedPhoto?.id === photo.id) {
+          setSelectedPhoto({ ...selectedPhoto, likes_count: selectedPhoto.likes_count + 1, isLikedByUser: true });
+        }
+      }
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!user || !selectedPhoto || !newComment.trim()) return;
+
+    const { data, error } = await supabase
+      .from("photo_comments")
+      .insert({
+        photo_id: selectedPhoto.id,
+        user_id: user.id,
+        content: newComment.trim(),
+      })
+      .select(`
+        id,
+        content,
+        created_at,
+        user_id,
+        profiles!photo_comments_user_id_fkey (
+          full_name,
+          avatar_url
+        )
+      `)
+      .single();
+
+    if (!error && data) {
+      setComments(prev => [...prev, data as any]);
+      setNewComment("");
+      setPhotos(prev =>
+        prev.map(p =>
+          p.id === selectedPhoto.id
+            ? { ...p, commentsCount: (p.commentsCount || 0) + 1 }
+            : p
+        )
+      );
+      toast.success("Comment added");
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    const { error } = await supabase
+      .from("photo_comments")
+      .delete()
+      .eq("id", commentId);
+
+    if (!error) {
+      setComments(prev => prev.filter(c => c.id !== commentId));
+      if (selectedPhoto) {
+        setPhotos(prev =>
+          prev.map(p =>
+            p.id === selectedPhoto.id
+              ? { ...p, commentsCount: Math.max(0, (p.commentsCount || 0) - 1) }
+              : p
+          )
+        );
+      }
+      toast.success("Comment deleted");
+    }
   };
 
   const navigatePhoto = (direction: 'prev' | 'next') => {
@@ -319,14 +478,32 @@ export function PhotoGallery() {
                       </div>
                     )}
                     
-                    <div className="flex flex-col gap-1 text-xs text-muted-foreground pt-1">
-                      <div className="flex items-center gap-1.5">
-                        <User className="h-3 w-3" />
-                        <span>{photo.profiles.full_name}</span>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1.5">
+                          <User className="h-3 w-3" />
+                          <span>{photo.profiles.full_name}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="h-3 w-3" />
+                          <span>Uploaded {formatDistanceToNow(new Date(photo.created_at), { addSuffix: true })}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        <Calendar className="h-3 w-3" />
-                        <span>Uploaded {formatDistanceToNow(new Date(photo.created_at), { addSuffix: true })}</span>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleLikeToggle(photo);
+                          }}
+                          className="flex items-center gap-1 hover:text-red-500 transition-colors"
+                        >
+                          <Heart className={`h-4 w-4 ${photo.isLikedByUser ? 'fill-red-500 text-red-500' : ''}`} />
+                          <span>{photo.likes_count}</span>
+                        </button>
+                        <div className="flex items-center gap-1">
+                          <MessageCircle className="h-4 w-4" />
+                          <span>{photo.commentsCount || 0}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -472,6 +649,78 @@ export function PhotoGallery() {
                         </div>
                       </div>
                     )}
+                  </div>
+                  
+                  {/* Like button and comments section */}
+                  <div className="border-t pt-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-lg">Reactions</h3>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleLikeToggle(selectedPhoto)}
+                        className="gap-2"
+                      >
+                        <Heart className={`h-5 w-5 ${selectedPhoto.isLikedByUser ? 'fill-red-500 text-red-500' : ''}`} />
+                        <span>{selectedPhoto.likes_count} {selectedPhoto.likes_count === 1 ? 'like' : 'likes'}</span>
+                      </Button>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <h3 className="font-semibold text-lg flex items-center gap-2">
+                        <MessageCircle className="h-5 w-5" />
+                        Comments ({comments.length})
+                      </h3>
+                      
+                      <ScrollArea className="h-64 pr-4">
+                        <div className="space-y-4">
+                          {comments.length === 0 ? (
+                            <p className="text-sm text-muted-foreground text-center py-4">
+                              No comments yet. Be the first to comment!
+                            </p>
+                          ) : (
+                            comments.map((comment) => (
+                              <div key={comment.id} className="flex gap-3 p-3 rounded-lg border">
+                                <div className="flex-1">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <span className="font-medium text-sm">
+                                      {comment.profiles?.full_name || 'Unknown User'}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                                    </span>
+                                  </div>
+                                  <p className="text-sm">{comment.content}</p>
+                                </div>
+                                {(comment.user_id === user?.id || canDeletePhoto(selectedPhoto)) && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDeleteComment(comment.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </ScrollArea>
+
+                      {user && (
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Add a comment..."
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                            onKeyPress={(e) => e.key === "Enter" && handleAddComment()}
+                          />
+                          <Button onClick={handleAddComment} size="icon" disabled={!newComment.trim()}>
+                            <Send className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   
                   <div className="text-xs text-muted-foreground text-center">
