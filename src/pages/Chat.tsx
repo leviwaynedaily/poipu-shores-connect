@@ -428,17 +428,21 @@ const Chat = () => {
   const currentChannel = channels.find(c => c.id === selectedChannel);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 md:space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0">
-          <div className="space-y-1.5">
-            <CardTitle className="text-3xl">Community Chat</CardTitle>
-            <CardDescription className="text-lg">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 pb-3 sm:pb-6">
+          <div className="space-y-1">
+            <CardTitle className="text-2xl sm:text-3xl">Community Chat</CardTitle>
+            <CardDescription className="text-sm sm:text-lg">
               Connect with your neighbors and community
             </CardDescription>
           </div>
           {isAdmin && (
-            <Button onClick={() => setShowChannelManager(!showChannelManager)} className="shrink-0">
+            <Button 
+              onClick={() => setShowChannelManager(!showChannelManager)} 
+              className="shrink-0 w-full sm:w-auto"
+              size="sm"
+            >
               <Settings className="h-4 w-4 mr-2" />
               Manage Channels
             </Button>
@@ -450,37 +454,39 @@ const Chat = () => {
         <ChannelManager onClose={() => setShowChannelManager(false)} />
       )}
 
-      <Card className="h-[calc(100vh-16rem)] flex flex-col">
-        <CardHeader className="border-b space-y-3 flex-shrink-0">
-          <CardTitle className="text-xl">
+      <Card className="h-[calc(100dvh-12rem)] sm:h-[calc(100dvh-14rem)] md:h-[calc(100vh-16rem)] flex flex-col">
+        <CardHeader className="border-b space-y-2 sm:space-y-3 flex-shrink-0 p-3 sm:p-6">
+          <CardTitle className="text-lg sm:text-xl">
             {currentChannel?.name || "Select a Channel"}
             {currentChannel?.is_private && " 🔒"}
           </CardTitle>
           {currentChannel?.description && (
-            <p className="text-base text-muted-foreground">
+            <p className="text-sm sm:text-base text-muted-foreground">
               {currentChannel.description}
             </p>
           )}
           {channels.length > 1 && (
             <Tabs value={selectedChannel} onValueChange={setSelectedChannel} className="w-full">
-              <TabsList className="w-full h-auto grid grid-cols-2 md:grid-cols-4 gap-2">
-                {channels.map((channel) => (
-                  <TabsTrigger 
-                    key={channel.id} 
-                    value={channel.id} 
-                    className="text-base px-4 py-2"
-                  >
-                    {channel.name}
-                    {channel.is_private && " 🔒"}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
+              <ScrollArea className="w-full">
+                <TabsList className="w-full h-auto inline-flex min-w-full gap-2 p-1">
+                  {channels.map((channel) => (
+                    <TabsTrigger 
+                      key={channel.id} 
+                      value={channel.id} 
+                      className="text-sm sm:text-base px-3 sm:px-4 py-2 whitespace-nowrap min-h-[44px]"
+                    >
+                      {channel.name}
+                      {channel.is_private && " 🔒"}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </ScrollArea>
             </Tabs>
           )}
         </CardHeader>
         <CardContent className="p-0 flex flex-col flex-1 min-h-0">
-          <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-            <div className="space-y-3">
+          <ScrollArea className="flex-1 p-3 sm:p-4" ref={scrollRef}>
+            <div className="space-y-3 sm:space-y-4">
               {messages.map((message) => {
                 const isOwnMessage = message.author_id === user?.id;
                 const initials = message.profiles.full_name
@@ -492,17 +498,17 @@ const Chat = () => {
                 return (
                   <div
                     key={message.id}
-                    className="flex gap-3 group hover:bg-muted/50 p-2 rounded transition-colors"
+                    className="flex gap-2 sm:gap-3 group hover:bg-muted/50 p-2 rounded transition-colors"
                   >
-                    <Avatar className="h-10 w-10 shrink-0">
+                    <Avatar className="h-9 w-9 sm:h-10 sm:w-10 shrink-0">
                       {message.profiles.avatar_url ? (
                         <AvatarImage src={message.profiles.avatar_url} alt={message.profiles.full_name} />
                       ) : null}
                       <AvatarFallback className="text-sm">{initials}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline gap-2">
-                        <span className="font-semibold text-base text-foreground">
+                      <div className="flex items-baseline gap-1 sm:gap-2">
+                        <span className="font-semibold text-sm sm:text-base text-foreground">
                           {message.profiles.full_name}
                         </span>
                         <span className="text-xs text-muted-foreground">
@@ -518,7 +524,7 @@ const Chat = () => {
                       )}
                       
                       {message.content && (
-                        <p className="text-base text-foreground whitespace-pre-wrap mt-1">
+                        <p className="text-sm sm:text-base text-foreground whitespace-pre-wrap mt-1">
                           {message.content}
                         </p>
                       )}
@@ -527,7 +533,7 @@ const Chat = () => {
                         <img 
                           src={message.image_url} 
                           alt="Shared image"
-                          className="mt-2 rounded-lg max-w-sm max-h-96 object-cover"
+                          className="mt-2 rounded-lg w-full max-w-xs sm:max-w-sm max-h-80 sm:max-h-96 object-cover"
                         />
                       )}
                       
@@ -552,11 +558,11 @@ const Chat = () => {
                         </div>
                       )}
                     </div>
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 shrink-0">
+                    <div className="sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex gap-1 shrink-0">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8"
+                        className="h-9 w-9 sm:h-8 sm:w-8"
                         onClick={() => setReplyingTo(message)}
                       >
                         <Reply className="h-4 w-4" />
@@ -565,7 +571,7 @@ const Chat = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8"
+                          className="h-9 w-9 sm:h-8 sm:w-8"
                           onClick={() => setShowEmojiPicker(showEmojiPicker === message.id ? null : message.id)}
                         >
                           <Smile className="h-4 w-4" />
@@ -588,7 +594,7 @@ const Chat = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8"
+                          className="h-9 w-9 sm:h-8 sm:w-8"
                           onClick={() => handleDeleteMessage(message.id)}
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
@@ -601,7 +607,7 @@ const Chat = () => {
             </div>
           </ScrollArea>
           
-          <form onSubmit={handleSubmit} className="p-4 border-t space-y-2">
+          <form onSubmit={handleSubmit} className="p-3 sm:p-4 border-t space-y-2">
             {replyingTo && (
               <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
                 <Reply className="h-4 w-4 text-muted-foreground" />
@@ -659,7 +665,7 @@ const Chat = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    className="h-11 w-11"
+                    className="h-12 w-12 sm:h-11 sm:w-11"
                     disabled={uploadingImage}
                   >
                     <Plus className="h-5 w-5" />
@@ -696,9 +702,9 @@ const Chat = () => {
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Type your message..."
-                className="text-base h-11"
+                className="text-base h-12 sm:h-11"
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+                  if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
                     handleSubmit(e);
                   }
@@ -706,7 +712,7 @@ const Chat = () => {
               />
               <Button 
                 type="submit" 
-                className="h-11 w-11"
+                className="h-12 w-12 sm:h-11 sm:w-11"
                 disabled={(!newMessage.trim() && !imagePreview) || uploadingImage}
               >
                 <Send className="h-5 w-5" />
