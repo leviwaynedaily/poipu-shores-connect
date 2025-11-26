@@ -59,11 +59,11 @@ export const OnboardingWizard = ({ open, onComplete, source = 'onboarding' }: On
   useEffect(() => {
     if (user && open) {
       const fetchProfileData = async () => {
-        const { data } = await supabase
-          .from('profiles')
-          .select('phone, show_contact_info, avatar_url, full_name')
-          .eq('id', user.id)
-          .single();
+      const { data } = await supabase
+        .from('profiles')
+        .select('phone, show_contact_info, avatar_url, full_name')
+        .eq('id', user.id)
+        .maybeSingle();
         
         if (data) {
           if (data.full_name) setFullName(data.full_name);
