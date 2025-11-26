@@ -88,20 +88,17 @@ export function UserManagement() {
   const fetchUsers = async () => {
     setIsLoading(true);
     try {
-      console.log('Fetching users...');
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("*")
         .order("created_at", { ascending: false });
 
-      console.log('Profiles response:', { profiles, error: profilesError });
       if (profilesError) throw profilesError;
 
       const { data: rolesData, error: rolesError } = await supabase
         .from("user_roles")
         .select("user_id, role");
 
-      console.log('Roles response:', { rolesData, error: rolesError });
       if (rolesError) throw rolesError;
 
       // Fetch unit ownership data
@@ -109,7 +106,6 @@ export function UserManagement() {
         .from("unit_owners")
         .select("user_id, unit_number");
 
-      console.log('Units response:', { unitsData, error: unitsError });
       if (unitsError) throw unitsError;
 
       const userRolesMap = new Map<string, string[]>();
@@ -215,23 +211,25 @@ export function UserManagement() {
   const handleResendInvite = async (userId: string, fullName: string, unitNumber: string | null) => {
     setResendingUserId(userId);
     try {
-      const response = await fetch(`https://rvqqnfsgovlxocjjugww.supabase.co/functions/v1/resend-invite`, {
-        method: "POST",
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error("Not authenticated");
+      }
+
+      const { data, error } = await supabase.functions.invoke('resend-invite', {
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({
+        body: {
           user_id: userId,
           full_name: fullName,
           unit_number: unitNumber,
-        }),
+        },
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to resend invite");
+      if (error) {
+        throw new Error(error.message || "Failed to resend invite");
       }
 
       toast({
@@ -256,21 +254,23 @@ export function UserManagement() {
 
     setDeletingUserId(userId);
     try {
-      const response = await fetch(`https://rvqqnfsgovlxocjjugww.supabase.co/functions/v1/delete-invite`, {
-        method: "POST",
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error("Not authenticated");
+      }
+
+      const { data, error } = await supabase.functions.invoke('delete-invite', {
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({
+        body: {
           user_id: userId,
-        }),
+        },
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to delete invite");
+      if (error) {
+        throw new Error(error.message || "Failed to delete invite");
       }
 
       toast({
@@ -295,23 +295,25 @@ export function UserManagement() {
 
     setDeactivatingUserId(selectedUser.id);
     try {
-      const response = await fetch(`https://rvqqnfsgovlxocjjugww.supabase.co/functions/v1/deactivate-user`, {
-        method: "POST",
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error("Not authenticated");
+      }
+
+      const { data, error } = await supabase.functions.invoke('deactivate-user', {
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({
+        body: {
           userId: selectedUser.id,
           reason: deactivationReason,
           removeFromUnit,
-        }),
+        },
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to deactivate user");
+      if (error) {
+        throw new Error(error.message || "Failed to deactivate user");
       }
 
       toast({
@@ -338,21 +340,23 @@ export function UserManagement() {
   const handleReactivateUser = async (userId: string, fullName: string) => {
     setDeactivatingUserId(userId);
     try {
-      const response = await fetch(`https://rvqqnfsgovlxocjjugww.supabase.co/functions/v1/reactivate-user`, {
-        method: "POST",
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error("Not authenticated");
+      }
+
+      const { data, error } = await supabase.functions.invoke('reactivate-user', {
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({
+        body: {
           userId,
-        }),
+        },
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to reactivate user");
+      if (error) {
+        throw new Error(error.message || "Failed to reactivate user");
       }
 
       toast({
@@ -377,21 +381,23 @@ export function UserManagement() {
 
     setDeletingPermanentUserId(userToDelete.id);
     try {
-      const response = await fetch(`https://rvqqnfsgovlxocjjugww.supabase.co/functions/v1/delete-user`, {
-        method: "POST",
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error("Not authenticated");
+      }
+
+      const { data, error } = await supabase.functions.invoke('delete-user', {
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({
+        body: {
           userId: userToDelete.id,
-        }),
+        },
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to delete user");
+      if (error) {
+        throw new Error(error.message || "Failed to delete user");
       }
 
       toast({
@@ -565,13 +571,17 @@ export function UserManagement() {
 
     setIsUpdating(true);
     try {
-      const response = await fetch(`https://rvqqnfsgovlxocjjugww.supabase.co/functions/v1/update-user`, {
-        method: "POST",
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error("Not authenticated");
+      }
+
+      const { data, error } = await supabase.functions.invoke('update-user', {
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({
+        body: {
           userId: editingUser.id,
           email: editEmail || undefined,
           full_name: editFullName,
@@ -579,13 +589,11 @@ export function UserManagement() {
           phone: editPhone || null,
           relationship_type: editRelationshipType,
           is_primary_contact: editIsPrimaryContact,
-        }),
+        },
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to update user");
+      if (error) {
+        throw new Error(error.message || "Failed to update user");
       }
 
       toast({
