@@ -47,20 +47,23 @@ export default function Documents() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-hidden">
       <PageHeader
         title="Poipu Documents"
         description="Navigate folders, manage documents, and ask questions with AI"
         actions={
           canManage && (
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               <Button
                 variant="outline"
                 onClick={handleBatchExtract}
                 disabled={isExtracting}
+                size="sm"
+                className="w-full sm:w-auto"
               >
                 <RefreshCw className={`mr-2 h-4 w-4 ${isExtracting ? 'animate-spin' : ''}`} />
-                {isExtracting ? "Extracting..." : "Extract Existing"}
+                <span className="hidden sm:inline">{isExtracting ? "Extracting..." : "Extract Existing"}</span>
+                <span className="sm:hidden">{isExtracting ? "Extract..." : "Extract"}</span>
               </Button>
               <DocumentUpload
                 onUploadComplete={() => setRefreshTrigger((k) => k + 1)}
@@ -73,20 +76,22 @@ export default function Documents() {
       />
 
       <Tabs defaultValue="browse" className="w-full">
-        <TabsList>
-          <TabsTrigger value="browse">
-            <FileText className="mr-2 h-4 w-4" />
-            Browse Documents
+        <TabsList className="w-full sm:w-auto">
+          <TabsTrigger value="browse" className="flex-1 sm:flex-initial text-xs sm:text-sm">
+            <FileText className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Browse Documents</span>
+            <span className="sm:hidden">Browse</span>
           </TabsTrigger>
-          <TabsTrigger value="chat">
-            <img src={chickenIcon} alt="Chicken" className="mr-2 h-4 w-4 rounded-full object-cover" />
-            Ask the Chicken
+          <TabsTrigger value="chat" className="flex-1 sm:flex-initial text-xs sm:text-sm">
+            <img src={chickenIcon} alt="Chicken" className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 rounded-full object-cover" />
+            <span className="hidden sm:inline">Ask the Chicken</span>
+            <span className="sm:hidden">Ask Chicken</span>
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="browse">
-          <Card>
-            <CardContent className="pt-6">
+          <Card className="overflow-hidden">
+            <CardContent className="pt-6 px-2 sm:px-6">
               <DocumentBrowser
                 canManage={canManage}
                 refreshTrigger={refreshTrigger}

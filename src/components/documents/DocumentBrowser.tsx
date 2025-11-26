@@ -603,11 +603,11 @@ export function DocumentBrowser({ canManage, refreshTrigger, onFolderChange }: D
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full overflow-hidden">
       {/* Breadcrumb Navigation */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <Breadcrumb className="overflow-x-auto max-w-full">
-          <BreadcrumbList>
+        <Breadcrumb className="min-w-0 flex-1">
+          <BreadcrumbList className="flex-wrap">
             {currentFolderId && (
               <BreadcrumbItem>
                 <BreadcrumbLink
@@ -623,10 +623,12 @@ export function DocumentBrowser({ canManage, refreshTrigger, onFolderChange }: D
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
                   {index === breadcrumbs.length - 1 ? (
-                    <BreadcrumbPage className="max-w-[200px] truncate">{crumb.name}</BreadcrumbPage>
+                    <BreadcrumbPage className="max-w-[120px] sm:max-w-[200px] truncate text-sm">
+                      {crumb.name}
+                    </BreadcrumbPage>
                   ) : (
                     <BreadcrumbLink
-                      className="cursor-pointer max-w-[150px] truncate"
+                      className="cursor-pointer max-w-[100px] sm:max-w-[150px] truncate text-sm"
                       onClick={() => setCurrentFolderId(crumb.id)}
                     >
                       {crumb.name}
@@ -638,7 +640,7 @@ export function DocumentBrowser({ canManage, refreshTrigger, onFolderChange }: D
           </BreadcrumbList>
         </Breadcrumb>
 
-        <div className="flex gap-2 w-full sm:w-auto">
+        <div className="flex gap-2 w-full sm:w-auto shrink-0">
           {canManage && selectedDocuments.size > 0 && (
             <Button 
               variant="destructive" 
@@ -649,7 +651,7 @@ export function DocumentBrowser({ canManage, refreshTrigger, onFolderChange }: D
             >
               <Trash2 className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Delete {selectedDocuments.size} Selected</span>
-              <span className="sm:hidden">Delete ({selectedDocuments.size})</span>
+              <span className="sm:hidden">Del ({selectedDocuments.size})</span>
             </Button>
           )}
           {canManage && (
@@ -671,23 +673,23 @@ export function DocumentBrowser({ canManage, refreshTrigger, onFolderChange }: D
           onDrop={canManage ? (e) => handleDrop(e, null) : undefined}
           className={draggedDocument ? "ring-2 ring-primary/20 rounded-lg" : ""}
         >
-          <div className="rounded-md border overflow-x-auto">
-            <Table>
+          <div className="rounded-md border overflow-x-auto w-full">
+            <Table className="min-w-full">
               <TableHeader>
                 <TableRow>
                   {canManage && documents.length > 0 && (
-                    <TableHead className="w-12">
+                    <TableHead className="w-10 sm:w-12">
                       <Checkbox
                         checked={selectedDocuments.size === documents.length && documents.length > 0}
                         onCheckedChange={handleSelectAll}
                       />
                     </TableHead>
                   )}
-                  <TableHead className="min-w-[200px]">Name</TableHead>
-                  <TableHead className="hidden sm:table-cell">Type</TableHead>
-                  <TableHead className="min-w-[80px]">Size</TableHead>
-                  <TableHead className="hidden md:table-cell">Date</TableHead>
-                  <TableHead className="min-w-[100px]">Actions</TableHead>
+                  <TableHead className="min-w-[180px] sm:min-w-[200px]">Name</TableHead>
+                  <TableHead className="hidden sm:table-cell w-20 sm:w-24">Type</TableHead>
+                  <TableHead className="w-16 sm:w-20">Size</TableHead>
+                  <TableHead className="hidden md:table-cell w-24 sm:w-28">Date</TableHead>
+                  <TableHead className="w-20 sm:w-28">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -719,8 +721,8 @@ export function DocumentBrowser({ canManage, refreshTrigger, onFolderChange }: D
                   {canManage && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <MoreVertical className="h-4 w-4" />
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 sm:h-8 sm:w-8">
+                          <MoreVertical className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
@@ -793,21 +795,21 @@ export function DocumentBrowser({ canManage, refreshTrigger, onFolderChange }: D
                   {new Date(doc.created_at).toLocaleDateString()}
                 </TableCell>
                 <TableCell>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1 sm:gap-2">
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => handleDownload(doc.file_path, doc.title)}
-                      className="h-8 w-8 p-0 sm:h-9 sm:w-auto sm:px-3"
+                      className="h-7 w-7 p-0 sm:h-8 sm:w-8"
+                      title="Download"
                     >
-                      <Download className="h-4 w-4" />
-                      <span className="sr-only sm:not-sr-only sm:ml-2">Download</span>
+                      <Download className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
                     {canManage && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <MoreVertical className="h-4 w-4" />
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 sm:h-8 sm:w-8">
+                            <MoreVertical className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
