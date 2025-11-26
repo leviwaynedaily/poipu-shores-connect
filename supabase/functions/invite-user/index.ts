@@ -88,21 +88,32 @@ serve(async (req) => {
       },
     });
 
-    if (createError || !newUser.user) {
-      throw createError || new Error('Failed to create user');
+    if (createError) {
+      // Handle duplicate email error specifically
+      if (createError.message?.includes('already been registered')) {
+        return new Response(
+          JSON.stringify({ error: 'A user with this email address has already been registered' }),
+          { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      throw createError;
+    }
+    
+    if (!newUser.user) {
+      throw new Error('Failed to create user');
     }
 
-    // Update user profile
+    // Update user profile (unit_number is stored in unit_owners table)
     const { error: profileError } = await supabaseClient
       .from('profiles')
       .update({
         full_name,
         phone,
-        unit_number,
       })
       .eq('id', newUser.user.id);
 
     if (profileError) {
+      console.error('Profile update error:', profileError);
       throw profileError;
     }
 
