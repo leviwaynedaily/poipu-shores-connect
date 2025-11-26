@@ -13,7 +13,7 @@ import { UserPlus, Shield, Clock, Mail, UserCheck, UserX, Trash2, Archive, Rotat
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface Profile {
   id: string;
@@ -1084,111 +1084,87 @@ export function UserManagement() {
                               </DropdownMenu>
                             </>
                           ) : (
-                            <>
+                            <DropdownMenu>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    onClick={() => {
-                                      setSelectedUser(user);
-                                      setDeactivateDialogOpen(true);
-                                    }}
-                                  >
-                                    <Archive className="h-4 w-4 mr-1" />
-                                    Deactivate
-                                  </Button>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button size="sm" variant="ghost">
+                                      <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                  <p>Archive user and prevent login (reversible)</p>
+                                  <p>More actions</p>
                                 </TooltipContent>
                               </Tooltip>
-                              <DropdownMenu>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <DropdownMenuTrigger asChild>
-                                      <Button size="sm" variant="outline">
-                                        <Shield className="h-4 w-4 mr-1" />
-                                        Roles
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>Manage user roles and permissions</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                                <DropdownMenuContent align="end" className="w-48">
-                                  <DropdownMenuCheckboxItem
-                                    checked={user.roles.includes("admin")}
-                                    onCheckedChange={(checked) => 
-                                      handleToggleRole(user.id, "admin", user.roles.includes("admin"))
-                                    }
-                                  >
-                                    <Shield className="h-4 w-4 mr-2" />
-                                    Admin
-                                  </DropdownMenuCheckboxItem>
-                                  <DropdownMenuCheckboxItem
-                                    checked={user.roles.includes("owner")}
-                                    onCheckedChange={(checked) => 
-                                      handleToggleRole(user.id, "owner", user.roles.includes("owner"))
-                                    }
-                                  >
-                                    <Users className="h-4 w-4 mr-2" />
-                                    Owner
-                                  </DropdownMenuCheckboxItem>
-                                  <DropdownMenuCheckboxItem
-                                    checked={user.roles.includes("board")}
-                                    onCheckedChange={(checked) => 
-                                      handleToggleRole(user.id, "board", user.roles.includes("board"))
-                                    }
-                                  >
-                                    <UserCheck className="h-4 w-4 mr-2" />
-                                    Board Member
-                                  </DropdownMenuCheckboxItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                              <DropdownMenu>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <DropdownMenuTrigger asChild>
-                                      <Button size="sm" variant="ghost">
-                                        <MoreVertical className="h-4 w-4" />
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>More actions</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                                <DropdownMenuContent align="end" className="w-48">
-                                  <DropdownMenuCheckboxItem
-                                    onSelect={() => {
-                                      setSelectedResetUser(user);
-                                      setResetPasswordDialogOpen(true);
-                                    }}
-                                  >
-                                    <KeyRound className="h-4 w-4 mr-2" />
-                                    Reset Password
-                                  </DropdownMenuCheckboxItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </>
-                          )}
-                          {!isArchived && (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleEditUser(user)}
+                              <DropdownMenuContent align="end" className="w-48">
+                                <DropdownMenuItem
+                                  onSelect={() => handleEditUser(user)}
                                 >
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Edit user information</p>
-                              </TooltipContent>
-                            </Tooltip>
+                                  <Pencil className="h-4 w-4 mr-2" />
+                                  Edit User
+                                </DropdownMenuItem>
+                                
+                                <DropdownMenuSub>
+                                  <DropdownMenuSubTrigger>
+                                    <Shield className="h-4 w-4 mr-2" />
+                                    Manage Roles
+                                  </DropdownMenuSubTrigger>
+                                  <DropdownMenuSubContent>
+                                    <DropdownMenuCheckboxItem
+                                      checked={user.roles.includes("admin")}
+                                      onCheckedChange={() => 
+                                        handleToggleRole(user.id, "admin", user.roles.includes("admin"))
+                                      }
+                                    >
+                                      <Shield className="h-4 w-4 mr-2" />
+                                      Admin
+                                    </DropdownMenuCheckboxItem>
+                                    <DropdownMenuCheckboxItem
+                                      checked={user.roles.includes("owner")}
+                                      onCheckedChange={() => 
+                                        handleToggleRole(user.id, "owner", user.roles.includes("owner"))
+                                      }
+                                    >
+                                      <Users className="h-4 w-4 mr-2" />
+                                      Owner
+                                    </DropdownMenuCheckboxItem>
+                                    <DropdownMenuCheckboxItem
+                                      checked={user.roles.includes("board")}
+                                      onCheckedChange={() => 
+                                        handleToggleRole(user.id, "board", user.roles.includes("board"))
+                                      }
+                                    >
+                                      <UserCheck className="h-4 w-4 mr-2" />
+                                      Board Member
+                                    </DropdownMenuCheckboxItem>
+                                  </DropdownMenuSubContent>
+                                </DropdownMenuSub>
+
+                                <DropdownMenuItem
+                                  onSelect={() => {
+                                    setSelectedResetUser(user);
+                                    setResetPasswordDialogOpen(true);
+                                  }}
+                                >
+                                  <KeyRound className="h-4 w-4 mr-2" />
+                                  Reset Password
+                                </DropdownMenuItem>
+
+                                <DropdownMenuSeparator />
+
+                                <DropdownMenuItem
+                                  className="text-destructive focus:text-destructive"
+                                  onSelect={() => {
+                                    setSelectedUser(user);
+                                    setDeactivateDialogOpen(true);
+                                  }}
+                                >
+                                  <Archive className="h-4 w-4 mr-2" />
+                                  Deactivate User
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           )}
                         </div>
                       </TableCell>
