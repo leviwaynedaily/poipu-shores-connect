@@ -422,6 +422,12 @@ export function UserManagement() {
       
       if (successCount > 0) {
         fetchUsers();
+        // Close dialog and reset after successful invites
+        setTimeout(() => {
+          setBulkInviteDialogOpen(false);
+          setBulkInviteEntries([{ email: "", full_name: "", unit_number: "", phone: "", role: "owner" }]);
+          setBulkInviteResults([]);
+        }, 2000);
       }
     } catch (error: any) {
       toast({
