@@ -13,6 +13,7 @@ import { UserPlus, Shield, Clock, Mail, UserCheck, UserX, Trash2, Archive, Rotat
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface Profile {
   id: string;
@@ -37,7 +38,7 @@ export function UserManagement() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteFullName, setInviteFullName] = useState("");
   const [inviteUnitNumber, setInviteUnitNumber] = useState("");
-  const [inviteRole, setInviteRole] = useState<"admin" | "owner">("owner");
+  const [inviteRole, setInviteRole] = useState<"admin" | "owner" | "board">("owner");
   const [inviteRelationshipType, setInviteRelationshipType] = useState<"primary" | "spouse" | "co-owner" | "family">("primary");
   const [inviteIsPrimaryContact, setInviteIsPrimaryContact] = useState(false);
   const [isInviting, setIsInviting] = useState(false);
@@ -368,7 +369,7 @@ export function UserManagement() {
         const parts = line.split(',').map(p => p.trim());
         if (parts.length < 1) continue;
         
-        const [email, fullName = '', unitNumber = '', role = 'owner'] = parts;
+          const [email, fullName = '', unitNumber = '', role = 'owner'] = parts;
         
         if (!email || !email.includes('@')) {
           results.push({ email, success: false, error: 'Invalid email format' });
@@ -386,7 +387,7 @@ export function UserManagement() {
               email,
               full_name: fullName || email.split('@')[0],
               unit_number: unitNumber || null,
-              role: (role === 'admin' || role === 'owner') ? role : 'owner',
+              role: (role === 'admin' || role === 'owner' || role === 'board') ? role : 'owner',
               relationship_type: 'primary',
               is_primary_contact: false,
             }),
@@ -428,7 +429,7 @@ export function UserManagement() {
     }
   };
 
-  const handleToggleRole = async (userId: string, role: "admin" | "owner", currentlyHas: boolean) => {
+  const handleToggleRole = async (userId: string, role: "admin" | "owner" | "board", currentlyHas: boolean) => {
     try {
       if (currentlyHas) {
         const { error } = await supabase
@@ -505,7 +506,7 @@ export function UserManagement() {
                       onChange={(e) => setBulkInviteText(e.target.value)}
                     />
                     <p className="text-xs text-muted-foreground mt-2">
-                      Each line should have: email (required), full name (optional), unit number (optional), role (optional: owner or admin)
+                      Each line should have: email (required), full name (optional), unit number (optional), role (optional: owner, board, or admin)
                     </p>
                   </div>
 
@@ -629,6 +630,7 @@ export function UserManagement() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="owner">Owner</SelectItem>
+                      <SelectItem value="board">Board Member</SelectItem>
                       <SelectItem value="admin">Admin</SelectItem>
                     </SelectContent>
                   </Select>
@@ -727,6 +729,9 @@ export function UserManagement() {
                           {user.roles.includes("owner") && (
                             <Badge variant="secondary">Owner</Badge>
                           )}
+                          {user.roles.includes("board") && (
+                            <Badge variant="outline">Board</Badge>
+                          )}
                         </div>
                       </TableCell>
                        <TableCell>
@@ -811,34 +816,50 @@ export function UserManagement() {
                                   <p>Archive user and prevent login (reversible)</p>
                                 </TooltipContent>
                               </Tooltip>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant={user.roles.includes("admin") ? "default" : "outline"}
-                                    onClick={() => handleToggleRole(user.id, "admin", user.roles.includes("admin"))}
+                              <DropdownMenu>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button size="sm" variant="outline">
+                                        <Shield className="h-4 w-4 mr-1" />
+                                        Roles
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Manage user roles and permissions</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                                <DropdownMenuContent align="end" className="w-48">
+                                  <DropdownMenuCheckboxItem
+                                    checked={user.roles.includes("admin")}
+                                    onCheckedChange={(checked) => 
+                                      handleToggleRole(user.id, "admin", user.roles.includes("admin"))
+                                    }
                                   >
-                                    <Shield className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>{user.roles.includes("admin") ? "Remove Admin role" : "Grant Admin role"}</p>
-                                </TooltipContent>
-                              </Tooltip>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant={user.roles.includes("owner") ? "default" : "outline"}
-                                    onClick={() => handleToggleRole(user.id, "owner", user.roles.includes("owner"))}
+                                    <Shield className="h-4 w-4 mr-2" />
+                                    Admin
+                                  </DropdownMenuCheckboxItem>
+                                  <DropdownMenuCheckboxItem
+                                    checked={user.roles.includes("owner")}
+                                    onCheckedChange={(checked) => 
+                                      handleToggleRole(user.id, "owner", user.roles.includes("owner"))
+                                    }
                                   >
+                                    <Users className="h-4 w-4 mr-2" />
                                     Owner
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>{user.roles.includes("owner") ? "Remove Owner role" : "Grant Owner role"}</p>
-                                </TooltipContent>
-                              </Tooltip>
+                                  </DropdownMenuCheckboxItem>
+                                  <DropdownMenuCheckboxItem
+                                    checked={user.roles.includes("board")}
+                                    onCheckedChange={(checked) => 
+                                      handleToggleRole(user.id, "board", user.roles.includes("board"))
+                                    }
+                                  >
+                                    <UserCheck className="h-4 w-4 mr-2" />
+                                    Board Member
+                                  </DropdownMenuCheckboxItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </>
                           )}
                         </div>
