@@ -272,6 +272,9 @@ const Auth = () => {
         
         const { error } = await supabase.auth.signInWithOtp({
           phone: e164Phone,
+          options: {
+            shouldCreateUser: false, // Prevent creating new users
+          },
         });
         
         if (error) {
