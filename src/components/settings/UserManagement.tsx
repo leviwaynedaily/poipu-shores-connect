@@ -9,9 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserPlus, Shield, Clock, Mail, UserCheck, UserX, Trash2, Archive, RotateCcw } from "lucide-react";
+import { UserPlus, Shield, Clock, Mail, UserCheck, UserX, Trash2, Archive, RotateCcw, Users } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Profile {
   id: string;
@@ -52,6 +53,10 @@ export function UserManagement() {
   const [deletingPermanentUserId, setDeletingPermanentUserId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<UserWithRoles | null>(null);
+  const [bulkInviteDialogOpen, setBulkInviteDialogOpen] = useState(false);
+  const [bulkInviteText, setBulkInviteText] = useState("");
+  const [bulkInviting, setBulkInviting] = useState(false);
+  const [bulkInviteResults, setBulkInviteResults] = useState<{ email: string; success: boolean; error?: string }[]>([]);
 
   useEffect(() => {
     fetchUsers();
@@ -350,6 +355,79 @@ export function UserManagement() {
     }
   };
 
+  const handleBulkInvite = async () => {
+    setBulkInviting(true);
+    setBulkInviteResults([]);
+    
+    try {
+      // Parse CSV format: email,full_name,unit_number,role
+      const lines = bulkInviteText.split('\n').filter(line => line.trim());
+      const results: { email: string; success: boolean; error?: string }[] = [];
+      
+      for (const line of lines) {
+        const parts = line.split(',').map(p => p.trim());
+        if (parts.length < 1) continue;
+        
+        const [email, fullName = '', unitNumber = '', role = 'owner'] = parts;
+        
+        if (!email || !email.includes('@')) {
+          results.push({ email, success: false, error: 'Invalid email format' });
+          continue;
+        }
+        
+        try {
+          const response = await fetch(`https://rvqqnfsgovlxocjjugww.supabase.co/functions/v1/invite-user`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            },
+            body: JSON.stringify({
+              email,
+              full_name: fullName || email.split('@')[0],
+              unit_number: unitNumber || null,
+              role: (role === 'admin' || role === 'owner') ? role : 'owner',
+              relationship_type: 'primary',
+              is_primary_contact: false,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            results.push({ email, success: true });
+          } else {
+            results.push({ email, success: false, error: data.error || 'Failed to invite' });
+          }
+        } catch (error: any) {
+          results.push({ email, success: false, error: error.message });
+        }
+      }
+      
+      setBulkInviteResults(results);
+      
+      const successCount = results.filter(r => r.success).length;
+      const failCount = results.filter(r => !r.success).length;
+      
+      toast({
+        title: "Bulk invite completed",
+        description: `${successCount} invited successfully, ${failCount} failed`,
+      });
+      
+      if (successCount > 0) {
+        fetchUsers();
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setBulkInviting(false);
+    }
+  };
+
   const handleToggleRole = async (userId: string, role: "admin" | "owner", currentlyHas: boolean) => {
     try {
       if (currentlyHas) {
@@ -402,6 +480,76 @@ export function UserManagement() {
               <Archive className="mr-2 h-4 w-4" />
               {showArchived ? "Hide" : "Show"} Archived
             </Button>
+            <Dialog open={bulkInviteDialogOpen} onOpenChange={setBulkInviteDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Users className="mr-2 h-4 w-4" />
+                  Bulk Invite
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Bulk Invite Users</DialogTitle>
+                  <DialogDescription>
+                    Paste CSV data with one user per line. Format: email,full_name,unit_number,role
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="bulkData">User Data (CSV format)</Label>
+                    <textarea
+                      id="bulkData"
+                      className="w-full min-h-[200px] p-3 border rounded-md font-mono text-sm"
+                      placeholder="john@example.com,John Smith,101,owner&#10;jane@example.com,Jane Doe,102,admin&#10;bob@example.com,Bob Wilson,103,owner"
+                      value={bulkInviteText}
+                      onChange={(e) => setBulkInviteText(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Each line should have: email (required), full name (optional), unit number (optional), role (optional: owner or admin)
+                    </p>
+                  </div>
+
+                  {bulkInviteResults.length > 0 && (
+                    <div className="max-h-[200px] overflow-y-auto border rounded-md p-3">
+                      <p className="font-semibold text-sm mb-2">Results:</p>
+                      {bulkInviteResults.map((result, idx) => (
+                        <div key={idx} className="flex items-center gap-2 text-sm py-1">
+                          {result.success ? (
+                            <Badge variant="default" className="w-20">Success</Badge>
+                          ) : (
+                            <Badge variant="destructive" className="w-20">Failed</Badge>
+                          )}
+                          <span className="flex-1">{result.email}</span>
+                          {result.error && (
+                            <span className="text-xs text-muted-foreground">{result.error}</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setBulkInviteDialogOpen(false);
+                        setBulkInviteText("");
+                        setBulkInviteResults([]);
+                      }}
+                      disabled={bulkInviting}
+                    >
+                      {bulkInviteResults.length > 0 ? "Close" : "Cancel"}
+                    </Button>
+                    <Button
+                      onClick={handleBulkInvite}
+                      disabled={bulkInviting || !bulkInviteText.trim()}
+                    >
+                      {bulkInviting ? "Inviting..." : "Send Invitations"}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button>
