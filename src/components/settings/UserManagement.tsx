@@ -48,6 +48,9 @@ export function UserManagement() {
   const [selectedUser, setSelectedUser] = useState<UserWithRoles | null>(null);
   const [deactivationReason, setDeactivationReason] = useState("sold_unit");
   const [removeFromUnit, setRemoveFromUnit] = useState(false);
+  const [deletingPermanentUserId, setDeletingPermanentUserId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<UserWithRoles | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -305,6 +308,47 @@ export function UserManagement() {
     }
   };
 
+  const handleDeleteUserPermanently = async () => {
+    if (!userToDelete) return;
+
+    setDeletingPermanentUserId(userToDelete.id);
+    try {
+      const response = await fetch(`https://rvqqnfsgovlxocjjugww.supabase.co/functions/v1/delete-user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify({
+          userId: userToDelete.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to delete user");
+      }
+
+      toast({
+        title: "User deleted",
+        description: `${userToDelete.full_name} has been permanently deleted`,
+      });
+
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+      fetchUsers();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingPermanentUserId(null);
+    }
+  };
+
   const handleToggleRole = async (userId: string, role: "admin" | "owner", currentlyHas: boolean) => {
     try {
       if (currentlyHas) {
@@ -535,18 +579,32 @@ export function UserManagement() {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>
+                       <TableCell>
                         <div className="flex gap-2">
                           {isArchived ? (
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              onClick={() => handleReactivateUser(user.id, user.full_name)}
-                              disabled={deactivatingUserId === user.id}
-                            >
-                              <RotateCcw className="h-4 w-4 mr-1" />
-                              {deactivatingUserId === user.id ? "Reactivating..." : "Reactivate"}
-                            </Button>
+                            <>
+                              <Button
+                                size="sm"
+                                variant="secondary"
+                                onClick={() => handleReactivateUser(user.id, user.full_name)}
+                                disabled={deactivatingUserId === user.id}
+                              >
+                                <RotateCcw className="h-4 w-4 mr-1" />
+                                {deactivatingUserId === user.id ? "Reactivating..." : "Reactivate"}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => {
+                                  setUserToDelete(user);
+                                  setDeleteDialogOpen(true);
+                                }}
+                                disabled={deletingPermanentUserId === user.id}
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                {deletingPermanentUserId === user.id ? "Deleting..." : "Delete"}
+                              </Button>
+                            </>
                           ) : !hasLoggedIn && (
                             <>
                               <Button
@@ -673,6 +731,50 @@ export function UserManagement() {
                 disabled={deactivatingUserId === selectedUser?.id}
               >
                 {deactivatingUserId === selectedUser?.id ? "Deactivating..." : "Deactivate"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Permanently Delete User</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. Are you sure you want to permanently delete {userToDelete?.full_name}?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 space-y-2">
+              <p className="text-sm font-semibold text-destructive">⚠️ Warning: This will permanently delete:</p>
+              <ul className="text-sm space-y-1 list-disc list-inside text-muted-foreground">
+                <li>User account and authentication</li>
+                <li>Profile information</li>
+                <li>All roles and permissions</li>
+                <li>Unit ownership records</li>
+              </ul>
+              <p className="text-sm font-medium text-muted-foreground mt-3">
+                Their activity history (messages, photos, etc.) will be preserved but attributed to a deleted user.
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setDeleteDialogOpen(false);
+                  setUserToDelete(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteUserPermanently}
+                disabled={deletingPermanentUserId === userToDelete?.id}
+              >
+                {deletingPermanentUserId === userToDelete?.id ? "Deleting..." : "Delete Permanently"}
               </Button>
             </div>
           </div>
