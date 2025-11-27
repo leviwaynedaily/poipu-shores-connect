@@ -91,7 +91,7 @@ export function AppSidebar() {
     <Sidebar
       className={`${!open ? "w-20" : "w-64"}`}
       collapsible="icon"
-      variant="sidebar"
+      variant="floating"
     >
       <SidebarContent>
         <SidebarGroup>
