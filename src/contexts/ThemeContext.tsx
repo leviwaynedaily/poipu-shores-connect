@@ -175,10 +175,23 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
           if (faviconUrl.startsWith('"') && faviconUrl.endsWith('"')) {
             faviconUrl = faviconUrl.slice(1, -1);
           }
+          
+          // Detect MIME type based on file extension
+          const getMimeType = (url: string): string => {
+            const ext = url.split('.').pop()?.toLowerCase();
+            switch (ext) {
+              case 'png': return 'image/png';
+              case 'svg': return 'image/svg+xml';
+              case 'ico': return 'image/x-icon';
+              default: return 'image/png';
+            }
+          };
+          
           const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement || document.createElement('link');
-          link.type = 'image/x-icon';
+          link.type = getMimeType(faviconUrl);
           link.rel = 'icon';
-          link.href = faviconUrl;
+          // Add cache busting to force browser to fetch new favicon
+          link.href = `${faviconUrl}?v=${Date.now()}`;
           if (!document.querySelector("link[rel*='icon']")) {
             document.head.appendChild(link);
           }
