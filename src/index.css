@@ -58,6 +58,9 @@ All colors MUST be HSL.
     --ring: 257 4% 70.4%;
 
     --radius: 0.375rem;
+    
+    /* Layout spacing - adjust this value to control padding/gaps throughout the app */
+    --layout-spacing: 0.75rem; /* 12px default */
 
     --sidebar-background: 199 50% 97%;
 
