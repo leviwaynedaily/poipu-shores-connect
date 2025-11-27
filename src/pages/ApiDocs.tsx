@@ -1,16 +1,152 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Code2, Database, Lock, Image, MessageSquare, FileText, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Code2, Database, Lock, Image, MessageSquare, FileText, Users, Download } from "lucide-react";
+import { toast } from "sonner";
 
 const ApiDocs = () => {
   const baseUrl = "https://api.poipu-shores.com";
   const anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ2cXFuZnNnb3ZseG9jamp1Z3d3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4NTQ2MzgsImV4cCI6MjA3OTQzMDYzOH0.iUzJqQoHRUJ0nmPU1t44OL9I-ZYtCDofNxAN14phjBQ";
 
+  const downloadAsJson = () => {
+    const apiDocs = {
+      apiName: "Poipu Shores API",
+      version: "1.0.0",
+      baseUrl,
+      authentication: {
+        anonKey,
+        type: "Bearer token"
+      },
+      endpoints: {
+        auth: {
+          signIn: {
+            method: "POST",
+            path: "/auth/v1/token?grant_type=password",
+            description: "Sign in with email and password"
+          },
+          signOut: {
+            method: "POST",
+            path: "/auth/v1/logout",
+            description: "Sign out current user"
+          },
+          getUser: {
+            method: "GET",
+            path: "/auth/v1/user",
+            description: "Get current authenticated user"
+          }
+        },
+        functions: {
+          communityAssistant: {
+            method: "POST",
+            path: "/functions/v1/community-assistant",
+            authRequired: false,
+            description: "AI-powered community assistant"
+          },
+          documentChat: {
+            method: "POST",
+            path: "/functions/v1/document-chat",
+            authRequired: false,
+            description: "AI-powered document Q&A"
+          },
+          getWeather: {
+            method: "GET",
+            path: "/functions/v1/get-weather",
+            authRequired: true,
+            description: "Current weather and 3-day forecast"
+          },
+          inviteUser: {
+            method: "POST",
+            path: "/functions/v1/invite-user",
+            authRequired: true,
+            adminOnly: true
+          },
+          updateUser: {
+            method: "POST",
+            path: "/functions/v1/update-user",
+            authRequired: true,
+            adminOnly: true
+          }
+        },
+        database: {
+          profiles: {
+            table: "profiles",
+            fields: ["id", "full_name", "avatar_url", "phone", "show_contact_info"]
+          },
+          announcements: {
+            table: "announcements",
+            fields: ["id", "title", "content", "author_id", "is_pinned", "created_at"]
+          },
+          communityPhotos: {
+            table: "community_photos",
+            fields: ["id", "title", "caption", "file_path", "uploaded_by", "likes_count", "category"]
+          },
+          documents: {
+            table: "documents",
+            fields: ["id", "title", "file_path", "category", "unit_number", "folder_id"]
+          },
+          emergencyContacts: {
+            table: "emergency_contacts",
+            fields: ["id", "name", "phone", "email", "category", "is_active", "display_order"]
+          },
+          chatMessages: {
+            table: "chat_messages",
+            fields: ["id", "content", "author_id", "channel_id", "created_at"]
+          }
+        },
+        storage: {
+          buckets: {
+            avatars: {
+              name: "avatars",
+              public: true,
+              description: "User profile pictures"
+            },
+            communityPhotos: {
+              name: "community-photos",
+              public: true,
+              description: "Community photo uploads"
+            },
+            documents: {
+              name: "documents",
+              public: true,
+              description: "HOA documents and files"
+            },
+            chatImages: {
+              name: "chat-images",
+              public: true,
+              description: "Chat message attachments"
+            }
+          }
+        }
+      },
+      swiftSetup: {
+        package: "https://github.com/supabase/supabase-swift",
+        minimumVersion: "2.0.0"
+      }
+    };
+
+    const blob = new Blob([JSON.stringify(apiDocs, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "poipu-shores-api-docs.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("API documentation downloaded as JSON");
+  };
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-6xl">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Poipu Shores API Documentation</h1>
-        <p className="text-muted-foreground">Complete API reference for iOS and mobile app development</p>
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <h1 className="text-4xl font-bold mb-2">Poipu Shores API Documentation</h1>
+          <p className="text-muted-foreground">Complete API reference for iOS and mobile app development</p>
+        </div>
+        <Button onClick={downloadAsJson} variant="outline" className="flex items-center gap-2">
+          <Download className="h-4 w-4" />
+          Download JSON
+        </Button>
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
