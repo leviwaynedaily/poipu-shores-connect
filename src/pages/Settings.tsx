@@ -158,7 +158,7 @@ export default function Settings() {
 
   const selectPhoto = (photoPath: string, type: "home" | "app") => {
     const setBackground = type === "home" ? setHomeBackground : setAppBackground;
-    const publicUrl = supabase.storage.from("community_photos").getPublicUrl(photoPath).data.publicUrl;
+    const publicUrl = supabase.storage.from("community-photos").getPublicUrl(photoPath).data.publicUrl;
 
     setBackground((prev) => ({
       ...prev,
@@ -182,13 +182,13 @@ export default function Settings() {
       const fileName = `${user?.id}/${Date.now()}.${fileExt}`;
 
       const { data, error } = await supabase.storage
-        .from("community_photos")
+        .from("community-photos")
         .upload(fileName, file);
 
       if (error) throw error;
 
       const publicUrl = supabase.storage
-        .from("community_photos")
+        .from("community-photos")
         .getPublicUrl(fileName).data.publicUrl;
 
       setBackground((prev) => ({
@@ -423,7 +423,7 @@ export default function Settings() {
                       onClick={() => selectPhoto(photo.file_path, type)}
                     >
                       <img
-                        src={supabase.storage.from("community_photos").getPublicUrl(photo.file_path).data.publicUrl}
+                        src={supabase.storage.from("community-photos").getPublicUrl(photo.file_path).data.publicUrl}
                         alt={photo.title}
                         className="w-full h-32 object-cover rounded-lg group-hover:opacity-75 transition-opacity"
                         onError={(e) => {
