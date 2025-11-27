@@ -243,6 +243,38 @@ const ApiDocs = () => {
           features: [
             { name: "Chicken Assistant", path: "/src/assets/chicken-assistant.jpeg", usage: "AI assistant avatar (Ask the Chicken)" }
           ]
+        },
+        theme: {
+          typography: {
+            primaryFont: { name: "Outfit", type: "sans-serif", weights: [400, 500, 600, 700], url: "https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" },
+            secondaryFont: { name: "Merriweather", type: "serif", weights: [400, 700], url: "https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" },
+            monospaceFont: { name: "System Monospace", type: "monospace" }
+          },
+          colors: {
+            format: "HSL",
+            tokens: [
+              "--background", "--foreground", "--primary", "--secondary", 
+              "--muted", "--accent", "--destructive", "--border", 
+              "--card", "--card-foreground", "--input", "--ring"
+            ],
+            darkModeSupport: true
+          },
+          glassEffect: {
+            enabled: true,
+            settings: {
+              glassIntensity: { min: 0.1, max: 1.0, default: 0.6 },
+              sidebarOpacity: { min: 0.1, max: 1.0, default: 0.95 },
+              authPageOpacity: { min: 0.1, max: 1.0, default: 0.9 }
+            },
+            css: "backdrop-filter: blur(10px); background: rgba(255,255,255,0.1);"
+          },
+          components: [
+            "Button", "Card", "Dialog", "Dropdown Menu", "Input", "Select",
+            "Textarea", "Tabs", "Toast", "Accordion", "Alert", "Avatar",
+            "Badge", "Calendar", "Checkbox", "Switch", "Table", "Tooltip",
+            "Sheet", "Sidebar", "Carousel"
+          ],
+          animations: ["accordion-down", "accordion-up"]
         }
       },
       swiftSetup: {
@@ -277,10 +309,11 @@ const ApiDocs = () => {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 lg:grid-cols-9">
+        <TabsList className="grid w-full grid-cols-5 lg:grid-cols-10">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="auth">Auth</TabsTrigger>
           <TabsTrigger value="routes">Routes</TabsTrigger>
+          <TabsTrigger value="theme">Theme</TabsTrigger>
           <TabsTrigger value="functions">Functions</TabsTrigger>
           <TabsTrigger value="database">Database</TabsTrigger>
           <TabsTrigger value="storage">Storage</TabsTrigger>
@@ -489,6 +522,293 @@ let accessToken = session.accessToken`}</code>
                   <li>Redirects to /dashboard if user lacks required permissions</li>
                 </ul>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Theme Tab */}
+        <TabsContent value="theme" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Code2 className="h-5 w-5" />
+                Design System & Theme
+              </CardTitle>
+              <CardDescription>Typography, colors, and UI components</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              
+              {/* Typography Section */}
+              <div>
+                <h3 className="font-semibold mb-3 text-lg">Typography</h3>
+                <div className="space-y-4">
+                  <div className="border-l-2 border-primary pl-4">
+                    <h4 className="font-medium">Primary Font (Sans-Serif)</h4>
+                    <p className="text-sm text-muted-foreground">Outfit - Modern, clean, and highly readable</p>
+                    <pre className="bg-muted p-3 rounded-lg overflow-x-auto text-xs mt-2">
+                      <code>{`<!-- Google Fonts CDN -->
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+/* CSS Usage */
+font-family: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+
+/* Tailwind Usage */
+className="font-sans"`}</code>
+                    </pre>
+                  </div>
+
+                  <div className="border-l-2 border-blue-500 pl-4">
+                    <h4 className="font-medium">Secondary Font (Serif)</h4>
+                    <p className="text-sm text-muted-foreground">Merriweather - Elegant for headings and emphasis</p>
+                    <pre className="bg-muted p-3 rounded-lg overflow-x-auto text-xs mt-2">
+                      <code>{`<!-- Google Fonts CDN -->
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+
+/* CSS Usage */
+font-family: 'Merriweather', ui-serif, Georgia, serif;
+
+/* Tailwind Usage */
+className="font-serif"`}</code>
+                    </pre>
+                  </div>
+
+                  <div className="border-l-2 border-green-500 pl-4">
+                    <h4 className="font-medium">Monospace Font</h4>
+                    <p className="text-sm text-muted-foreground">System monospace for code blocks</p>
+                    <pre className="bg-muted p-3 rounded-lg overflow-x-auto text-xs mt-2">
+                      <code>{`/* Tailwind Usage */
+className="font-mono"`}</code>
+                    </pre>
+                  </div>
+                </div>
+              </div>
+
+              {/* Color System Section */}
+              <div>
+                <h3 className="font-semibold mb-3 text-lg">Color System (HSL-Based)</h3>
+                <p className="text-sm text-muted-foreground mb-4">All colors use HSL format and are defined as CSS variables for light/dark mode support</p>
+                <div className="space-y-3">
+                  <div className="bg-muted p-4 rounded-lg">
+                    <h4 className="font-medium mb-2">Semantic Color Tokens</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                      <div><code className="bg-background px-2 py-1 rounded">--background</code> - Main background</div>
+                      <div><code className="bg-background px-2 py-1 rounded">--foreground</code> - Main text color</div>
+                      <div><code className="bg-background px-2 py-1 rounded">--primary</code> - Primary brand color</div>
+                      <div><code className="bg-background px-2 py-1 rounded">--secondary</code> - Secondary actions</div>
+                      <div><code className="bg-background px-2 py-1 rounded">--muted</code> - Subtle backgrounds</div>
+                      <div><code className="bg-background px-2 py-1 rounded">--accent</code> - Accent highlights</div>
+                      <div><code className="bg-background px-2 py-1 rounded">--destructive</code> - Delete/error actions</div>
+                      <div><code className="bg-background px-2 py-1 rounded">--border</code> - Border colors</div>
+                      <div><code className="bg-background px-2 py-1 rounded">--card</code> - Card backgrounds</div>
+                    </div>
+                  </div>
+
+                  <div className="bg-muted p-4 rounded-lg">
+                    <h4 className="font-medium mb-2">Using Colors in Swift</h4>
+                    <pre className="bg-background p-3 rounded-lg overflow-x-auto text-xs">
+                      <code>{`// Convert HSL to RGB first
+// Example: --primary: 266 4% 20.8%
+// HSL(266°, 4%, 20.8%) → RGB(51, 50, 54)
+
+let primaryColor = Color(red: 51/255, green: 50/255, blue: 54/255)
+
+// Or use hex values
+let primaryColor = Color(hex: "333236")
+
+// Define your theme colors
+struct AppColors {
+    static let background = Color.white
+    static let primary = Color(hex: "333236")
+    static let secondary = Color(hex: "F7F7F8")
+    // ... add all semantic colors
+}`}</code>
+                    </pre>
+                  </div>
+                </div>
+              </div>
+
+              {/* Glass Effect Section */}
+              <div>
+                <h3 className="font-semibold mb-3 text-lg">Glass Morphism Effect</h3>
+                <p className="text-sm text-muted-foreground mb-4">The app uses customizable glass effects for sidebars and UI overlays</p>
+                <div className="space-y-3">
+                  <div className="bg-muted p-4 rounded-lg">
+                    <h4 className="font-medium mb-2">Glass Effect Settings</h4>
+                    <ul className="space-y-2 text-sm">
+                      <li><strong>Glass Theme Enabled:</strong> Toggle glass effects on/off (stored in profiles table)</li>
+                      <li><strong>Glass Intensity:</strong> Controls blur strength (0.1 - 1.0, default 0.6)</li>
+                      <li><strong>Sidebar Opacity:</strong> Background transparency (0.1 - 1.0, default 0.95)</li>
+                      <li><strong>Auth Page Opacity:</strong> Login page background opacity (0.1 - 1.0, default 0.9)</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-muted p-4 rounded-lg">
+                    <h4 className="font-medium mb-2">CSS Implementation</h4>
+                    <pre className="bg-background p-3 rounded-lg overflow-x-auto text-xs">
+                      <code>{`/* Glass effect CSS */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Dark mode glass */
+.dark .glass-effect {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}`}</code>
+                    </pre>
+                  </div>
+
+                  <div className="bg-muted p-4 rounded-lg">
+                    <h4 className="font-medium mb-2">Swift Implementation</h4>
+                    <pre className="bg-background p-3 rounded-lg overflow-x-auto text-xs">
+                      <code>{`// Glass effect modifier
+struct GlassEffect: ViewModifier {
+    var intensity: Double = 0.6
+    var opacity: Double = 0.95
+    
+    func body(content: Content) -> some View {
+        content
+            .background(.ultraThinMaterial)
+            .opacity(opacity)
+            .cornerRadius(16)
+            .shadow(radius: 10)
+    }
+}
+
+// Usage
+Text("Hello")
+    .modifier(GlassEffect(intensity: 0.6, opacity: 0.95))`}</code>
+                    </pre>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card Components Section */}
+              <div>
+                <h3 className="font-semibold mb-3 text-lg">Card Components</h3>
+                <p className="text-sm text-muted-foreground mb-4">Cards use the shadcn/ui component system with semantic color tokens</p>
+                <div className="space-y-3">
+                  <div className="bg-muted p-4 rounded-lg">
+                    <h4 className="font-medium mb-2">Card Structure</h4>
+                    <pre className="bg-background p-3 rounded-lg overflow-x-auto text-xs">
+                      <code>{`<Card className="overflow-hidden">
+  <CardHeader>
+    <CardTitle>Card Title</CardTitle>
+    <CardDescription>Supporting text</CardDescription>
+  </CardHeader>
+  <CardContent>
+    Main content goes here
+  </CardContent>
+  <CardFooter>
+    Actions or metadata
+  </CardFooter>
+</Card>`}</code>
+                    </pre>
+                  </div>
+
+                  <div className="bg-muted p-4 rounded-lg">
+                    <h4 className="font-medium mb-2">Card Colors</h4>
+                    <pre className="bg-background p-3 rounded-lg overflow-x-auto text-xs">
+                      <code>{`/* Card uses semantic tokens */
+background-color: hsl(var(--card));
+color: hsl(var(--card-foreground));
+border-color: hsl(var(--border));
+
+/* Automatically adapts to light/dark mode */`}</code>
+                    </pre>
+                  </div>
+                </div>
+              </div>
+
+              {/* UI Components Section */}
+              <div>
+                <h3 className="font-semibold mb-3 text-lg">Available UI Components</h3>
+                <p className="text-sm text-muted-foreground mb-4">Shadcn/ui components with full TypeScript support</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                  <div className="bg-muted p-2 rounded">Button</div>
+                  <div className="bg-muted p-2 rounded">Card</div>
+                  <div className="bg-muted p-2 rounded">Dialog</div>
+                  <div className="bg-muted p-2 rounded">Dropdown Menu</div>
+                  <div className="bg-muted p-2 rounded">Input</div>
+                  <div className="bg-muted p-2 rounded">Label</div>
+                  <div className="bg-muted p-2 rounded">Select</div>
+                  <div className="bg-muted p-2 rounded">Textarea</div>
+                  <div className="bg-muted p-2 rounded">Tabs</div>
+                  <div className="bg-muted p-2 rounded">Toast</div>
+                  <div className="bg-muted p-2 rounded">Accordion</div>
+                  <div className="bg-muted p-2 rounded">Alert</div>
+                  <div className="bg-muted p-2 rounded">Avatar</div>
+                  <div className="bg-muted p-2 rounded">Badge</div>
+                  <div className="bg-muted p-2 rounded">Calendar</div>
+                  <div className="bg-muted p-2 rounded">Checkbox</div>
+                  <div className="bg-muted p-2 rounded">Switch</div>
+                  <div className="bg-muted p-2 rounded">Table</div>
+                  <div className="bg-muted p-2 rounded">Tooltip</div>
+                  <div className="bg-muted p-2 rounded">Sheet</div>
+                  <div className="bg-muted p-2 rounded">Sidebar</div>
+                  <div className="bg-muted p-2 rounded">Carousel</div>
+                </div>
+              </div>
+
+              {/* Animations Section */}
+              <div>
+                <h3 className="font-semibold mb-3 text-lg">Animations</h3>
+                <p className="text-sm text-muted-foreground mb-4">Built-in Tailwind animations</p>
+                <div className="bg-muted p-4 rounded-lg">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <code className="bg-background px-2 py-1 rounded">animate-accordion-down</code>
+                      <p className="text-xs text-muted-foreground mt-1">Smooth accordion expand</p>
+                    </div>
+                    <div>
+                      <code className="bg-background px-2 py-1 rounded">animate-accordion-up</code>
+                      <p className="text-xs text-muted-foreground mt-1">Smooth accordion collapse</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Screen Types Section */}
+              <div>
+                <h3 className="font-semibold mb-3 text-lg">Screen Types (Routes)</h3>
+                <p className="text-sm text-muted-foreground mb-4">Each route corresponds to a React component/page in the app</p>
+                <div className="space-y-3">
+                  <div className="border-l-2 border-primary pl-4">
+                    <h4 className="font-medium">Public Screens</h4>
+                    <p className="text-sm text-muted-foreground">No authentication required - accessible to all visitors</p>
+                    <ul className="text-xs text-muted-foreground mt-2 space-y-1">
+                      <li>/ - Landing/index page</li>
+                      <li>/auth - Login page</li>
+                      <li>/accept-invite - Invitation completion</li>
+                    </ul>
+                  </div>
+
+                  <div className="border-l-2 border-blue-500 pl-4">
+                    <h4 className="font-medium">Protected Screens</h4>
+                    <p className="text-sm text-muted-foreground">Requires authentication - wrapped in ProtectedRoute component</p>
+                    <ul className="text-xs text-muted-foreground mt-2 space-y-1">
+                      <li>/dashboard - Main app screen</li>
+                      <li>/assistant - AI chat interface</li>
+                      <li>/chat - Community messaging</li>
+                      <li>/documents - Document browser</li>
+                      <li>/photos - Photo gallery</li>
+                    </ul>
+                  </div>
+
+                  <div className="border-l-2 border-red-500 pl-4">
+                    <h4 className="font-medium">Admin Screens</h4>
+                    <p className="text-sm text-muted-foreground">Requires admin role - role checked via user_roles table</p>
+                    <ul className="text-xs text-muted-foreground mt-2 space-y-1">
+                      <li>/users - User management</li>
+                      <li>/admin-settings - System configuration</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
             </CardContent>
           </Card>
         </TabsContent>
