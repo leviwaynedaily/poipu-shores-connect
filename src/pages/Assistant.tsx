@@ -16,6 +16,8 @@ interface Message {
   content: string;
 }
 
+const DISPLAY_THRESHOLD = 50; // Buffer before displaying to avoid showing partial words
+
 const Assistant = () => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -109,8 +111,7 @@ const Assistant = () => {
       const decoder = new TextDecoder();
       let assistantContent = "";
       let textBuffer = "";
-
-      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+      let messageRevealed = false; // Track if we've shown the message yet
 
       while (true) {
         const { done, value } = await reader.read();
@@ -135,20 +136,33 @@ const Assistant = () => {
             const content = parsed.choices?.[0]?.delta?.content;
             if (content) {
               assistantContent += content;
-              setMessages((prev) => {
-                const newMessages = [...prev];
-                newMessages[newMessages.length - 1] = {
-                  role: "assistant",
-                  content: assistantContent,
-                };
-                return newMessages;
-              });
+              
+              // Only reveal the message once we have enough content
+              if (!messageRevealed && assistantContent.length >= DISPLAY_THRESHOLD) {
+                messageRevealed = true;
+                setMessages((prev) => [...prev, { role: "assistant", content: assistantContent }]);
+              } else if (messageRevealed) {
+                // After revealed, update normally for real-time streaming
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  newMessages[newMessages.length - 1] = {
+                    role: "assistant",
+                    content: assistantContent,
+                  };
+                  return newMessages;
+                });
+              }
             }
           } catch {
             textBuffer = line + "\n" + textBuffer;
             break;
           }
         }
+      }
+
+      // If stream ends before threshold, show what we have
+      if (!messageRevealed && assistantContent) {
+        setMessages((prev) => [...prev, { role: "assistant", content: assistantContent }]);
       }
 
       if (assistantContent) {
