@@ -33,6 +33,8 @@ export default function AdminSettings() {
   const [aiPrompt, setAiPrompt] = useState('');
   const [currentAuthLogo, setCurrentAuthLogo] = useState<string | null>(null);
   const [currentFavicon, setCurrentFavicon] = useState<string | null>(null);
+  const [currentChickenLogo, setCurrentChickenLogo] = useState<string | null>(null);
+  const [uploadingChicken, setUploadingChicken] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -55,6 +57,16 @@ export default function AdminSettings() {
       
       if (faviconData?.setting_value) {
         setCurrentFavicon(faviconData.setting_value as string);
+      }
+
+      const { data: chickenData } = await supabase
+        .from('app_settings')
+        .select('setting_value')
+        .eq('setting_key', 'chicken_assistant_logo')
+        .maybeSingle();
+      
+      if (chickenData?.setting_value) {
+        setCurrentChickenLogo(chickenData.setting_value as string);
       }
     };
 
@@ -395,6 +407,104 @@ export default function AdminSettings() {
       
       img.src = url;
     });
+  };
+
+  const convertToWebp = (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          
+          if (!ctx) {
+            reject(new Error('Could not get canvas context'));
+            return;
+          }
+          
+          ctx.drawImage(img, 0, 0);
+          URL.revokeObjectURL(url);
+          
+          canvas.toBlob((blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error('Failed to convert image to WebP'));
+            }
+          }, 'image/webp', 0.95);
+        } catch (error) {
+          URL.revokeObjectURL(url);
+          reject(error);
+        }
+      };
+      
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Failed to load image'));
+      };
+      
+      img.src = url;
+    });
+  };
+
+  const handleChickenLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingChicken(true);
+    try {
+      // Convert to WebP
+      const webpBlob = await convertToWebp(file);
+      const fileName = `chicken-assistant-${Date.now()}.webp`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, webpBlob);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      await supabase
+        .from('app_settings')
+        .upsert({
+          setting_key: 'chicken_assistant_logo',
+          setting_value: publicUrl,
+        }, {
+          onConflict: 'setting_key',
+        });
+
+      setCurrentChickenLogo(publicUrl);
+
+      toast({
+        title: "Success",
+        description: "Ask the Chicken logo uploaded successfully (converted to WebP)",
+      });
+    } catch (error: any) {
+      console.error('Error uploading chicken logo:', error);
+      toast({
+        title: "Upload failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingChicken(false);
+    }
   };
 
   const handleFaviconUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -802,6 +912,45 @@ export default function AdminSettings() {
             </TabsContent>
 
             <TabsContent value="advanced" className="space-y-4 pt-4">
+              {/* Ask the Chicken Logo */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Ask the Chicken Logo</CardTitle>
+                  <CardDescription className="text-sm">
+                    Upload logo for AI assistant (automatically converted to WebP)
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {currentChickenLogo && (
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Current Logo</Label>
+                      <div className="flex justify-center p-4 rounded-md border border-border bg-muted/30">
+                        <img 
+                          src={currentChickenLogo} 
+                          alt="Ask the Chicken logo" 
+                          className="h-24 w-auto object-contain"
+                        />
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Mobile app URL: <code className="bg-muted px-1 py-0.5 rounded">{currentChickenLogo}</code>
+                      </div>
+                    </div>
+                  )}
+                  {!currentChickenLogo && (
+                    <div className="text-xs text-muted-foreground text-center py-2">
+                      No custom logo set
+                    </div>
+                  )}
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleChickenLogoUpload}
+                    disabled={uploadingChicken}
+                    className="text-sm"
+                  />
+                </CardContent>
+              </Card>
+
               {/* Favicon Upload */}
               <Card>
                 <CardHeader className="pb-3">
