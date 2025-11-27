@@ -491,10 +491,6 @@ export default function AdminSettings() {
             <Users className="mr-2 h-4 w-4" />
             Users
           </TabsTrigger>
-          <TabsTrigger value="theme">
-            <Palette className="mr-2 h-4 w-4" />
-            Theme
-          </TabsTrigger>
           <TabsTrigger value="activity">
             <Activity className="mr-2 h-4 w-4" />
             Activity
@@ -511,10 +507,30 @@ export default function AdminSettings() {
             <Settings className="mr-2 h-4 w-4" />
             General
           </TabsTrigger>
+          <TabsTrigger value="theme">
+            <Palette className="mr-2 h-4 w-4" />
+            Theme
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="space-y-4">
           <UserManagement />
+        </TabsContent>
+
+        <TabsContent value="activity" className="space-y-4">
+          <LoginActivityTable />
+        </TabsContent>
+
+        <TabsContent value="webcams" className="space-y-4">
+          <WebcamManagement />
+        </TabsContent>
+
+        <TabsContent value="emergency" className="space-y-4">
+          <EmergencyContactManagement />
+        </TabsContent>
+
+        <TabsContent value="general" className="space-y-4">
+          <GeneralSettings />
         </TabsContent>
 
         <TabsContent value="theme" className="space-y-4">
@@ -833,22 +849,6 @@ export default function AdminSettings() {
               </Card>
             </TabsContent>
           </Tabs>
-        </TabsContent>
-
-        <TabsContent value="activity" className="space-y-4">
-          <LoginActivityTable />
-        </TabsContent>
-
-        <TabsContent value="webcams" className="space-y-4">
-          <WebcamManagement />
-        </TabsContent>
-
-        <TabsContent value="emergency" className="space-y-4">
-          <EmergencyContactManagement />
-        </TabsContent>
-
-        <TabsContent value="general" className="space-y-4">
-          <GeneralSettings />
         </TabsContent>
       </Tabs>
     </div>
