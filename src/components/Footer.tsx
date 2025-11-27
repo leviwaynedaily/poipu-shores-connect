@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
+import { Card } from "@/components/ui/card";
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
   
   return (
-    <footer className="mt-auto border-t border-border/20 bg-card/30 backdrop-blur-sm">
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
+    <Card className="mt-auto">
+      <div className="px-3 sm:px-4 py-4 sm:py-6">
         <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 text-center text-xs sm:text-sm text-muted-foreground">
           <span>© {currentYear} Poipu Shores</span>
           <span className="hidden sm:inline">•</span>
@@ -28,6 +29,6 @@ export const Footer = () => {
           </Link>
         </div>
       </div>
-    </footer>
+    </Card>
   );
 };
