@@ -176,6 +176,27 @@ const ApiDocs = () => {
             path: "/functions/v1/batch-extract-documents",
             authRequired: true,
             description: "Batch extract text from multiple documents"
+          },
+          communityAssistantMobile: {
+            method: "POST",
+            path: "/functions/v1/community-assistant-mobile",
+            authRequired: false,
+            description: "Non-streaming AI assistant for mobile apps",
+            requestBody: {
+              messages: [
+                { role: "user", content: "What are the lanai rules?" }
+              ]
+            },
+            responseFormat: {
+              success: true,
+              response: "Aloha! Based on the community documents...",
+              model: "google/gemini-2.5-flash"
+            },
+            chatHistory: {
+              load: "GET /rest/v1/community_assistant_messages?user_id=eq.<userId>&order=created_at.asc",
+              save: "POST /rest/v1/community_assistant_messages with body: { user_id, role, content }",
+              clear: "DELETE /rest/v1/community_assistant_messages?user_id=eq.<userId>"
+            }
           }
         },
         database: {
@@ -357,6 +378,145 @@ let supabase = SupabaseClient(
     supabaseURL: URL(string: "${baseUrl}")!,
     supabaseKey: "${anonKey}"
 )`}</code>
+                </pre>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/50 backdrop-blur border-border/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
+                "Ask the Chicken" Mobile Integration
+              </CardTitle>
+              <CardDescription>
+                Non-streaming AI assistant endpoint optimized for mobile apps
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                <h3 className="font-semibold mb-2 text-blue-700 dark:text-blue-300">📱 Mobile-First Design</h3>
+                <p className="text-sm text-muted-foreground">
+                  This endpoint returns clean JSON responses (no streaming) for simplified mobile integration, 
+                  while maintaining the same powerful AI capabilities as the web version.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-2">Endpoint URL</h3>
+                <code className="block p-3 bg-muted rounded-md text-sm break-all">
+                  POST {baseUrl}/functions/v1/community-assistant-mobile
+                </code>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-2">Request Headers</h3>
+                <pre className="block p-3 bg-muted rounded-md text-sm overflow-x-auto">
+{`Authorization: Bearer <user_access_token>
+apikey: ${anonKey}
+Content-Type: application/json`}
+                </pre>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-2">Request Body</h3>
+                <pre className="block p-3 bg-muted rounded-md text-sm overflow-x-auto">
+{`{
+  "messages": [
+    { "role": "user", "content": "What are the lanai rules?" }
+  ]
+}`}
+                </pre>
+                <p className="text-sm text-muted-foreground mt-2">
+                  💡 <strong>Include full conversation history</strong> in the messages array for proper context.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-2">Response Format</h3>
+                <pre className="block p-3 bg-muted rounded-md text-sm overflow-x-auto">
+{`{
+  "success": true,
+  "response": "Aloha! Based on the community documents...",
+  "model": "google/gemini-2.5-flash"
+}`}
+                </pre>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-3">Chat History Management</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Use standard Supabase REST API to manage chat history in <code>community_assistant_messages</code> table:
+                </p>
+                
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm font-medium mb-2 flex items-center gap-2">
+                      📥 Load History
+                    </p>
+                    <code className="block p-3 bg-muted rounded-md text-xs break-all">
+                      GET {baseUrl}/rest/v1/community_assistant_messages?user_id=eq.&lt;userId&gt;&order=created_at.asc
+                    </code>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm font-medium mb-2 flex items-center gap-2">
+                      💾 Save Message
+                    </p>
+                    <code className="block p-3 bg-muted rounded-md text-xs break-all">
+                      POST {baseUrl}/rest/v1/community_assistant_messages<br/>
+                      Body: {`{ "user_id": "<userId>", "role": "user", "content": "..." }`}
+                    </code>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm font-medium mb-2 flex items-center gap-2">
+                      🗑️ Clear History
+                    </p>
+                    <code className="block p-3 bg-muted rounded-md text-xs break-all">
+                      DELETE {baseUrl}/rest/v1/community_assistant_messages?user_id=eq.&lt;userId&gt;
+                    </code>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 space-y-2">
+                <h3 className="font-semibold text-yellow-700 dark:text-yellow-300">⚠️ Implementation Checklist</h3>
+                <ul className="text-sm text-muted-foreground space-y-1 list-inside">
+                  <li>✅ Send complete conversation history for context</li>
+                  <li>✅ Save both user and assistant messages</li>
+                  <li>✅ Use user's access token (from auth.signIn)</li>
+                  <li>✅ Handle 429 (rate limit) and 402 (no credits) errors</li>
+                  <li>✅ Display loading state during API call</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-2">Swift Example</h3>
+                <pre className="block p-3 bg-muted rounded-md text-sm overflow-x-auto">
+{`// Send message to AI
+let response = try await supabase.functions.invoke(
+    "community-assistant-mobile",
+    options: FunctionInvokeOptions(
+        body: ["messages": messages]
+    )
+)
+
+let data = try JSONDecoder().decode(
+    AIResponse.self, 
+    from: response.data
+)
+print(data.response)
+
+// Save to history
+try await supabase
+    .from("community_assistant_messages")
+    .insert([
+        "user_id": userId,
+        "role": "assistant",
+        "content": data.response
+    ])
+    .execute()`}
                 </pre>
               </div>
             </CardContent>
