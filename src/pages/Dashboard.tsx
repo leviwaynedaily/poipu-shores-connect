@@ -93,12 +93,12 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <AnnouncementDialog />
 
       {/* Quick Stats - Desktop Only */}
       {!isMobile && (
-        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <Link to="/announcements">
             <Card className="cursor-pointer hover:border-primary transition-colors h-full">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -183,7 +183,7 @@ const Dashboard = () => {
       </Link>
 
       {/* Announcements */}
-      <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
+      <div className="grid gap-3 grid-cols-1 lg:grid-cols-2">
         {isMobile ? (
           <Card>
             <CardHeader className="p-4 sm:p-6">
@@ -276,7 +276,7 @@ const Dashboard = () => {
       )}
 
       {/* Emergency Contacts & Live Camera */}
-      <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
+      <div className="grid gap-3 grid-cols-1 lg:grid-cols-2">
         <EmergencyContacts compact={isMobile} />
         <LiveCameraEmbed compact={isMobile} />
       </div>
