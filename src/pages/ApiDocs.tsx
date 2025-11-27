@@ -51,20 +51,106 @@ const ApiDocs = () => {
           getWeather: {
             method: "GET",
             path: "/functions/v1/get-weather",
-            authRequired: true,
+            authRequired: false,
             description: "Current weather and 3-day forecast"
+          },
+          trackLogin: {
+            method: "POST",
+            path: "/functions/v1/track-login",
+            authRequired: false,
+            description: "Track user login activity"
+          },
+          verifyInvite: {
+            method: "POST",
+            path: "/functions/v1/verify-invite",
+            authRequired: false,
+            description: "Verify invitation token"
+          },
+          completeInvite: {
+            method: "POST",
+            path: "/functions/v1/complete-invite",
+            authRequired: false,
+            description: "Complete invitation and set password"
           },
           inviteUser: {
             method: "POST",
             path: "/functions/v1/invite-user",
             authRequired: true,
-            adminOnly: true
+            adminOnly: true,
+            description: "Invite new user"
+          },
+          resendInvite: {
+            method: "POST",
+            path: "/functions/v1/resend-invite",
+            authRequired: true,
+            adminOnly: true,
+            description: "Resend user invitation"
           },
           updateUser: {
             method: "POST",
             path: "/functions/v1/update-user",
             authRequired: true,
-            adminOnly: true
+            adminOnly: true,
+            description: "Update user information"
+          },
+          deleteUser: {
+            method: "POST",
+            path: "/functions/v1/delete-user",
+            authRequired: true,
+            adminOnly: true,
+            description: "Delete user account"
+          },
+          deleteInvite: {
+            method: "POST",
+            path: "/functions/v1/delete-invite",
+            authRequired: true,
+            adminOnly: true,
+            description: "Delete pending invitation"
+          },
+          deactivateUser: {
+            method: "POST",
+            path: "/functions/v1/deactivate-user",
+            authRequired: true,
+            adminOnly: true,
+            description: "Deactivate user account"
+          },
+          reactivateUser: {
+            method: "POST",
+            path: "/functions/v1/reactivate-user",
+            authRequired: true,
+            adminOnly: true,
+            description: "Reactivate user account"
+          },
+          resetPassword: {
+            method: "POST",
+            path: "/functions/v1/reset-password",
+            authRequired: true,
+            adminOnly: true,
+            description: "Reset user password"
+          },
+          generateBackground: {
+            method: "POST",
+            path: "/functions/v1/generate-background",
+            authRequired: true,
+            description: "Generate AI background image"
+          },
+          generatePhotoTitle: {
+            method: "POST",
+            path: "/functions/v1/generate-photo-title",
+            authRequired: true,
+            description: "Generate AI photo title"
+          },
+          extractDocumentContent: {
+            method: "POST",
+            path: "/functions/v1/extract-document-content",
+            authRequired: true,
+            description: "Extract text from document"
+          },
+          batchExtractDocuments: {
+            method: "POST",
+            path: "/functions/v1/batch-extract-documents",
+            authRequired: true,
+            description: "Batch extract text from multiple documents"
           }
         },
         database: {
@@ -303,16 +389,62 @@ let accessToken = session.accessToken`}</code>
               </div>
 
               <div>
+                <h3 className="font-semibold mb-2">Track Login</h3>
+                <p className="text-sm text-muted-foreground mb-3">Track user login activity and device information</p>
+                <div className="space-y-2">
+                  <div className="text-sm"><span className="font-medium">Endpoint:</span> /functions/v1/track-login</div>
+                  <div className="text-sm"><span className="font-medium">Auth Required:</span> No (public)</div>
+                  <div className="text-sm"><span className="font-medium">Method:</span> POST</div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-2">Invitation Functions</h3>
+                <p className="text-sm text-muted-foreground mb-3">Public invitation endpoints</p>
+                <div className="space-y-2">
+                  <ul className="text-sm list-disc list-inside ml-4 space-y-1">
+                    <li><span className="font-medium">verify-invite</span> - Verify invitation token validity</li>
+                    <li><span className="font-medium">complete-invite</span> - Complete invitation and set password</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-2">AI Content Generation</h3>
+                <p className="text-sm text-muted-foreground mb-3">Generate content using AI (Authenticated)</p>
+                <div className="space-y-2">
+                  <ul className="text-sm list-disc list-inside ml-4 space-y-1">
+                    <li><span className="font-medium">generate-background</span> - Generate AI background images</li>
+                    <li><span className="font-medium">generate-photo-title</span> - Generate AI photo titles</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-2">Document Processing</h3>
+                <p className="text-sm text-muted-foreground mb-3">Extract and process document content (Authenticated)</p>
+                <div className="space-y-2">
+                  <ul className="text-sm list-disc list-inside ml-4 space-y-1">
+                    <li><span className="font-medium">extract-document-content</span> - Extract text from single document</li>
+                    <li><span className="font-medium">batch-extract-documents</span> - Batch extract from multiple documents</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div>
                 <h3 className="font-semibold mb-2">User Management Functions</h3>
                 <p className="text-sm text-muted-foreground mb-3">Invite, update, and manage users (Admin only)</p>
                 <div className="space-y-2">
                   <div className="text-sm"><span className="font-medium">Available functions:</span></div>
                   <ul className="text-sm list-disc list-inside ml-4 space-y-1">
-                    <li>invite-user</li>
-                    <li>update-user</li>
-                    <li>delete-user</li>
-                    <li>deactivate-user</li>
-                    <li>reactivate-user</li>
+                    <li><span className="font-medium">invite-user</span> - Send new user invitation</li>
+                    <li><span className="font-medium">resend-invite</span> - Resend user invitation email</li>
+                    <li><span className="font-medium">update-user</span> - Update user profile and unit</li>
+                    <li><span className="font-medium">delete-user</span> - Permanently delete user</li>
+                    <li><span className="font-medium">delete-invite</span> - Delete pending invitation</li>
+                    <li><span className="font-medium">deactivate-user</span> - Temporarily deactivate user</li>
+                    <li><span className="font-medium">reactivate-user</span> - Reactivate deactivated user</li>
+                    <li><span className="font-medium">reset-password</span> - Reset user password</li>
                   </ul>
                 </div>
               </div>
