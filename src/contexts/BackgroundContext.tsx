@@ -19,6 +19,7 @@ interface BackgroundContextType {
   setHomeBackground: (bg: BackgroundSetting) => void;
   setAppBackground: (bg: BackgroundSetting) => void;
   refreshBackgrounds: () => Promise<void>;
+  loading: boolean;
 }
 
 const defaultBackground: BackgroundSetting = {
@@ -48,35 +49,66 @@ export const BackgroundProvider = ({ children }: { children: React.ReactNode }) 
   const [appBackground, setAppBackground] = useState<BackgroundSetting>(
     () => getInitialBackground("app_background")
   );
+  const [loading, setLoading] = useState(true);
 
   const refreshBackgrounds = async () => {
-    const { data: homeData } = await supabase
-      .from("app_settings")
-      .select("setting_value")
-      .eq("setting_key", "home_background")
-      .maybeSingle();
+    try {
+      const { data: homeData } = await supabase
+        .from("app_settings")
+        .select("setting_value")
+        .eq("setting_key", "home_background")
+        .maybeSingle();
 
-    const { data: appData } = await supabase
-      .from("app_settings")
-      .select("setting_value")
-      .eq("setting_key", "app_background")
-      .maybeSingle();
+      const { data: appData } = await supabase
+        .from("app_settings")
+        .select("setting_value")
+        .eq("setting_key", "app_background")
+        .maybeSingle();
 
-    const { data: toggleData } = await supabase
-      .from("app_settings")
-      .select("setting_value")
-      .eq("setting_key", "use_same_background")
-      .maybeSingle();
+      const imagesToPreload: Promise<void>[] = [];
 
-    if (homeData?.setting_value) {
-      const bgValue = homeData.setting_value as any;
-      setHomeBackground(bgValue);
-      localStorage.setItem("home_background", JSON.stringify(bgValue));
-    }
-    if (appData?.setting_value) {
-      const bgValue = appData.setting_value as any;
-      setAppBackground(bgValue);
-      localStorage.setItem("app_background", JSON.stringify(bgValue));
+      if (homeData?.setting_value) {
+        const bgValue = homeData.setting_value as any;
+        
+        // Preload image if it's a custom background
+        if (bgValue.url && (bgValue.type === "generated" || bgValue.type === "uploaded")) {
+          const preloadPromise = new Promise<void>((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve();
+            img.onerror = () => resolve(); // Don't block forever if image fails
+            img.src = bgValue.url;
+          });
+          imagesToPreload.push(preloadPromise);
+        }
+        
+        setHomeBackground(bgValue);
+        localStorage.setItem("home_background", JSON.stringify(bgValue));
+      }
+      
+      if (appData?.setting_value) {
+        const bgValue = appData.setting_value as any;
+        
+        // Preload image if it's a custom background
+        if (bgValue.url && (bgValue.type === "generated" || bgValue.type === "uploaded")) {
+          const preloadPromise = new Promise<void>((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve();
+            img.onerror = () => resolve(); // Don't block forever if image fails
+            img.src = bgValue.url;
+          });
+          imagesToPreload.push(preloadPromise);
+        }
+        
+        setAppBackground(bgValue);
+        localStorage.setItem("app_background", JSON.stringify(bgValue));
+      }
+
+      // Wait for all images to preload
+      await Promise.all(imagesToPreload);
+    } catch (error) {
+      console.error("Failed to refresh backgrounds", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -92,6 +124,7 @@ export const BackgroundProvider = ({ children }: { children: React.ReactNode }) 
         setHomeBackground,
         setAppBackground,
         refreshBackgrounds,
+        loading,
       }}
     >
       {children}

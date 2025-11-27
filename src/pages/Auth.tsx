@@ -25,7 +25,7 @@ const loginSchema = z.object({
 const Auth = () => {
   const navigate = useNavigate();
   const { user, signIn, resetPassword } = useAuth();
-  const { homeBackground } = useBackground();
+  const { homeBackground, loading: backgroundLoading } = useBackground();
   const { isGlassTheme, authPageOpacity } = useTheme();
   const { toast } = useToast();
   
@@ -370,6 +370,11 @@ const Auth = () => {
     setOtpCode("");
     await handleSendOtp(new Event('submit') as any);
   };
+
+  // Show a simple loading state while background is loading
+  if (backgroundLoading) {
+    return <div className="min-h-screen bg-background" />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
