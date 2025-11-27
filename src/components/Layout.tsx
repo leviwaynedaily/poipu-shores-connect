@@ -104,7 +104,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             </div>
           </header>
 
-          <div className="p-3 flex-1 flex flex-col gap-6 pb-20 md:pb-3">
+          <div className="py-3 pl-3 pr-3 md:pr-6 flex-1 flex flex-col gap-3 pb-20 md:pb-3">
             {children}
             <Footer />
           </div>

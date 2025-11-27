@@ -93,12 +93,12 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 pt-3">
       <AnnouncementDialog />
 
       {/* Quick Stats - Desktop Only */}
       {!isMobile && (
-        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-3">
           <Link to="/announcements">
             <Card className="cursor-pointer hover:border-primary transition-colors h-full">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
