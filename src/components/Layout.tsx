@@ -10,7 +10,7 @@ import logoText from "@/assets/poipu-text.png";
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const { isGlassTheme } = useTheme();
-  const { appBackground } = useBackground();
+  const { appBackground, loading: backgroundLoading } = useBackground();
 
   const getBackgroundStyle = () => {
     switch (appBackground.type) {
@@ -47,6 +47,15 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         return {};
     }
   };
+
+  // Show a simple loading state while background is loading
+  if (backgroundLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider>
