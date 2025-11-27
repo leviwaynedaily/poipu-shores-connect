@@ -35,6 +35,31 @@ const ApiDocs = () => {
             description: "Get current authenticated user"
           }
         },
+        routes: {
+          public: [
+            { path: "/", description: "Landing page with app overview and login prompt" },
+            { path: "/auth", description: "Login and authentication page" },
+            { path: "/accept-invite", description: "Complete user invitation and set password" },
+            { path: "/privacy-policy", description: "Privacy policy and data handling information" },
+            { path: "/terms-of-service", description: "Terms of service and usage guidelines" },
+            { path: "/api-docs", description: "API documentation for mobile app development" }
+          ],
+          protected: [
+            { path: "/dashboard", description: "Main dashboard with weather, live cameras, and emergency contacts", features: ["Weather widget", "Beach conditions", "Live webcams", "Emergency contacts"] },
+            { path: "/assistant", description: "AI-powered community assistant", features: ["Natural language Q&A", "Property management assistance"] },
+            { path: "/chat", description: "Community chat with channels and direct messaging", features: ["Public/private channels", "Message reactions", "Image sharing", "Real-time updates"] },
+            { path: "/documents", description: "HOA documents browser with AI-powered document chat", features: ["Folder organization", "Document viewer", "AI document Q&A", "Unit-specific documents"] },
+            { path: "/photos", description: "Community photo gallery", features: ["Photo upload", "EXIF data", "Likes/comments", "Category filtering", "Approval workflow"] },
+            { path: "/announcements", description: "Community announcements and updates", features: ["Pinned announcements", "Read tracking", "Rich text content"] },
+            { path: "/members", description: "Community member directory", features: ["Member profiles", "Unit ownership", "Contact details"] },
+            { path: "/profile", description: "User profile management", features: ["Edit profile", "Avatar upload", "Contact visibility"] },
+            { path: "/settings", description: "User settings and preferences", features: ["Theme customization", "Background images", "Glass effects", "Login history"] }
+          ],
+          admin: [
+            { path: "/users", description: "User management dashboard", features: ["Invite users", "Update profiles", "Manage roles", "Deactivate/reactivate", "Login history"] },
+            { path: "/admin-settings", description: "Administrative settings", features: ["Emergency contacts", "Webcam configuration", "App settings"] }
+          ]
+        },
         functions: {
           communityAssistant: {
             method: "POST",
@@ -236,9 +261,10 @@ const ApiDocs = () => {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="auth">Auth</TabsTrigger>
+          <TabsTrigger value="routes">Routes</TabsTrigger>
           <TabsTrigger value="functions">Functions</TabsTrigger>
           <TabsTrigger value="database">Database</TabsTrigger>
           <TabsTrigger value="storage">Storage</TabsTrigger>
@@ -323,6 +349,128 @@ let accessToken = session.accessToken`}</code>
                 <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">
                   <code>{`let user = try await supabase.auth.user()`}</code>
                 </pre>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Routes Tab */}
+        <TabsContent value="routes" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Code2 className="h-5 w-5" />
+                Application Routes
+              </CardTitle>
+              <CardDescription>All pages and their functionality</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <h3 className="font-semibold mb-3 text-lg">Public Routes</h3>
+                <div className="space-y-4">
+                  <div className="border-l-2 border-primary pl-4">
+                    <h4 className="font-medium">/</h4>
+                    <p className="text-sm text-muted-foreground">Landing page with app overview and login prompt</p>
+                  </div>
+                  <div className="border-l-2 border-primary pl-4">
+                    <h4 className="font-medium">/auth</h4>
+                    <p className="text-sm text-muted-foreground">Login and authentication page</p>
+                  </div>
+                  <div className="border-l-2 border-primary pl-4">
+                    <h4 className="font-medium">/accept-invite</h4>
+                    <p className="text-sm text-muted-foreground">Complete user invitation and set password</p>
+                  </div>
+                  <div className="border-l-2 border-primary pl-4">
+                    <h4 className="font-medium">/privacy-policy</h4>
+                    <p className="text-sm text-muted-foreground">Privacy policy and data handling information</p>
+                  </div>
+                  <div className="border-l-2 border-primary pl-4">
+                    <h4 className="font-medium">/terms-of-service</h4>
+                    <p className="text-sm text-muted-foreground">Terms of service and usage guidelines</p>
+                  </div>
+                  <div className="border-l-2 border-primary pl-4">
+                    <h4 className="font-medium">/api-docs</h4>
+                    <p className="text-sm text-muted-foreground">API documentation for mobile app development</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-3 text-lg">Protected Routes (Requires Authentication)</h3>
+                <div className="space-y-4">
+                  <div className="border-l-2 border-blue-500 pl-4">
+                    <h4 className="font-medium">/dashboard</h4>
+                    <p className="text-sm text-muted-foreground">Main dashboard with weather, live cameras, and emergency contacts</p>
+                    <p className="text-xs text-muted-foreground mt-1">Features: Weather widget, beach conditions, live webcams, emergency contact directory</p>
+                  </div>
+                  <div className="border-l-2 border-blue-500 pl-4">
+                    <h4 className="font-medium">/assistant</h4>
+                    <p className="text-sm text-muted-foreground">AI-powered community assistant ("Ask the Chicken")</p>
+                    <p className="text-xs text-muted-foreground mt-1">Features: Natural language Q&A about community, property management assistance</p>
+                  </div>
+                  <div className="border-l-2 border-blue-500 pl-4">
+                    <h4 className="font-medium">/chat</h4>
+                    <p className="text-sm text-muted-foreground">Community chat with channels and direct messaging</p>
+                    <p className="text-xs text-muted-foreground mt-1">Features: Public/private channels, message reactions, image sharing, real-time updates</p>
+                  </div>
+                  <div className="border-l-2 border-blue-500 pl-4">
+                    <h4 className="font-medium">/documents</h4>
+                    <p className="text-sm text-muted-foreground">HOA documents browser with AI-powered document chat</p>
+                    <p className="text-xs text-muted-foreground mt-1">Features: Folder organization, document viewer, AI document Q&A, unit-specific documents</p>
+                  </div>
+                  <div className="border-l-2 border-blue-500 pl-4">
+                    <h4 className="font-medium">/photos</h4>
+                    <p className="text-sm text-muted-foreground">Community photo gallery with upload and sharing</p>
+                    <p className="text-xs text-muted-foreground mt-1">Features: Photo upload, EXIF data extraction, likes/comments, category filtering, approval workflow</p>
+                  </div>
+                  <div className="border-l-2 border-blue-500 pl-4">
+                    <h4 className="font-medium">/announcements</h4>
+                    <p className="text-sm text-muted-foreground">Community announcements and updates</p>
+                    <p className="text-xs text-muted-foreground mt-1">Features: Pinned announcements, read tracking, rich text content</p>
+                  </div>
+                  <div className="border-l-2 border-blue-500 pl-4">
+                    <h4 className="font-medium">/members</h4>
+                    <p className="text-sm text-muted-foreground">Community member directory</p>
+                    <p className="text-xs text-muted-foreground mt-1">Features: Member profiles, unit ownership info, contact details (privacy-controlled)</p>
+                  </div>
+                  <div className="border-l-2 border-blue-500 pl-4">
+                    <h4 className="font-medium">/profile</h4>
+                    <p className="text-sm text-muted-foreground">User profile management</p>
+                    <p className="text-xs text-muted-foreground mt-1">Features: Edit profile info, avatar upload, phone number, contact visibility settings</p>
+                  </div>
+                  <div className="border-l-2 border-blue-500 pl-4">
+                    <h4 className="font-medium">/settings</h4>
+                    <p className="text-sm text-muted-foreground">User settings and preferences</p>
+                    <p className="text-xs text-muted-foreground mt-1">Features: Theme customization, background images, glass effects, login activity history</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-3 text-lg">Admin Routes (Requires Admin Role)</h3>
+                <div className="space-y-4">
+                  <div className="border-l-2 border-orange-500 pl-4">
+                    <h4 className="font-medium">/users</h4>
+                    <p className="text-sm text-muted-foreground">User management dashboard</p>
+                    <p className="text-xs text-muted-foreground mt-1">Features: Invite users, update profiles, manage roles, deactivate/reactivate accounts, view login history</p>
+                  </div>
+                  <div className="border-l-2 border-orange-500 pl-4">
+                    <h4 className="font-medium">/admin-settings</h4>
+                    <p className="text-sm text-muted-foreground">Administrative settings and configuration</p>
+                    <p className="text-xs text-muted-foreground mt-1">Features: Emergency contact management, webcam configuration, general app settings</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 p-4 bg-muted rounded-lg">
+                <h3 className="font-semibold mb-2">Route Protection</h3>
+                <p className="text-sm text-muted-foreground mb-2">All protected routes use the ProtectedRoute component which:</p>
+                <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
+                  <li>Checks for valid authentication session</li>
+                  <li>Redirects to /auth if not authenticated</li>
+                  <li>Admin routes verify user has 'admin' role in user_roles table</li>
+                  <li>Redirects to /dashboard if user lacks required permissions</li>
+                </ul>
               </div>
             </CardContent>
           </Card>
