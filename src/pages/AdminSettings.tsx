@@ -1,6 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings, Palette, Webcam, Phone, Users, Sparkles, Upload, Wand2, Image as ImageIcon, Activity } from "lucide-react";
+import { Settings, Palette, Webcam, Phone, Users, Sparkles, Upload, Wand2, Image as ImageIcon, Activity, Copy } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { UserManagement } from "@/components/settings/UserManagement";
 import { WebcamManagement } from "@/components/settings/WebcamManagement";
@@ -36,6 +36,14 @@ export default function AdminSettings() {
   const [currentChickenLogo, setCurrentChickenLogo] = useState<string | null>(null);
   const [uploadingChicken, setUploadingChicken] = useState(false);
   const { toast } = useToast();
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied!",
+      description: `${label} URL copied to clipboard`,
+    });
+  };
 
   useEffect(() => {
     const fetchCustomImages = async () => {
@@ -327,18 +335,24 @@ export default function AdminSettings() {
 
     setUploadingAuth(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const filePath = `auth-logo-${Date.now()}.${fileExt}`;
+      // Convert to WebP
+      const webpBlob = await convertToWebp(file);
+      
+      // Use fixed filename to maintain consistent URL
+      const fileName = 'auth-logo.webp';
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file);
+        .upload(fileName, webpBlob, {
+          upsert: true  // Overwrite existing file
+        });
 
       if (uploadError) throw uploadError;
 
+      // Get public URL (always the same)
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
-        .getPublicUrl(filePath);
+        .getPublicUrl(fileName);
 
       await supabase
         .from('app_settings')
@@ -353,7 +367,7 @@ export default function AdminSettings() {
 
       toast({
         title: "Success",
-        description: "Sign-in logo uploaded successfully",
+        description: "Sign-in logo updated successfully",
       });
     } catch (error: any) {
       console.error('Error uploading auth logo:', error);
@@ -528,13 +542,11 @@ export default function AdminSettings() {
     setUploading(true);
     try {
       let uploadFile: File | Blob = file;
-      let fileName = file.name;
       
       // Convert ICO files to PNG
       if (file.name.toLowerCase().endsWith('.ico') || file.type === 'image/x-icon' || file.type === 'image/vnd.microsoft.icon') {
         const pngBlob = await convertIcoToPng(file);
         uploadFile = pngBlob;
-        fileName = file.name.replace(/\.ico$/i, '.png');
         
         toast({
           title: "Converting",
@@ -542,18 +554,21 @@ export default function AdminSettings() {
         });
       }
       
-      const fileExt = fileName.split('.').pop();
-      const filePath = `favicon-${Date.now()}.${fileExt}`;
+      // Use fixed filename to maintain consistent URL
+      const fileName = 'favicon.png';
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, uploadFile);
+        .upload(fileName, uploadFile, {
+          upsert: true  // Overwrite existing file
+        });
 
       if (uploadError) throw uploadError;
 
+      // Get public URL (always the same)
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
-        .getPublicUrl(filePath);
+        .getPublicUrl(fileName);
 
       const { error: settingsError } = await supabase
         .from('app_settings')
@@ -844,7 +859,7 @@ export default function AdminSettings() {
                     Upload a custom logo for the sign-in card
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                 <CardContent className="space-y-3">
                   {currentAuthLogo && (
                     <div className="space-y-2">
                       <Label className="text-xs text-muted-foreground">Current Logo</Label>
@@ -854,6 +869,21 @@ export default function AdminSettings() {
                           alt="Current sign-in logo" 
                           className="h-20 w-auto object-contain"
                         />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground">Fixed URL (Mobile App)</Label>
+                        <div className="flex gap-2">
+                          <code className="flex-1 text-xs bg-muted px-2 py-1.5 rounded overflow-x-auto block">
+                            {currentAuthLogo}
+                          </code>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => copyToClipboard(currentAuthLogo, "Auth Logo")}
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -936,8 +966,20 @@ export default function AdminSettings() {
                           className="h-24 w-auto object-contain"
                         />
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        Mobile app URL: <code className="bg-muted px-1 py-0.5 rounded">{currentChickenLogo}</code>
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground">Fixed URL (Mobile App)</Label>
+                        <div className="flex gap-2">
+                          <code className="flex-1 text-xs bg-muted px-2 py-1.5 rounded overflow-x-auto block">
+                            {currentChickenLogo}
+                          </code>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => copyToClipboard(currentChickenLogo, "Chicken Logo")}
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -975,6 +1017,21 @@ export default function AdminSettings() {
                           className="h-8 w-8 object-contain"
                         />
                         <span className="text-xs text-muted-foreground">32x32 pixels</span>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground">Fixed URL</Label>
+                        <div className="flex gap-2">
+                          <code className="flex-1 text-xs bg-muted px-2 py-1.5 rounded overflow-x-auto block">
+                            {currentFavicon}
+                          </code>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => copyToClipboard(currentFavicon, "Favicon")}
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   )}
