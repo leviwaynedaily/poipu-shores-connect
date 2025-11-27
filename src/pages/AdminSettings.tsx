@@ -468,14 +468,19 @@ export default function AdminSettings() {
     try {
       // Convert to WebP
       const webpBlob = await convertToWebp(file);
-      const fileName = `chicken-assistant-${Date.now()}.webp`;
+      
+      // Use fixed filename to maintain consistent URL
+      const fileName = 'chicken-assistant-logo.webp';
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(fileName, webpBlob);
+        .upload(fileName, webpBlob, {
+          upsert: true  // Overwrite existing file
+        });
 
       if (uploadError) throw uploadError;
 
+      // Get public URL (always the same)
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(fileName);
@@ -493,7 +498,7 @@ export default function AdminSettings() {
 
       toast({
         title: "Success",
-        description: "Ask the Chicken logo uploaded successfully (converted to WebP)",
+        description: "Ask the Chicken logo updated successfully",
       });
     } catch (error: any) {
       console.error('Error uploading chicken logo:', error);
