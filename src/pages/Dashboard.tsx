@@ -12,7 +12,7 @@ import { EmergencyContacts } from "@/components/dashboard/EmergencyContacts";
 import { LiveCameraEmbed } from "@/components/dashboard/LiveCameraEmbed";
 import { PhotoCarousel } from "@/components/photos/PhotoCarousel";
 import { AnnouncementDialog } from "@/components/AnnouncementDialog";
-import chickenIcon from "@/assets/chicken-assistant.jpeg";
+import defaultChickenIcon from "@/assets/chicken-assistant.jpeg";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Announcement {
@@ -30,6 +30,7 @@ const Dashboard = () => {
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [chickenIcon, setChickenIcon] = useState<string>(defaultChickenIcon);
   const [stats, setStats] = useState({
     totalMessages: 0,
     totalDocuments: 0,
@@ -39,6 +40,7 @@ const Dashboard = () => {
   useEffect(() => {
     fetchAnnouncements();
     fetchStats();
+    fetchChickenLogo();
 
     // Set up real-time subscription for announcements
     const channel = supabase
@@ -90,6 +92,18 @@ const Dashboard = () => {
       totalDocuments: documentsResult.count || 0,
       totalUsers: usersResult.count || 0,
     });
+  };
+
+  const fetchChickenLogo = async () => {
+    const { data } = await supabase
+      .from("app_settings")
+      .select("setting_value")
+      .eq("setting_key", "chicken_assistant_logo")
+      .single();
+
+    if (data?.setting_value) {
+      setChickenIcon(data.setting_value as string);
+    }
   };
 
   return (

@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { TypingIndicator } from "@/components/TypingIndicator";
 import { useNavigate } from "react-router-dom";
-import chickenIcon from "@/assets/chicken-assistant.jpeg";
+import defaultChickenIcon from "@/assets/chicken-assistant.jpeg";
 
 interface Message {
   role: "user" | "assistant";
@@ -26,10 +26,12 @@ const Assistant = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [chickenIcon, setChickenIcon] = useState<string>(defaultChickenIcon);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadChatHistory();
+    fetchChickenLogo();
   }, []);
 
   useEffect(() => {
@@ -62,6 +64,18 @@ const Assistant = () => {
       console.error("Error loading chat history:", error);
     } finally {
       setIsLoadingHistory(false);
+    }
+  };
+
+  const fetchChickenLogo = async () => {
+    const { data } = await supabase
+      .from("app_settings")
+      .select("setting_value")
+      .eq("setting_key", "chicken_assistant_logo")
+      .single();
+
+    if (data?.setting_value) {
+      setChickenIcon(data.setting_value as string);
     }
   };
 

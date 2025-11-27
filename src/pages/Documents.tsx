@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DocumentUpload } from "@/components/DocumentUpload";
 import { DocumentBrowser } from "@/components/documents/DocumentBrowser";
 import { FileText, RefreshCw, MessageCircle } from "lucide-react";
-import chickenIcon from "@/assets/chicken-assistant.jpeg";
+import defaultChickenIcon from "@/assets/chicken-assistant.jpeg";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,9 +17,26 @@ export default function Documents() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
+  const [chickenIcon, setChickenIcon] = useState<string>(defaultChickenIcon);
   const { toast } = useToast();
 
   const canManage = isAdmin || isOwner;
+
+  useEffect(() => {
+    const fetchChickenLogo = async () => {
+      const { data } = await supabase
+        .from("app_settings")
+        .select("setting_value")
+        .eq("setting_key", "chicken_assistant_logo")
+        .single();
+
+      if (data?.setting_value) {
+        setChickenIcon(data.setting_value as string);
+      }
+    };
+
+    fetchChickenLogo();
+  }, []);
 
   const handleBatchExtract = async () => {
     setIsExtracting(true);
