@@ -227,6 +227,22 @@ const ApiDocs = () => {
               description: "Chat message attachments"
             }
           }
+        },
+        assets: {
+          logos: [
+            { name: "Header Logo", path: "/header-logo.png", usage: "Main header and navigation" },
+            { name: "Poipu Logo Icon", path: "/src/assets/poipu-logo-icon.png", usage: "App icon, small logo displays" },
+            { name: "Poipu Text Logo", path: "/src/assets/poipu-text.png", usage: "Text-based logo variant" },
+            { name: "Primary Logo", path: "/src/assets/logo.png", usage: "General branding" }
+          ],
+          favicon: { path: "/favicon.png", usage: "Browser tab icon" },
+          backgrounds: [
+            { name: "Poipu Beach Sunset", path: "/src/assets/poipu-beach-sunset.jpg", usage: "Hero image, default background" },
+            { name: "Oceanfront Condo", path: "/src/assets/condo-oceanfront.jpeg", usage: "Property showcase" }
+          ],
+          features: [
+            { name: "Chicken Assistant", path: "/src/assets/chicken-assistant.jpeg", usage: "AI assistant avatar (Ask the Chicken)" }
+          ]
         }
       },
       swiftSetup: {
@@ -261,13 +277,14 @@ const ApiDocs = () => {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
+        <TabsList className="grid w-full grid-cols-5 lg:grid-cols-9">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="auth">Auth</TabsTrigger>
           <TabsTrigger value="routes">Routes</TabsTrigger>
           <TabsTrigger value="functions">Functions</TabsTrigger>
           <TabsTrigger value="database">Database</TabsTrigger>
           <TabsTrigger value="storage">Storage</TabsTrigger>
+          <TabsTrigger value="assets">Assets</TabsTrigger>
           <TabsTrigger value="swift">Swift</TabsTrigger>
           <TabsTrigger value="examples">Examples</TabsTrigger>
         </TabsList>
@@ -750,6 +767,112 @@ let accessToken = session.accessToken`}</code>
                   <code>{`let data = try await supabase.storage
     .from("documents")
     .download(path: "hoa-rules.pdf")`}</code>
+                </pre>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Assets Tab */}
+        <TabsContent value="assets" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Image className="h-5 w-5" />
+                Branding Assets
+              </CardTitle>
+              <CardDescription>Logos, icons, and images for mobile app branding</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <h3 className="font-semibold mb-3">Logos</h3>
+                <div className="space-y-3">
+                  <div className="border-l-2 border-primary pl-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium">Header Logo</h4>
+                        <p className="text-sm text-muted-foreground">Main header and navigation</p>
+                        <code className="text-xs bg-muted px-2 py-1 rounded mt-1 inline-block">/header-logo.png</code>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="border-l-2 border-primary pl-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium">Poipu Logo Icon</h4>
+                        <p className="text-sm text-muted-foreground">App icon, small logo displays</p>
+                        <code className="text-xs bg-muted px-2 py-1 rounded mt-1 inline-block">/src/assets/poipu-logo-icon.png</code>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="border-l-2 border-primary pl-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium">Poipu Text Logo</h4>
+                        <p className="text-sm text-muted-foreground">Text-based logo variant</p>
+                        <code className="text-xs bg-muted px-2 py-1 rounded mt-1 inline-block">/src/assets/poipu-text.png</code>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="border-l-2 border-primary pl-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium">Primary Logo</h4>
+                        <p className="text-sm text-muted-foreground">General branding</p>
+                        <code className="text-xs bg-muted px-2 py-1 rounded mt-1 inline-block">/src/assets/logo.png</code>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-3">Favicon</h3>
+                <div className="border-l-2 border-primary pl-4">
+                  <h4 className="font-medium">Favicon</h4>
+                  <p className="text-sm text-muted-foreground">Browser tab icon</p>
+                  <code className="text-xs bg-muted px-2 py-1 rounded mt-1 inline-block">/favicon.png</code>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-3">Background Images</h3>
+                <div className="space-y-3">
+                  <div className="border-l-2 border-blue-500 pl-4">
+                    <h4 className="font-medium">Poipu Beach Sunset</h4>
+                    <p className="text-sm text-muted-foreground">Hero image, default background</p>
+                    <code className="text-xs bg-muted px-2 py-1 rounded mt-1 inline-block">/src/assets/poipu-beach-sunset.jpg</code>
+                  </div>
+                  <div className="border-l-2 border-blue-500 pl-4">
+                    <h4 className="font-medium">Oceanfront Condo</h4>
+                    <p className="text-sm text-muted-foreground">Property showcase</p>
+                    <code className="text-xs bg-muted px-2 py-1 rounded mt-1 inline-block">/src/assets/condo-oceanfront.jpeg</code>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-3">Feature Images</h3>
+                <div className="border-l-2 border-green-500 pl-4">
+                  <h4 className="font-medium">Chicken Assistant Avatar</h4>
+                  <p className="text-sm text-muted-foreground">AI assistant avatar ("Ask the Chicken")</p>
+                  <code className="text-xs bg-muted px-2 py-1 rounded mt-1 inline-block">/src/assets/chicken-assistant.jpeg</code>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-2 mt-6">Accessing Assets in Swift</h3>
+                <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">
+                  <code>{`// For public assets (favicon, header-logo)
+let logoURL = URL(string: "${baseUrl}/header-logo.png")
+
+// For bundled assets, download from your web app:
+// 1. Navigate to the asset in your browser
+// 2. Download the file
+// 3. Add to your Xcode project's Assets.xcassets
+
+// Example: Add poipu-logo-icon.png to Assets
+let logo = UIImage(named: "poipu-logo-icon")`}</code>
                 </pre>
               </div>
             </CardContent>
