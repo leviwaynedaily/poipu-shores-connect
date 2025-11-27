@@ -5,7 +5,6 @@ import { PageHeader } from "@/components/PageHeader";
 import { UserManagement } from "@/components/settings/UserManagement";
 import { WebcamManagement } from "@/components/settings/WebcamManagement";
 import { EmergencyContactManagement } from "@/components/settings/EmergencyContactManagement";
-import { GeneralSettings } from "@/components/settings/GeneralSettings";
 import { LoginActivityTable } from "@/components/settings/LoginActivityTable";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -486,7 +485,7 @@ export default function AdminSettings() {
       />
 
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="users">
             <Users className="mr-2 h-4 w-4" />
             Users
@@ -502,10 +501,6 @@ export default function AdminSettings() {
           <TabsTrigger value="emergency">
             <Phone className="mr-2 h-4 w-4" />
             Emergency
-          </TabsTrigger>
-          <TabsTrigger value="general">
-            <Settings className="mr-2 h-4 w-4" />
-            General
           </TabsTrigger>
           <TabsTrigger value="theme">
             <Palette className="mr-2 h-4 w-4" />
@@ -527,10 +522,6 @@ export default function AdminSettings() {
 
         <TabsContent value="emergency" className="space-y-4">
           <EmergencyContactManagement />
-        </TabsContent>
-
-        <TabsContent value="general" className="space-y-4">
-          <GeneralSettings />
         </TabsContent>
 
         <TabsContent value="theme" className="space-y-4">
