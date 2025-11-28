@@ -384,10 +384,18 @@ export type Database = {
       }
       email_logs: {
         Row: {
+          bounce_reason: string | null
+          bounced_at: string | null
+          clicked_at: string | null
+          complained_at: string | null
           created_at: string
+          delivered_at: string | null
+          delivery_status: string | null
           error_message: string | null
           from_email: string
           id: string
+          opened_at: string | null
+          resend_email_id: string | null
           sent_at: string
           sent_by: string | null
           status: string
@@ -395,10 +403,18 @@ export type Database = {
           to_email: string
         }
         Insert: {
+          bounce_reason?: string | null
+          bounced_at?: string | null
+          clicked_at?: string | null
+          complained_at?: string | null
           created_at?: string
+          delivered_at?: string | null
+          delivery_status?: string | null
           error_message?: string | null
           from_email: string
           id?: string
+          opened_at?: string | null
+          resend_email_id?: string | null
           sent_at?: string
           sent_by?: string | null
           status?: string
@@ -406,10 +422,18 @@ export type Database = {
           to_email: string
         }
         Update: {
+          bounce_reason?: string | null
+          bounced_at?: string | null
+          clicked_at?: string | null
+          complained_at?: string | null
           created_at?: string
+          delivered_at?: string | null
+          delivery_status?: string | null
           error_message?: string | null
           from_email?: string
           id?: string
+          opened_at?: string | null
+          resend_email_id?: string | null
           sent_at?: string
           sent_by?: string | null
           status?: string

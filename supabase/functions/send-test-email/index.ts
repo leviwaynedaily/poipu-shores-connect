@@ -163,6 +163,8 @@ const handler = async (req: Request): Promise<Response> => {
         subject: emailSubject,
         status: "sent",
         sent_by: user.id,
+        resend_email_id: emailResponse.data?.id,
+        delivery_status: "sent",
       });
 
     if (logError) {

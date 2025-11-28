@@ -17,6 +17,13 @@ interface EmailLog {
   to_email: string;
   subject: string;
   status: string;
+  delivery_status: string;
+  delivered_at: string | null;
+  bounced_at: string | null;
+  bounce_reason: string | null;
+  opened_at: string | null;
+  clicked_at: string | null;
+  complained_at: string | null;
 }
 
 const emailTemplates = {
@@ -66,7 +73,7 @@ export function EmailSettings() {
     try {
       const { data, error } = await supabase
         .from("email_logs")
-        .select("id, sent_at, to_email, subject, status")
+        .select("id, sent_at, to_email, subject, status, delivery_status, delivered_at, bounced_at, bounce_reason, opened_at, clicked_at, complained_at")
         .order("sent_at", { ascending: false })
         .limit(20);
 
@@ -147,6 +154,49 @@ export function EmailSettings() {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const getDeliveryStatusBadge = (log: EmailLog) => {
+    if (log.complained_at) {
+      return (
+        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+          ⚠️ Spam
+        </span>
+      );
+    }
+    if (log.bounced_at) {
+      return (
+        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" title={log.bounce_reason || undefined}>
+          ❌ Bounced
+        </span>
+      );
+    }
+    if (log.clicked_at) {
+      return (
+        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+          🔗 Clicked
+        </span>
+      );
+    }
+    if (log.opened_at) {
+      return (
+        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+          ✓ Opened
+        </span>
+      );
+    }
+    if (log.delivered_at) {
+      return (
+        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+          ✓ Delivered
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+        📤 Sent
+      </span>
+    );
   };
 
   return (
@@ -273,7 +323,7 @@ export function EmailSettings() {
                     <TableHead>Date/Time</TableHead>
                     <TableHead>To</TableHead>
                     <TableHead>Subject</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>Delivery Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -287,13 +337,7 @@ export function EmailSettings() {
                         {log.subject}
                       </TableCell>
                       <TableCell>
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${
-                          log.status === "sent" 
-                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" 
-                            : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                        }`}>
-                          {log.status}
-                        </span>
+                        {getDeliveryStatusBadge(log)}
                       </TableCell>
                     </TableRow>
                   ))}
