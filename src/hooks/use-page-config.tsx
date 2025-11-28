@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface PageConfig {
   id: string;
   title: string;
+  subtitle?: string;
   route: string;
   icon: string;
   iconUrl: string | null;
