@@ -110,6 +110,40 @@ const Dashboard = () => {
     <>
       <AnnouncementDialog />
       <div>
+        {/* Featured Announcement */}
+        {announcements.length > 0 && (
+          <Link to="/announcements" className="block mb-3">
+            <Card className="cursor-pointer hover:border-primary transition-colors border-primary/50">
+              <CardHeader className="p-4 sm:p-6">
+                <div className="flex items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Pin className="h-4 w-4 text-primary" />
+                      <Badge variant="secondary" className="text-xs">
+                        {announcements[0].is_pinned ? "Pinned" : "Latest"}
+                      </Badge>
+                    </div>
+                    <CardTitle className={isMobile ? "text-lg mb-2" : "text-xl sm:text-2xl mb-2"}>
+                      {announcements[0].title}
+                    </CardTitle>
+                    <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mb-3">
+                      <span>{announcements[0].profiles?.full_name || "Unknown"}</span>
+                      <span>•</span>
+                      <span>{format(new Date(announcements[0].created_at), "MMMM dd, yyyy")}</span>
+                    </div>
+                    <p className={isMobile ? "text-sm text-muted-foreground line-clamp-2" : "text-sm sm:text-base text-muted-foreground line-clamp-3"}>
+                      {announcements[0].content}
+                    </p>
+                    <span className="text-sm text-primary hover:underline font-medium inline-block mt-2">
+                      Read full announcement →
+                    </span>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+          </Link>
+        )}
+
         {/* Quick Stats - Desktop Only */}
         {!isMobile && (
           <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
@@ -195,40 +229,6 @@ const Dashboard = () => {
           </CardHeader>
         </Card>
       </Link>
-
-      {/* Featured Announcement */}
-      {announcements.length > 0 && (
-        <Link to="/announcements" className="block mt-3">
-          <Card className="cursor-pointer hover:border-primary transition-colors border-primary/50">
-            <CardHeader className="p-4 sm:p-6">
-              <div className="flex items-start gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Pin className="h-4 w-4 text-primary" />
-                    <Badge variant="secondary" className="text-xs">
-                      {announcements[0].is_pinned ? "Pinned" : "Latest"}
-                    </Badge>
-                  </div>
-                  <CardTitle className={isMobile ? "text-lg mb-2" : "text-xl sm:text-2xl mb-2"}>
-                    {announcements[0].title}
-                  </CardTitle>
-                  <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mb-3">
-                    <span>{announcements[0].profiles?.full_name || "Unknown"}</span>
-                    <span>•</span>
-                    <span>{format(new Date(announcements[0].created_at), "MMMM dd, yyyy")}</span>
-                  </div>
-                  <p className={isMobile ? "text-sm text-muted-foreground line-clamp-2" : "text-sm sm:text-base text-muted-foreground line-clamp-3"}>
-                    {announcements[0].content}
-                  </p>
-                  <span className="text-sm text-primary hover:underline font-medium inline-block mt-2">
-                    Read full announcement →
-                  </span>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-        </Link>
-      )}
 
       {/* Other Announcements */}
       <div className="grid gap-3 grid-cols-1 lg:grid-cols-2 mt-3">
