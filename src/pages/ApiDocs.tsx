@@ -42,7 +42,7 @@ const ApiDocs = () => {
             { path: "/accept-invite", description: "Complete user invitation and set password" },
             { path: "/privacy-policy", description: "Privacy policy and data handling information" },
             { path: "/terms-of-service", description: "Terms of service and usage guidelines" },
-            { path: "/api-docs", description: "API documentation for mobile app development" }
+            { path: "/docs", description: "API documentation for mobile app development" }
           ],
           protected: [
             { path: "/dashboard", description: "Main dashboard with weather, live cameras, and emergency contacts", features: ["Weather widget", "Beach conditions", "Live webcams", "Emergency contacts"] },
@@ -52,12 +52,12 @@ const ApiDocs = () => {
             { path: "/photos", description: "Community photo gallery", features: ["Photo upload", "EXIF data", "Likes/comments", "Category filtering", "Approval workflow"] },
             { path: "/announcements", description: "Community announcements and updates", features: ["Pinned announcements", "Read tracking", "Rich text content"] },
             { path: "/members", description: "Community member directory", features: ["Member profiles", "Unit ownership", "Contact details"] },
-            { path: "/profile", description: "User profile management", features: ["Edit profile", "Avatar upload", "Contact visibility"] },
-            { path: "/settings", description: "User settings and preferences", features: ["Theme customization", "Background images", "Glass effects", "Login history"] }
+            { path: "/profile", description: "User profile management", features: ["Edit profile", "Avatar upload", "Contact visibility", "Theme customization", "Background images", "Glass effects", "Login history"] },
+            { path: "/assistant", description: "AI-powered community assistant", features: ["Natural language Q&A", "Property management assistance", "Document knowledge base"] }
           ],
           admin: [
             { path: "/users", description: "User management dashboard", features: ["Invite users", "Update profiles", "Manage roles", "Deactivate/reactivate", "Login history"] },
-            { path: "/admin-settings", description: "Administrative settings", features: ["Emergency contacts", "Webcam configuration", "App settings"] }
+            { path: "/settings", description: "Admin settings and configuration", features: ["Emergency contacts", "Webcam configuration", "Web page configuration", "Mobile page configuration", "General app settings"] }
           ]
         },
         functions: {
