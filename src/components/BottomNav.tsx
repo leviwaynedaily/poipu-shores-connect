@@ -16,6 +16,7 @@ interface MobilePage {
   id: string;
   tabName: string;
   iconUrl: string | null;
+  floatingIconUrl: string | null;
   headerLogoUrl: string | null;
   fallbackIcon: string;
   title: string;
@@ -87,6 +88,18 @@ export function BottomNav() {
   const morePages = regularPages.slice(3);
 
   const renderIcon = (page: MobilePage, size: string = "h-5 w-5") => {
+    // Use floating icon if page is floating and floatingIconUrl exists
+    if (page.isFloating && page.floatingIconUrl) {
+      return (
+        <img 
+          src={page.floatingIconUrl} 
+          alt={`${page.tabName} floating icon`} 
+          className={`${size} object-contain`}
+        />
+      );
+    }
+    
+    // Otherwise use regular icon
     if (page.iconUrl) {
       return (
         <img 
