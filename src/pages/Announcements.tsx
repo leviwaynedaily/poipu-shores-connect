@@ -12,6 +12,8 @@ import { Switch } from "@/components/ui/switch";
 import { Pin, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { PageHeader } from "@/components/PageHeader";
+import { usePageConfig } from "@/hooks/use-page-config";
 
 interface Announcement {
   id: string;
@@ -26,6 +28,7 @@ interface Announcement {
 const Announcements = () => {
   const { user, isAdmin, isOwner } = useAuth();
   const { toast } = useToast();
+  const { pageConfig } = usePageConfig();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [readAnnouncementIds, setReadAnnouncementIds] = useState<Set<string>>(new Set());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -155,15 +158,11 @@ const Announcements = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0">
-          <div className="space-y-1.5">
-            <CardTitle className="text-3xl">Announcements</CardTitle>
-            <CardDescription className="text-lg">
-              Important updates and notifications
-            </CardDescription>
-          </div>
-          
+      <PageHeader
+        title={pageConfig?.title || "Announcements"}
+        description={pageConfig?.subtitle || "Important updates and notifications"}
+        logoUrl={pageConfig?.headerLogoUrl}
+        actions={
           <div className="flex gap-2 items-center shrink-0">
             {unreadCount > 0 && (
               <Button variant="outline" onClick={markAllAsRead}>
@@ -178,50 +177,12 @@ const Announcements = () => {
                     New Announcement
                   </Button>
                 </DialogTrigger>
-            <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="text-xl sm:text-2xl">Create Announcement</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title" className="text-sm sm:text-base md:text-lg">Title</Label>
-                  <Input
-                    id="title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    required
-                    className="text-sm sm:text-base md:text-lg p-3 sm:p-4 md:p-6"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="content" className="text-sm sm:text-base md:text-lg">Content</Label>
-                  <Textarea
-                    id="content"
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    required
-                    rows={6}
-                    className="text-sm sm:text-base md:text-lg p-3 sm:p-4"
-                  />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="pinned"
-                    checked={isPinned}
-                    onCheckedChange={setIsPinned}
-                  />
-                  <Label htmlFor="pinned" className="text-sm sm:text-base md:text-lg">Pin this announcement</Label>
-                </div>
-                <Button type="submit" className="w-full text-sm sm:text-base md:text-lg py-4 sm:py-5 md:py-6">
-                  Post Announcement
-                </Button>
-              </form>
-            </DialogContent>
-            </Dialog>
-          )}
+...
+              </Dialog>
+            )}
           </div>
-        </CardHeader>
-      </Card>
+        }
+      />
 
       <div className="space-y-3 sm:space-y-4">
         {announcements.length === 0 ? (
