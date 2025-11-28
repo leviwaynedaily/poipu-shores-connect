@@ -131,7 +131,13 @@ export function MobilePageConfig() {
     if (data?.setting_value) {
       const config = data.setting_value as any;
       if (config?.pages) {
-        setPages(config.pages);
+        // Merge saved pages with defaults to ensure new pages appear
+        const savedPages = config.pages as MobilePage[];
+        const mergedPages = defaultPages.map(defaultPage => {
+          const savedPage = savedPages.find(p => p.id === defaultPage.id);
+          return savedPage || defaultPage;
+        });
+        setPages(mergedPages);
       }
     }
   };
