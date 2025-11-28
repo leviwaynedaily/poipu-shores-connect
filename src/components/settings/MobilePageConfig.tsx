@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Copy, Home, MessageSquare, Camera, FileText, User, Bird, Users, Settings } from "lucide-react";
+import { Upload, Copy, Home, MessageSquare, Camera, FileText, User, Bird, Users, Settings, ChevronDown } from "lucide-react";
 
 interface MobilePage {
   id: string;
@@ -127,7 +128,12 @@ export function MobilePageConfig() {
   const [pages, setPages] = useState<MobilePage[]>(defaultPages);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
+  const [openPages, setOpenPages] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
+
+  const togglePage = (pageId: string) => {
+    setOpenPages(prev => ({ ...prev, [pageId]: !prev[pageId] }));
+  };
 
   useEffect(() => {
     fetchConfig();
@@ -366,20 +372,27 @@ export function MobilePageConfig() {
             const IconComponent = iconOptions.find(i => i.value === page.fallbackIcon)?.Icon || Home;
             
             return (
-              <Card key={page.id}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base capitalize">{page.id}</CardTitle>
-                    <div className="flex items-center gap-2">
-                      <Label className="text-xs">Visible</Label>
-                      <Switch
-                        checked={page.isVisible}
-                        onCheckedChange={(checked) => updatePage(page.id, { isVisible: checked })}
-                      />
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
+              <Collapsible key={page.id} open={openPages[page.id]} onOpenChange={() => togglePage(page.id)}>
+                <Card>
+                  <CollapsibleTrigger className="w-full">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <ChevronDown className={`h-4 w-4 transition-transform ${openPages[page.id] ? 'rotate-180' : ''}`} />
+                          <CardTitle className="text-base capitalize">{page.id}</CardTitle>
+                        </div>
+                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                          <Label className="text-xs">Visible</Label>
+                          <Switch
+                            checked={page.isVisible}
+                            onCheckedChange={(checked) => updatePage(page.id, { isVisible: checked })}
+                          />
+                        </div>
+                      </div>
+                    </CardHeader>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <CardContent className="space-y-4 pt-0">
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                     {/* Tab Bar Icon Section */}
                     <div className="space-y-3">
@@ -553,8 +566,10 @@ export function MobilePageConfig() {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
-            );
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
+        );
           })}
       </div>
 
