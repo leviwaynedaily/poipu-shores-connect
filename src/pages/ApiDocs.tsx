@@ -490,7 +490,7 @@ const ApiDocs = () => {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-6xl">
+    <div className="container mx-auto py-4 sm:py-8 px-3 sm:px-4 max-w-6xl">
       <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
         <CommandInput placeholder="Search documentation..." />
         <CommandList>
@@ -510,40 +510,43 @@ const ApiDocs = () => {
         </CommandList>
       </CommandDialog>
 
-      <div className="mb-8 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-4xl font-bold mb-2">Poipu Shores API Documentation</h1>
-          <p className="text-muted-foreground">Complete API reference for iOS and mobile app development</p>
+      <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="w-full sm:w-auto">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">Poipu Shores API Documentation</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Complete API reference for iOS and mobile app development</p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={() => setSearchOpen(true)} variant="outline" className="flex items-center gap-2">
+        <div className="flex flex-row sm:flex-row gap-2 w-full sm:w-auto">
+          <Button onClick={() => setSearchOpen(true)} variant="outline" size="sm" className="flex items-center gap-2 flex-1 sm:flex-none">
             <Search className="h-4 w-4" />
-            Search
-            <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
+            <span className="hidden sm:inline">Search</span>
+            <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 lg:flex">
               <span className="text-xs">⌘</span>K
             </kbd>
           </Button>
-          <Button onClick={downloadAsJson} variant="outline" className="flex items-center gap-2">
+          <Button onClick={downloadAsJson} variant="outline" size="sm" className="flex items-center gap-2 flex-1 sm:flex-none">
             <Download className="h-4 w-4" />
-            Download JSON
+            <span className="hidden sm:inline">Download JSON</span>
+            <span className="sm:hidden">Export</span>
           </Button>
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="flex flex-wrap gap-1">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="auth">Auth</TabsTrigger>
-          <TabsTrigger value="routes">Routes</TabsTrigger>
-          <TabsTrigger value="theme">Theme</TabsTrigger>
-          <TabsTrigger value="mobile-theme">Mobile Theme</TabsTrigger>
-          <TabsTrigger value="functions">Functions</TabsTrigger>
-          <TabsTrigger value="database">Database</TabsTrigger>
-          <TabsTrigger value="storage">Storage</TabsTrigger>
-          <TabsTrigger value="assets">Assets</TabsTrigger>
-          <TabsTrigger value="swift">Swift</TabsTrigger>
-          <TabsTrigger value="examples">Examples</TabsTrigger>
-        </TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+        <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0 pb-2">
+          <TabsList className="inline-flex w-max min-w-full flex-nowrap gap-1">
+            <TabsTrigger value="overview" className="text-xs sm:text-sm whitespace-nowrap">Overview</TabsTrigger>
+            <TabsTrigger value="auth" className="text-xs sm:text-sm whitespace-nowrap">Auth</TabsTrigger>
+            <TabsTrigger value="routes" className="text-xs sm:text-sm whitespace-nowrap">Routes</TabsTrigger>
+            <TabsTrigger value="theme" className="text-xs sm:text-sm whitespace-nowrap">Theme</TabsTrigger>
+            <TabsTrigger value="mobile-theme" className="text-xs sm:text-sm whitespace-nowrap">Mobile</TabsTrigger>
+            <TabsTrigger value="functions" className="text-xs sm:text-sm whitespace-nowrap">Functions</TabsTrigger>
+            <TabsTrigger value="database" className="text-xs sm:text-sm whitespace-nowrap">Database</TabsTrigger>
+            <TabsTrigger value="storage" className="text-xs sm:text-sm whitespace-nowrap">Storage</TabsTrigger>
+            <TabsTrigger value="assets" className="text-xs sm:text-sm whitespace-nowrap">Assets</TabsTrigger>
+            <TabsTrigger value="swift" className="text-xs sm:text-sm whitespace-nowrap">Swift</TabsTrigger>
+            <TabsTrigger value="examples" className="text-xs sm:text-sm whitespace-nowrap">Examples</TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
@@ -738,19 +741,19 @@ try await supabase
         </TabsContent>
 
         {/* Auth Tab */}
-        <TabsContent value="auth" className="space-y-6">
+        <TabsContent value="auth" className="space-y-4 sm:space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Lock className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <Lock className="h-4 w-4 sm:h-5 sm:w-5" />
                 Authentication
               </CardTitle>
-              <CardDescription>User authentication endpoints</CardDescription>
+              <CardDescription className="text-sm">User authentication endpoints</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 sm:space-y-6">
               <div>
-                <h3 className="font-semibold mb-2">Sign In</h3>
-                <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">
+                <h3 className="font-semibold mb-2 text-sm sm:text-base">Sign In</h3>
+                <pre className="bg-muted p-3 sm:p-4 rounded-lg overflow-x-auto text-xs sm:text-sm">
                   <code>{`let session = try await supabase.auth.signIn(
     email: "user@example.com",
     password: "password"
@@ -762,15 +765,15 @@ let accessToken = session.accessToken`}</code>
               </div>
 
               <div>
-                <h3 className="font-semibold mb-2">Sign Out</h3>
-                <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">
+                <h3 className="font-semibold mb-2 text-sm sm:text-base">Sign Out</h3>
+                <pre className="bg-muted p-3 sm:p-4 rounded-lg overflow-x-auto text-xs sm:text-sm">
                   <code>{`try await supabase.auth.signOut()`}</code>
                 </pre>
               </div>
 
               <div>
-                <h3 className="font-semibold mb-2">Get Current User</h3>
-                <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">
+                <h3 className="font-semibold mb-2 text-sm sm:text-base">Get Current User</h3>
+                <pre className="bg-muted p-3 sm:p-4 rounded-lg overflow-x-auto text-xs sm:text-sm">
                   <code>{`let user = try await supabase.auth.user()`}</code>
                 </pre>
               </div>
