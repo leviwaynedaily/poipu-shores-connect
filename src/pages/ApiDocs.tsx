@@ -332,7 +332,7 @@ const ApiDocs = () => {
               moreButton: "Always present as 5th tab - opens sheet with pages after position 5"
             },
             fields: {
-              id: "Page identifier (home, chat, photos, documents, more, profile, assistant, members, settings, announcements)",
+              id: "Page identifier (home, announcements, assistant, documents, more, chat, photos, members, profile, settings)",
               tabName: "Short label for tab bar",
               route: "Web app route (e.g., /dashboard, /chat) - links mobile pages to web pages",
               title: "Page header title",
@@ -341,7 +341,7 @@ const ApiDocs = () => {
               floatingIconUrl: "Floating tab icon URL (48-56px, only used when isFloating: true)",
               headerLogoUrl: "Page header logo URL (120-200px wide PNG)",
               fallbackIcon: "Icon name to use if URLs are null",
-              order: "Sort order (1-9, ascending)",
+              order: "Sort order (1-10, ascending)",
               isVisible: "Show/hide page in app",
               isFloating: "Make this page the floating action button (only one can be true)"
             },
@@ -1500,7 +1500,7 @@ Content-Type: application/json`}
           "id": "home",
           "tabName": "Home",
           "route": "/dashboard",
-          "title": "Dashboard",
+          "title": "Home",
           "subtitle": "Welcome to Poipu Shores",
           "iconUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-icon-home.png",
           "headerLogoUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-header-home.png",
@@ -1510,30 +1510,32 @@ Content-Type: application/json`}
           "isFloating": false
         },
         {
-          "id": "chat",
-          "tabName": "Chat",
-          "route": "/chat",
-          "title": "Community Chat",
-          "subtitle": "Connect with neighbors",
-          "iconUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-icon-chat.png",
-          "headerLogoUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-header-chat.png",
-          "fallbackIcon": "MessageSquare",
+          "id": "announcements",
+          "tabName": "Announcements",
+          "route": "/announcements",
+          "title": "Announcements",
+          "subtitle": "Community updates",
+          "iconUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-icon-announcements.png",
+          "floatingIconUrl": null,
+          "headerLogoUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-header-announcements.png",
+          "fallbackIcon": "Megaphone",
           "order": 2,
           "isVisible": true,
           "isFloating": false
         },
         {
-          "id": "photos",
-          "tabName": "Photos",
-          "route": "/photos",
-          "title": "Photo Gallery",
-          "subtitle": "Community photos",
-          "iconUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-icon-photos.png",
-          "headerLogoUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-header-photos.png",
-          "fallbackIcon": "Camera",
+          "id": "assistant",
+          "tabName": "Ask",
+          "route": "/assistant",
+          "title": "Ask the Chicken",
+          "subtitle": "AI Assistant",
+          "iconUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-icon-assistant.png",
+          "floatingIconUrl": null,
+          "headerLogoUrl": null,
+          "fallbackIcon": "Bird",
           "order": 3,
           "isVisible": true,
-          "isFloating": false
+          "isFloating": true
         },
         {
           "id": "documents",
@@ -1549,6 +1551,59 @@ Content-Type: application/json`}
           "isFloating": false
         },
         {
+          "id": "more",
+          "tabName": "More",
+          "route": "#",
+          "title": "More",
+          "subtitle": "Additional pages",
+          "iconUrl": null,
+          "floatingIconUrl": null,
+          "headerLogoUrl": null,
+          "fallbackIcon": "MoreHorizontal",
+          "order": 5,
+          "isVisible": true,
+          "isFloating": false
+        },
+        {
+          "id": "chat",
+          "tabName": "Chat",
+          "route": "/chat",
+          "title": "Community Chat",
+          "subtitle": "Connect with neighbors",
+          "iconUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-icon-chat.png",
+          "headerLogoUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-header-chat.png",
+          "fallbackIcon": "MessageSquare",
+          "order": 6,
+          "isVisible": true,
+          "isFloating": false
+        },
+        {
+          "id": "photos",
+          "tabName": "Photos",
+          "route": "/photos",
+          "title": "Photo Gallery",
+          "subtitle": "Community photos",
+          "iconUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-icon-photos.png",
+          "headerLogoUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-header-photos.png",
+          "fallbackIcon": "Camera",
+          "order": 7,
+          "isVisible": true,
+          "isFloating": false
+        },
+        {
+          "id": "members",
+          "tabName": "Members",
+          "route": "/members",
+          "title": "Members",
+          "subtitle": "Connect with neighbors",
+          "iconUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-icon-members.png",
+          "headerLogoUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-header-members.png",
+          "fallbackIcon": "Users",
+          "order": 8,
+          "isVisible": true,
+          "isFloating": false
+        },
+        {
           "id": "profile",
           "tabName": "Profile",
           "route": "/profile",
@@ -1557,20 +1612,20 @@ Content-Type: application/json`}
           "iconUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-icon-profile.png",
           "headerLogoUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-header-profile.png",
           "fallbackIcon": "User",
-          "order": 5,
+          "order": 9,
           "isVisible": true,
           "isFloating": false
         },
         {
-          "id": "assistant",
-          "tabName": "Ask",
-          "route": "/assistant",
-          "title": "Ask the Chicken",
-          "subtitle": "AI Assistant",
-          "iconUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-icon-assistant.png",
-          "headerLogoUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-header-assistant.png",
-          "fallbackIcon": "Bird",
-          "order": 6,
+          "id": "settings",
+          "tabName": "Settings",
+          "route": "/settings",
+          "title": "Settings",
+          "subtitle": "App configuration",
+          "iconUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-icon-settings.png",
+          "headerLogoUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-header-settings.png",
+          "fallbackIcon": "Settings",
+          "order": 10,
           "isVisible": true,
           "isFloating": false
         }
@@ -1662,11 +1717,14 @@ func fetchMobileConfig() async throws -> [MobilePage] {
                         <h4 className="text-sm font-medium mb-2">Tab Bar Icons (24-32px):</h4>
                         <div className="space-y-1 text-xs font-mono bg-muted/50 p-3 rounded">
                           <div>{baseUrl}/storage/v1/object/public/avatars/mobile-icon-home.png</div>
+                          <div>{baseUrl}/storage/v1/object/public/avatars/mobile-icon-announcements.png</div>
+                          <div>{baseUrl}/storage/v1/object/public/avatars/mobile-icon-assistant.png</div>
+                          <div>{baseUrl}/storage/v1/object/public/avatars/mobile-icon-documents.png</div>
                           <div>{baseUrl}/storage/v1/object/public/avatars/mobile-icon-chat.png</div>
                           <div>{baseUrl}/storage/v1/object/public/avatars/mobile-icon-photos.png</div>
-                          <div>{baseUrl}/storage/v1/object/public/avatars/mobile-icon-documents.png</div>
+                          <div>{baseUrl}/storage/v1/object/public/avatars/mobile-icon-members.png</div>
                           <div>{baseUrl}/storage/v1/object/public/avatars/mobile-icon-profile.png</div>
-                          <div>{baseUrl}/storage/v1/object/public/avatars/mobile-icon-assistant.png</div>
+                          <div>{baseUrl}/storage/v1/object/public/avatars/mobile-icon-settings.png</div>
                         </div>
                       </div>
                       
@@ -1674,11 +1732,13 @@ func fetchMobileConfig() async throws -> [MobilePage] {
                         <h4 className="text-sm font-medium mb-2">Page Header Logos (120-200px wide):</h4>
                         <div className="space-y-1 text-xs font-mono bg-muted/50 p-3 rounded">
                           <div>{baseUrl}/storage/v1/object/public/avatars/mobile-header-home.png</div>
+                          <div>{baseUrl}/storage/v1/object/public/avatars/mobile-header-announcements.png</div>
+                          <div>{baseUrl}/storage/v1/object/public/avatars/mobile-header-documents.png</div>
                           <div>{baseUrl}/storage/v1/object/public/avatars/mobile-header-chat.png</div>
                           <div>{baseUrl}/storage/v1/object/public/avatars/mobile-header-photos.png</div>
-                          <div>{baseUrl}/storage/v1/object/public/avatars/mobile-header-documents.png</div>
+                          <div>{baseUrl}/storage/v1/object/public/avatars/mobile-header-members.png</div>
                           <div>{baseUrl}/storage/v1/object/public/avatars/mobile-header-profile.png</div>
-                          <div>{baseUrl}/storage/v1/object/public/avatars/mobile-header-assistant.png</div>
+                          <div>{baseUrl}/storage/v1/object/public/avatars/mobile-header-settings.png</div>
                         </div>
                       </div>
                     </div>
