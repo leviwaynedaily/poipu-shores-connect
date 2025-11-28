@@ -35,12 +35,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const defaultMenuItems = [
-  { title: "Dashboard", url: "/dashboard", icon: Home },
-  { title: "Announcements", url: "/announcements", icon: Megaphone },
-  { title: "Community Chat", url: "/chat", icon: MessageSquare },
-  { title: "Poipu Shores Documents", url: "/documents", icon: FileText },
-  { title: "Community Photos", url: "/photos", icon: Camera },
-  { title: "Poipu Members", url: "/members", icon: Users },
+  { title: "Dashboard", url: "/dashboard", icon: Home, iconUrl: null },
+  { title: "Announcements", url: "/announcements", icon: Megaphone, iconUrl: null },
+  { title: "Community Chat", url: "/chat", icon: MessageSquare, iconUrl: null },
+  { title: "Poipu Shores Documents", url: "/documents", icon: FileText, iconUrl: null },
+  { title: "Community Photos", url: "/photos", icon: Camera, iconUrl: null },
+  { title: "Poipu Members", url: "/members", icon: Users, iconUrl: null },
 ];
 
 const iconMap: Record<string, LucideIcon> = {
@@ -80,6 +80,7 @@ export function AppSidebar() {
               title: p.title,
               url: p.route,
               icon: iconMap[p.icon] || Home,
+              iconUrl: p.iconUrl || null,
             }));
           setMenuItems(configuredPages);
         }
@@ -160,7 +161,11 @@ export function AppSidebar() {
                           className="flex items-center justify-center gap-3 py-4 text-base min-h-[44px]"
                           activeClassName="bg-accent text-accent-foreground font-semibold"
                         >
-                          <item.icon className="h-5 w-5" />
+                          {item.iconUrl ? (
+                            <img src={item.iconUrl} alt={item.title} className="h-5 w-5 object-contain" />
+                          ) : (
+                            <item.icon className="h-5 w-5" />
+                          )}
                         </NavLink>
                         </SidebarMenuButton>
                       </TooltipTrigger>
@@ -176,7 +181,11 @@ export function AppSidebar() {
                         className="flex items-center gap-3 py-4 text-base min-h-[44px]"
                         activeClassName="bg-accent text-accent-foreground font-semibold"
                       >
-                        <item.icon className="h-5 w-5" />
+                        {item.iconUrl ? (
+                          <img src={item.iconUrl} alt={item.title} className="h-5 w-5 object-contain" />
+                        ) : (
+                          <item.icon className="h-5 w-5" />
+                        )}
                         <span>{item.title}</span>
                       </NavLink>
                     </SidebarMenuButton>
