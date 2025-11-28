@@ -290,18 +290,6 @@ export function MobileThemeConfig() {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Smartphone className="h-5 w-5" />
-            Mobile Theme Configuration
-          </CardTitle>
-          <CardDescription>
-            Customize the theme settings for the mobile app. Changes are independent from web theme settings.
-          </CardDescription>
-        </CardHeader>
-      </Card>
-
       <Tabs defaultValue="display" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="display">Display</TabsTrigger>
