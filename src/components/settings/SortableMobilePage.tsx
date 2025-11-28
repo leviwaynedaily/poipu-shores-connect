@@ -20,6 +20,7 @@ interface MobilePage {
   subtitle: string;
   order: number;
   isVisible: boolean;
+  isFloating: boolean;
 }
 
 interface SortableMobilePageProps {
@@ -94,6 +95,11 @@ export function SortableMobilePage({
                   </div>
                 </div>
                 <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                  <Label className="text-xs">Floating</Label>
+                  <Switch
+                    checked={page.isFloating}
+                    onCheckedChange={(checked) => onUpdate({ isFloating: checked })}
+                  />
                   <Label className="text-xs">Visible</Label>
                   <Switch
                     checked={page.isVisible}
@@ -158,6 +164,9 @@ export function SortableMobilePage({
 
               <div className="space-y-2">
                 <Label>Custom Tab Icon (PNG recommended)</Label>
+                <p className="text-xs text-muted-foreground">
+                  {page.isFloating ? "For floating tabs, use 48-56px icons" : "For regular tabs, use 24-32px icons"}
+                </p>
                 <div className="flex gap-2">
                   <Input
                     type="file"

@@ -37,6 +37,7 @@ interface MobilePage {
   subtitle: string;
   order: number;
   isVisible: boolean;
+  isFloating: boolean;
 }
 
 const defaultPages: MobilePage[] = [
@@ -50,6 +51,7 @@ const defaultPages: MobilePage[] = [
     subtitle: "Welcome to Poipu Shores",
     order: 1,
     isVisible: true,
+    isFloating: false,
   },
   {
     id: "chat",
@@ -61,6 +63,7 @@ const defaultPages: MobilePage[] = [
     subtitle: "Connect with neighbors",
     order: 2,
     isVisible: true,
+    isFloating: false,
   },
   {
     id: "photos",
@@ -72,6 +75,7 @@ const defaultPages: MobilePage[] = [
     subtitle: "Community photos",
     order: 3,
     isVisible: true,
+    isFloating: false,
   },
   {
     id: "documents",
@@ -83,6 +87,7 @@ const defaultPages: MobilePage[] = [
     subtitle: "Important files",
     order: 4,
     isVisible: true,
+    isFloating: false,
   },
   {
     id: "profile",
@@ -94,6 +99,7 @@ const defaultPages: MobilePage[] = [
     subtitle: "Account settings",
     order: 5,
     isVisible: true,
+    isFloating: false,
   },
   {
     id: "assistant",
@@ -105,6 +111,7 @@ const defaultPages: MobilePage[] = [
     subtitle: "AI Assistant",
     order: 6,
     isVisible: true,
+    isFloating: false,
   },
   {
     id: "members",
@@ -116,6 +123,7 @@ const defaultPages: MobilePage[] = [
     subtitle: "Connect with neighbors",
     order: 7,
     isVisible: true,
+    isFloating: false,
   },
   {
     id: "settings",
@@ -127,6 +135,19 @@ const defaultPages: MobilePage[] = [
     subtitle: "App configuration",
     order: 8,
     isVisible: true,
+    isFloating: false,
+  },
+  {
+    id: "announcements",
+    tabName: "News",
+    iconUrl: null,
+    headerLogoUrl: null,
+    fallbackIcon: "MessageSquare",
+    title: "Announcements",
+    subtitle: "Community updates",
+    order: 9,
+    isVisible: true,
+    isFloating: false,
   },
 ];
 
@@ -375,9 +396,13 @@ export function MobilePageConfig() {
   };
 
   const updatePage = (pageId: string, updates: Partial<MobilePage>) => {
-    setPages(prev => prev.map(p => 
-      p.id === pageId ? { ...p, ...updates } : p
-    ));
+    setPages(prev => prev.map(p => {
+      // If setting isFloating to true, unset all other pages' isFloating
+      if (updates.isFloating === true && p.id !== pageId) {
+        return { ...p, isFloating: false };
+      }
+      return p.id === pageId ? { ...p, ...updates } : p;
+    }));
   };
 
   const sensors = useSensors(

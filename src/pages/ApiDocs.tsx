@@ -324,17 +324,31 @@ const ApiDocs = () => {
           ],
           mobileConfig: {
             endpoint: "/rest/v1/app_settings?setting_key=eq.mobile_pages_config",
-            description: "Complete mobile configuration including page order, visibility, tab names, titles, subtitles, icons, and header logos",
+            description: "Complete mobile configuration including page order, visibility, tab names, titles, subtitles, icons, header logos, and floating action button",
+            tabBarLayout: {
+              totalTabs: 5,
+              regularTabs: "First 3 visible pages",
+              floatingTab: "One page can be set as floating (centered, elevated circular button)",
+              moreButton: "Always present as 5th tab - opens sheet with remaining pages"
+            },
             fields: {
-              id: "Page identifier (home, chat, photos, documents, profile, assistant)",
+              id: "Page identifier (home, chat, photos, documents, profile, assistant, members, settings, announcements)",
               tabName: "Short label for tab bar",
               title: "Page header title",
               subtitle: "Page header subtitle/description",
-              iconUrl: "Tab bar icon URL (24-32px PNG)",
+              iconUrl: "Tab bar icon URL (24-32px for regular tabs, 48-56px for floating tab)",
               headerLogoUrl: "Page header logo URL (120-200px wide PNG)",
               fallbackIcon: "Icon name to use if URLs are null",
-              order: "Sort order (1-6, ascending)",
-              isVisible: "Show/hide page in app"
+              order: "Sort order (1-9, ascending)",
+              isVisible: "Show/hide page in app",
+              isFloating: "Make this page the floating action button (only one can be true)"
+            },
+            floatingButton: {
+              description: "Special elevated circular button in center of tab bar",
+              design: "Larger (64px), circular, elevated with shadow",
+              position: "Center of bottom nav, elevated 24px above bar",
+              usage: "Use for primary/most important action (e.g., Ask the Chicken assistant)",
+              restriction: "Only ONE page can have isFloating: true at a time"
             }
           }
         },
