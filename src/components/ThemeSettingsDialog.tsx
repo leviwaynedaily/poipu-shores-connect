@@ -70,22 +70,27 @@ export const ThemeSettingsDialog = ({ open, onOpenChange }: ThemeSettingsDialogP
 
     setUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const filePath = `background-${Date.now()}.${fileExt}`;
+      // Use fixed path for stable URL
+      const filePath = 'web-app-background.png';
 
+      // Delete existing file first (ignore errors if doesn't exist)
+      await supabase.storage.from('avatars').remove([filePath]);
+
+      // Upload new file to the same path
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file);
+        .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
+      // Get stable URL (always the same)
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
 
       const newBackground = {
         type: 'uploaded' as const,
-        url: publicUrl,
+        url: publicUrl, // Store clean stable URL
         opacity: backgroundOpacity,
       };
 
@@ -135,9 +140,31 @@ export const ThemeSettingsDialog = ({ open, onOpenChange }: ThemeSettingsDialogP
 
       if (error) throw error;
 
+      // Download the generated image
+      const response = await fetch(data.imageUrl);
+      const blob = await response.blob();
+
+      // Use fixed path for stable URL
+      const filePath = 'web-app-background.png';
+
+      // Delete existing file first
+      await supabase.storage.from('avatars').remove([filePath]);
+
+      // Upload to stable path
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, blob, { upsert: true, contentType: 'image/png' });
+
+      if (uploadError) throw uploadError;
+
+      // Get stable URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
       const newBackground = {
-        type: 'generated' as const,
-        url: data.imageUrl,
+        type: 'uploaded' as const,
+        url: publicUrl,
         opacity: backgroundOpacity,
       };
 

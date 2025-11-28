@@ -125,15 +125,22 @@ export function MobileThemeConfig() {
 
     setUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const filePath = `mobile-bg-${target}-${Date.now()}.${fileExt}`;
+      // Use fixed paths for stable URLs
+      const filePath = target === 'app' 
+        ? 'mobile-app-background.png' 
+        : 'mobile-login-background.png';
 
+      // Delete existing file first (ignore errors if doesn't exist)
+      await supabase.storage.from('avatars').remove([filePath]);
+
+      // Upload new file to the same path
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file);
+        .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
+      // Get stable URL (always the same)
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
@@ -143,13 +150,13 @@ export function MobileThemeConfig() {
         updatedConfig.appBackground = {
           ...updatedConfig.appBackground,
           type: 'uploaded',
-          url: publicUrl,
+          url: publicUrl, // Store clean stable URL
         };
       } else {
         updatedConfig.homeBackground = {
           ...updatedConfig.homeBackground,
           type: 'uploaded',
-          url: publicUrl,
+          url: publicUrl, // Store clean stable URL
         };
       }
 
@@ -184,18 +191,42 @@ export function MobileThemeConfig() {
 
       if (error) throw error;
 
+      // Download the generated image
+      const response = await fetch(data.imageUrl);
+      const blob = await response.blob();
+
+      // Use fixed path for stable URL
+      const filePath = target === 'app' 
+        ? 'mobile-app-background.png' 
+        : 'mobile-login-background.png';
+
+      // Delete existing file first
+      await supabase.storage.from('avatars').remove([filePath]);
+
+      // Upload to stable path
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, blob, { upsert: true, contentType: 'image/png' });
+
+      if (uploadError) throw uploadError;
+
+      // Get stable URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
       const updatedConfig = { ...config };
       if (target === 'app') {
         updatedConfig.appBackground = {
           ...updatedConfig.appBackground,
-          type: 'generated',
-          url: data.imageUrl,
+          type: 'uploaded',
+          url: publicUrl,
         };
       } else {
         updatedConfig.homeBackground = {
           ...updatedConfig.homeBackground,
-          type: 'generated',
-          url: data.imageUrl,
+          type: 'uploaded',
+          url: publicUrl,
         };
       }
 
