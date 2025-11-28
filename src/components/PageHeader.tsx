@@ -33,7 +33,7 @@ export const PageHeader = ({ title, description, actions, logoUrl }: PageHeaderP
             <img 
               src={logoUrl} 
               alt={title}
-              className="h-10 w-auto object-contain flex-shrink-0"
+              className="h-16 sm:h-20 w-auto object-contain flex-shrink-0"
             />
           )}
           <div className="min-w-0 flex-1">
