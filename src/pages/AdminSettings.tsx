@@ -623,38 +623,38 @@ export default function AdminSettings() {
       />
 
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full grid-cols-8">
-          <TabsTrigger value="users">
+        <TabsList className="w-full h-auto flex-wrap justify-start gap-1 p-1 md:grid md:grid-cols-8">
+          <TabsTrigger value="users" className="flex-shrink-0">
             <Users className="mr-2 h-4 w-4" />
-            Users
+            <span className="hidden sm:inline">Users</span>
           </TabsTrigger>
-          <TabsTrigger value="activity">
+          <TabsTrigger value="activity" className="flex-shrink-0">
             <Activity className="mr-2 h-4 w-4" />
-            Activity
+            <span className="hidden sm:inline">Activity</span>
           </TabsTrigger>
-          <TabsTrigger value="email">
+          <TabsTrigger value="email" className="flex-shrink-0">
             <Mail className="mr-2 h-4 w-4" />
-            Email
+            <span className="hidden sm:inline">Email</span>
           </TabsTrigger>
-          <TabsTrigger value="webcams">
+          <TabsTrigger value="webcams" className="flex-shrink-0">
             <Webcam className="mr-2 h-4 w-4" />
-            Webcams
+            <span className="hidden sm:inline">Webcams</span>
           </TabsTrigger>
-          <TabsTrigger value="emergency">
+          <TabsTrigger value="emergency" className="flex-shrink-0">
             <Phone className="mr-2 h-4 w-4" />
-            Emergency
+            <span className="hidden sm:inline">Emergency</span>
           </TabsTrigger>
-          <TabsTrigger value="web">
+          <TabsTrigger value="web" className="flex-shrink-0">
             <Layout className="mr-2 h-4 w-4" />
-            Web
+            <span className="hidden sm:inline">Web</span>
           </TabsTrigger>
-          <TabsTrigger value="mobile">
+          <TabsTrigger value="mobile" className="flex-shrink-0">
             <Smartphone className="mr-2 h-4 w-4" />
-            Mobile
+            <span className="hidden sm:inline">Mobile</span>
           </TabsTrigger>
-          <TabsTrigger value="theme">
+          <TabsTrigger value="theme" className="flex-shrink-0">
             <Palette className="mr-2 h-4 w-4" />
-            Theme
+            <span className="hidden sm:inline">Theme</span>
           </TabsTrigger>
         </TabsList>
 
@@ -688,17 +688,17 @@ export default function AdminSettings() {
 
         <TabsContent value="theme" className="space-y-4">
           <Tabs defaultValue="web" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="web">Web Theme</TabsTrigger>
-              <TabsTrigger value="mobile">Mobile Theme</TabsTrigger>
+            <TabsList className="w-full h-auto flex-wrap justify-start gap-1 p-1 md:grid md:grid-cols-2">
+              <TabsTrigger value="web" className="flex-1 min-w-[120px]">Web Theme</TabsTrigger>
+              <TabsTrigger value="mobile" className="flex-1 min-w-[120px]">Mobile Theme</TabsTrigger>
             </TabsList>
 
             <TabsContent value="web" className="space-y-4 pt-4">
               <Tabs defaultValue="display" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="display">Display</TabsTrigger>
-                  <TabsTrigger value="background">Background</TabsTrigger>
-                  <TabsTrigger value="advanced">Advanced</TabsTrigger>
+                <TabsList className="w-full h-auto flex-wrap justify-start gap-1 p-1 md:grid md:grid-cols-3">
+                  <TabsTrigger value="display" className="flex-1 min-w-[100px]">Display</TabsTrigger>
+                  <TabsTrigger value="background" className="flex-1 min-w-[100px]">Background</TabsTrigger>
+                  <TabsTrigger value="advanced" className="flex-1 min-w-[100px]">Advanced</TabsTrigger>
                 </TabsList>
 
             <TabsContent value="display" className="space-y-4 pt-4">

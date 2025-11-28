@@ -422,10 +422,10 @@ export function MobileThemeConfig() {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="display" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="display">Display</TabsTrigger>
-          <TabsTrigger value="backgrounds">Backgrounds</TabsTrigger>
-          <TabsTrigger value="advanced">Advanced</TabsTrigger>
+        <TabsList className="w-full h-auto flex-wrap justify-start gap-1 p-1 md:grid md:grid-cols-3">
+          <TabsTrigger value="display" className="flex-1 min-w-[100px]">Display</TabsTrigger>
+          <TabsTrigger value="backgrounds" className="flex-1 min-w-[100px]">Backgrounds</TabsTrigger>
+          <TabsTrigger value="advanced" className="flex-1 min-w-[100px]">Advanced</TabsTrigger>
         </TabsList>
 
         <TabsContent value="display" className="space-y-4 pt-4">
@@ -540,9 +540,9 @@ export function MobileThemeConfig() {
 
         <TabsContent value="backgrounds" className="space-y-4 pt-4">
           <Tabs defaultValue="app" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="app">App Background</TabsTrigger>
-              <TabsTrigger value="home">Login Background</TabsTrigger>
+            <TabsList className="w-full h-auto flex-wrap justify-start gap-1 p-1 md:grid md:grid-cols-2">
+              <TabsTrigger value="app" className="flex-1 min-w-[140px]">App Background</TabsTrigger>
+              <TabsTrigger value="home" className="flex-1 min-w-[140px]">Login Background</TabsTrigger>
             </TabsList>
 
             {(['app', 'home'] as const).map((target) => (
