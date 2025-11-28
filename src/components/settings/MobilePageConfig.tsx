@@ -117,7 +117,7 @@ export function MobilePageConfig() {
     }
   };
 
-  const convertToWebp = (file: File): Promise<Blob> => {
+  const convertToPng = (file: File): Promise<Blob> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
       const url = URL.createObjectURL(file);
@@ -141,9 +141,9 @@ export function MobilePageConfig() {
             if (blob) {
               resolve(blob);
             } else {
-              reject(new Error('Failed to convert image to WebP'));
+              reject(new Error('Failed to convert image to PNG'));
             }
-          }, 'image/webp', 0.95);
+          }, 'image/png');
         } catch (error) {
           URL.revokeObjectURL(url);
           reject(error);
@@ -171,12 +171,12 @@ export function MobilePageConfig() {
 
     setUploading(pageId);
     try {
-      const webpBlob = await convertToWebp(file);
-      const fileName = `mobile-icon-${pageId}.webp`;
+      const pngBlob = await convertToPng(file);
+      const fileName = `mobile-icon-${pageId}.png`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(fileName, webpBlob, {
+        .upload(fileName, pngBlob, {
           upsert: true
         });
 
