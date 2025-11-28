@@ -212,13 +212,16 @@ export function MobilePageConfig() {
     if (data?.setting_value) {
       const config = data.setting_value as any;
       if (config?.pages) {
-        // Merge saved pages with defaults to ensure new pages appear
+        // Use saved pages directly from database
         const savedPages = config.pages as MobilePage[];
-        const mergedPages = defaultPages.map(defaultPage => {
-          const savedPage = savedPages.find(p => p.id === defaultPage.id);
-          return savedPage || defaultPage;
-        });
-        setPages(mergedPages);
+        
+        // Add any new default pages that don't exist in saved config
+        const savedPageIds = savedPages.map(p => p.id);
+        const newPages = defaultPages.filter(dp => !savedPageIds.includes(dp.id));
+        
+        // Combine saved pages with any new pages
+        const allPages = [...savedPages, ...newPages];
+        setPages(allPages);
       }
     }
   };
