@@ -411,7 +411,7 @@ export function MobileThemeConfig() {
           <Tabs defaultValue="app" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="app">App Background</TabsTrigger>
-              <TabsTrigger value="home">Home Background</TabsTrigger>
+              <TabsTrigger value="home">Login Background</TabsTrigger>
             </TabsList>
 
             {(['app', 'home'] as const).map((target) => (
