@@ -188,7 +188,7 @@ export function WebPageConfig() {
         .getPublicUrl(fileName);
 
       setPages(prev => prev.map(p => 
-        p.id === pageId ? { ...p, iconUrl: publicUrl } : p
+        p.id === pageId ? { ...p, iconUrl: `${publicUrl}?t=${Date.now()}` } : p
       ));
 
       toast({
@@ -235,7 +235,7 @@ export function WebPageConfig() {
         .getPublicUrl(fileName);
 
       setPages(prev => prev.map(p => 
-        p.id === pageId ? { ...p, headerLogoUrl: publicUrl } : p
+        p.id === pageId ? { ...p, headerLogoUrl: `${publicUrl}?t=${Date.now()}` } : p
       ));
 
       toast({
@@ -335,7 +335,7 @@ export function WebPageConfig() {
                         <div className="space-y-2">
                           <div className="flex items-center justify-center p-4 rounded-md border border-border bg-muted/30">
                             <img 
-                              src={page.iconUrl} 
+                              src={`${page.iconUrl}?t=${Date.now()}`} 
                               alt={`${page.id} icon`} 
                               className="h-6 w-6 object-contain"
                             />
@@ -407,7 +407,7 @@ export function WebPageConfig() {
                         <div className="space-y-2">
                           <div className="flex items-center justify-center p-4 rounded-md border border-border bg-muted/30">
                             <img 
-                              src={page.headerLogoUrl} 
+                              src={`${page.headerLogoUrl}?t=${Date.now()}`} 
                               alt={`${page.id} header`} 
                               className="h-16 max-w-full object-contain"
                             />
