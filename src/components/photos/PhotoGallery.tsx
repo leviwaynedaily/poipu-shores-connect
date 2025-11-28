@@ -32,7 +32,7 @@ interface Photo {
   exif_data: any | null;
   profiles: {
     full_name: string;
-  };
+  } | null;
   likes_count: number;
   isLikedByUser?: boolean;
   commentsCount?: number;
@@ -591,14 +591,14 @@ export function PhotoGallery() {
                     </div>
                   )}
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <span className="font-semibold">Uploaded by:</span>{" "}
-                        <span className="text-muted-foreground">{selectedPhoto.profiles.full_name}</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <span className="font-semibold">Uploaded by:</span>{" "}
+                          <span className="text-muted-foreground">{selectedPhoto.profiles?.full_name || "Unknown User"}</span>
+                        </div>
                       </div>
-                    </div>
                     
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
