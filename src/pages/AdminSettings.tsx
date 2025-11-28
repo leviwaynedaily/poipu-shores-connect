@@ -1,6 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings, Palette, Webcam, Phone, Users, Sparkles, Upload, Wand2, Image as ImageIcon, Activity, Copy, Smartphone, Layout } from "lucide-react";
+import { Settings, Palette, Webcam, Phone, Users, Sparkles, Upload, Wand2, Image as ImageIcon, Activity, Copy, Smartphone, Layout, Mail } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { UserManagement } from "@/components/settings/UserManagement";
 import { WebcamManagement } from "@/components/settings/WebcamManagement";
@@ -8,6 +8,7 @@ import { EmergencyContactManagement } from "@/components/settings/EmergencyConta
 import { LoginActivityTable } from "@/components/settings/LoginActivityTable";
 import { MobilePageConfig } from "@/components/settings/MobilePageConfig";
 import { WebPageConfig } from "@/components/settings/WebPageConfig";
+import { EmailSettings } from "@/components/settings/EmailSettings";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -620,7 +621,7 @@ export default function AdminSettings() {
       />
 
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="users">
             <Users className="mr-2 h-4 w-4" />
             Users
@@ -628,6 +629,10 @@ export default function AdminSettings() {
           <TabsTrigger value="activity">
             <Activity className="mr-2 h-4 w-4" />
             Activity
+          </TabsTrigger>
+          <TabsTrigger value="email">
+            <Mail className="mr-2 h-4 w-4" />
+            Email
           </TabsTrigger>
           <TabsTrigger value="webcams">
             <Webcam className="mr-2 h-4 w-4" />
@@ -657,6 +662,10 @@ export default function AdminSettings() {
 
         <TabsContent value="activity" className="space-y-4">
           <LoginActivityTable />
+        </TabsContent>
+
+        <TabsContent value="email" className="space-y-4">
+          <EmailSettings />
         </TabsContent>
 
         <TabsContent value="webcams" className="space-y-4">

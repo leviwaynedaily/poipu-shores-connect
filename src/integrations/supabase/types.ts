@@ -382,6 +382,42 @@ export type Database = {
           },
         ]
       }
+      email_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          from_email: string
+          id: string
+          sent_at: string
+          sent_by: string | null
+          status: string
+          subject: string
+          to_email: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          from_email: string
+          id?: string
+          sent_at?: string
+          sent_by?: string | null
+          status?: string
+          subject: string
+          to_email: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          from_email?: string
+          id?: string
+          sent_at?: string
+          sent_by?: string | null
+          status?: string
+          subject?: string
+          to_email?: string
+        }
+        Relationships: []
+      }
       emergency_contacts: {
         Row: {
           category: string
