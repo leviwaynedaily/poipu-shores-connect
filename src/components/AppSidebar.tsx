@@ -1,4 +1,4 @@
-import { Home, Megaphone, MessageSquare, FileText, Camera, Users, User, LogOut, Settings, Edit } from "lucide-react";
+import { Home, Megaphone, MessageSquare, FileText, Camera, Users, User, LogOut, Settings, Edit, LucideIcon } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -34,7 +34,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const menuItems = [
+const defaultMenuItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home },
   { title: "Announcements", url: "/announcements", icon: Megaphone },
   { title: "Community Chat", url: "/chat", icon: MessageSquare },
@@ -42,6 +42,15 @@ const menuItems = [
   { title: "Community Photos", url: "/photos", icon: Camera },
   { title: "Poipu Members", url: "/members", icon: Users },
 ];
+
+const iconMap: Record<string, LucideIcon> = {
+  Home,
+  Megaphone,
+  MessageSquare,
+  FileText,
+  Camera,
+  Users,
+};
 
 export function AppSidebar() {
   const { open } = useSidebar();
@@ -51,6 +60,34 @@ export function AppSidebar() {
   const { isGlassTheme, sidebarOpacity } = useTheme();
   const currentPath = location.pathname;
   const [profile, setProfile] = useState<any>(null);
+  const [menuItems, setMenuItems] = useState(defaultMenuItems);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      const { data } = await supabase
+        .from('app_settings')
+        .select('setting_value')
+        .eq('setting_key', 'web_pages_config')
+        .maybeSingle();
+
+      if (data?.setting_value) {
+        const config = data.setting_value as any;
+        if (config?.pages) {
+          const configuredPages = config.pages
+            .filter((p: any) => p.isVisible)
+            .sort((a: any, b: any) => a.order - b.order)
+            .map((p: any) => ({
+              title: p.title,
+              url: p.route,
+              icon: iconMap[p.icon] || Home,
+            }));
+          setMenuItems(configuredPages);
+        }
+      }
+    };
+
+    fetchConfig();
+  }, []);
 
   useEffect(() => {
     const fetchProfile = async () => {
