@@ -9,6 +9,7 @@ import { LoginActivityTable } from "@/components/settings/LoginActivityTable";
 import { MobilePageConfig } from "@/components/settings/MobilePageConfig";
 import { WebPageConfig } from "@/components/settings/WebPageConfig";
 import { EmailSettings } from "@/components/settings/EmailSettings";
+import { MobileThemeConfig } from "@/components/settings/MobileThemeConfig";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -685,12 +686,19 @@ export default function AdminSettings() {
         </TabsContent>
 
         <TabsContent value="theme" className="space-y-4">
-          <Tabs defaultValue="display" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="display">Display</TabsTrigger>
-              <TabsTrigger value="background">Background</TabsTrigger>
-              <TabsTrigger value="advanced">Advanced</TabsTrigger>
+          <Tabs defaultValue="web" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="web">Web Theme</TabsTrigger>
+              <TabsTrigger value="mobile">Mobile Theme</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="web" className="space-y-4 pt-4">
+              <Tabs defaultValue="display" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="display">Display</TabsTrigger>
+                  <TabsTrigger value="background">Background</TabsTrigger>
+                  <TabsTrigger value="advanced">Advanced</TabsTrigger>
+                </TabsList>
 
             <TabsContent value="display" className="space-y-4 pt-4">
               {/* Theme Mode Toggle */}
@@ -1082,7 +1090,13 @@ export default function AdminSettings() {
             </TabsContent>
           </Tabs>
         </TabsContent>
+
+        <TabsContent value="mobile" className="space-y-4 pt-4">
+          <MobileThemeConfig />
+        </TabsContent>
       </Tabs>
-    </div>
+    </TabsContent>
+  </Tabs>
+</div>
   );
 }
