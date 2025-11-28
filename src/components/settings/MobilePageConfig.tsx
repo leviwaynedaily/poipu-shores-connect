@@ -205,13 +205,24 @@ export function MobilePageConfig() {
         .from('avatars')
         .getPublicUrl(fileName);
 
-      setPages(prev => prev.map(p => 
+      const updatedPages = pages.map(p => 
         p.id === pageId ? { ...p, iconUrl: publicUrl } : p
-      ));
+      );
+      setPages(updatedPages);
+
+      // Auto-save to database
+      await supabase
+        .from('app_settings')
+        .upsert([{
+          setting_key: 'mobile_pages_config',
+          setting_value: { pages: updatedPages } as any,
+        }], {
+          onConflict: 'setting_key',
+        });
 
       toast({
         title: "Success",
-        description: "Icon uploaded successfully",
+        description: "Icon uploaded and saved successfully",
       });
     } catch (error: any) {
       console.error('Error uploading icon:', error);
@@ -252,13 +263,24 @@ export function MobilePageConfig() {
         .from('avatars')
         .getPublicUrl(fileName);
 
-      setPages(prev => prev.map(p => 
+      const updatedPages = pages.map(p => 
         p.id === pageId ? { ...p, headerLogoUrl: publicUrl } : p
-      ));
+      );
+      setPages(updatedPages);
+
+      // Auto-save to database
+      await supabase
+        .from('app_settings')
+        .upsert([{
+          setting_key: 'mobile_pages_config',
+          setting_value: { pages: updatedPages } as any,
+        }], {
+          onConflict: 'setting_key',
+        });
 
       toast({
         title: "Success",
-        description: "Header logo uploaded successfully",
+        description: "Header logo uploaded and saved successfully",
       });
     } catch (error: any) {
       console.error('Error uploading header logo:', error);
