@@ -158,23 +158,39 @@ Deno.serve(async (req) => {
       }
 
       const themeConfig = themeConfigData?.setting_value || defaultThemeConfig;
+      
+      // Merge with defaults to ensure all properties exist
+      const mergedThemeConfig = {
+        ...defaultThemeConfig,
+        ...themeConfig,
+        colors: {
+          light: {
+            ...defaultThemeConfig.colors.light,
+            ...(themeConfig.colors?.light || {}),
+          },
+          dark: {
+            ...defaultThemeConfig.colors.dark,
+            ...(themeConfig.colors?.dark || {}),
+          }
+        }
+      };
 
       // Override URLs with stable URLs if type is 'uploaded'
       if (platform === 'mobile') {
-        if (themeConfig.appBackground?.type === 'uploaded') {
-          themeConfig.appBackground.url = STABLE_URLS.mobile.app;
+        if (mergedThemeConfig.appBackground?.type === 'uploaded') {
+          mergedThemeConfig.appBackground.url = STABLE_URLS.mobile.app;
         }
-        if (themeConfig.homeBackground?.type === 'uploaded') {
-          themeConfig.homeBackground.url = STABLE_URLS.mobile.login;
+        if (mergedThemeConfig.homeBackground?.type === 'uploaded') {
+          mergedThemeConfig.homeBackground.url = STABLE_URLS.mobile.login;
         }
       } else if (platform === 'web') {
-        if (themeConfig.appBackground?.type === 'uploaded') {
-          themeConfig.appBackground.url = STABLE_URLS.web.app;
+        if (mergedThemeConfig.appBackground?.type === 'uploaded') {
+          mergedThemeConfig.appBackground.url = STABLE_URLS.web.app;
         }
       }
 
       response.theme = {
-        ...themeConfig,
+        ...mergedThemeConfig,
         faviconUrl: faviconData?.setting_value || null,
       };
 

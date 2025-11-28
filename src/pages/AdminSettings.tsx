@@ -10,6 +10,7 @@ import { MobilePageConfig } from "@/components/settings/MobilePageConfig";
 import { WebPageConfig } from "@/components/settings/WebPageConfig";
 import { EmailSettings } from "@/components/settings/EmailSettings";
 import { MobileThemeConfig } from "@/components/settings/MobileThemeConfig";
+import { WebThemeConfig } from "@/components/settings/WebThemeConfig";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -985,6 +986,8 @@ export default function AdminSettings() {
             </TabsContent>
 
             <TabsContent value="advanced" className="space-y-4 pt-4">
+              <WebThemeConfig />
+
               {/* Ask the Chicken Logo */}
               <Card>
                 <CardHeader className="pb-3">
