@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Copy, Home, MessageSquare, Camera, FileText, User, Bird } from "lucide-react";
+import { Upload, Copy, Home, MessageSquare, Camera, FileText, User, Bird, Users } from "lucide-react";
 
 interface MobilePage {
   id: string;
@@ -88,6 +88,17 @@ const defaultPages: MobilePage[] = [
     order: 6,
     isVisible: true,
   },
+  {
+    id: "members",
+    tabName: "Members",
+    iconUrl: null,
+    headerLogoUrl: null,
+    fallbackIcon: "Users",
+    title: "Poipu Shores Members",
+    subtitle: "Connect with neighbors",
+    order: 7,
+    isVisible: true,
+  },
 ];
 
 const iconOptions = [
@@ -97,6 +108,7 @@ const iconOptions = [
   { value: "FileText", label: "File", Icon: FileText },
   { value: "User", label: "User", Icon: User },
   { value: "Bird", label: "Bird", Icon: Bird },
+  { value: "Users", label: "Users", Icon: Users },
 ];
 
 export function MobilePageConfig() {
@@ -486,7 +498,7 @@ export function MobilePageConfig() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {[1, 2, 3, 4, 5, 6].map((num) => (
+                            {[1, 2, 3, 4, 5, 6, 7].map((num) => (
                               <SelectItem key={num} value={num.toString()}>
                                 {num}
                               </SelectItem>
