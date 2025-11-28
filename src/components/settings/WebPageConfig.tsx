@@ -124,7 +124,15 @@ export function WebPageConfig() {
     if (data?.setting_value) {
       const config = data.setting_value as any;
       if (config?.pages) {
-        setPages(config.pages);
+        // Merge saved pages with defaults to ensure new pages appear
+        const savedPages = config.pages as WebPage[];
+        const savedPageIds = savedPages.map((p: WebPage) => p.id);
+        
+        // Find any new default pages that aren't in saved config
+        const newPages = defaultPages.filter(dp => !savedPageIds.includes(dp.id));
+        
+        // Combine: saved pages first, then any new defaults
+        setPages([...savedPages, ...newPages]);
       }
     }
   };
