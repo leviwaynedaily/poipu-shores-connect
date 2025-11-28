@@ -327,12 +327,12 @@ const ApiDocs = () => {
             description: "Complete mobile configuration including page order, visibility, tab names, titles, subtitles, icons, header logos, and floating action button",
             tabBarLayout: {
               totalTabs: 5,
-              regularTabs: "First 3 visible pages",
+              regularTabs: "First 3 visible pages shown in bottom nav",
               floatingTab: "One page can be set as floating (centered, elevated circular button)",
-              moreButton: "Always present as 5th tab - opens sheet with remaining pages"
+              moreButton: "Always present as 5th tab - opens sheet with pages after position 5"
             },
             fields: {
-              id: "Page identifier (home, chat, photos, documents, profile, assistant, members, settings, announcements)",
+              id: "Page identifier (home, chat, photos, documents, more, profile, assistant, members, settings, announcements)",
               tabName: "Short label for tab bar",
               title: "Page header title",
               subtitle: "Page header subtitle/description",

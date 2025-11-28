@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Copy, Home, MessageSquare, Camera, FileText, User, Bird, Users, Settings, ChevronDown, GripVertical } from "lucide-react";
+import { Upload, Copy, Home, MessageSquare, Camera, FileText, User, Bird, Users, Settings, ChevronDown, GripVertical, MoreHorizontal, Megaphone } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -95,6 +95,19 @@ const defaultPages: MobilePage[] = [
     isFloating: false,
   },
   {
+    id: "more",
+    tabName: "More",
+    iconUrl: null,
+    floatingIconUrl: null,
+    headerLogoUrl: null,
+    fallbackIcon: "MoreHorizontal",
+    title: "More",
+    subtitle: "Additional pages",
+    order: 5,
+    isVisible: true,
+    isFloating: false,
+  },
+  {
     id: "profile",
     tabName: "Profile",
     iconUrl: null,
@@ -103,7 +116,7 @@ const defaultPages: MobilePage[] = [
     fallbackIcon: "User",
     title: "My Profile",
     subtitle: "Account settings",
-    order: 5,
+    order: 6,
     isVisible: true,
     isFloating: false,
   },
@@ -116,7 +129,7 @@ const defaultPages: MobilePage[] = [
     fallbackIcon: "Bird",
     title: "Ask the Chicken",
     subtitle: "AI Assistant",
-    order: 6,
+    order: 7,
     isVisible: true,
     isFloating: false,
   },
@@ -129,7 +142,7 @@ const defaultPages: MobilePage[] = [
     fallbackIcon: "Users",
     title: "Poipu Shores Members",
     subtitle: "Connect with neighbors",
-    order: 7,
+    order: 8,
     isVisible: true,
     isFloating: false,
   },
@@ -142,7 +155,7 @@ const defaultPages: MobilePage[] = [
     fallbackIcon: "Settings",
     title: "Settings",
     subtitle: "App configuration",
-    order: 8,
+    order: 9,
     isVisible: true,
     isFloating: false,
   },
@@ -152,10 +165,10 @@ const defaultPages: MobilePage[] = [
     iconUrl: null,
     floatingIconUrl: null,
     headerLogoUrl: null,
-    fallbackIcon: "MessageSquare",
+    fallbackIcon: "Megaphone",
     title: "Announcements",
     subtitle: "Community updates",
-    order: 9,
+    order: 10,
     isVisible: true,
     isFloating: false,
   },
@@ -170,6 +183,8 @@ const iconOptions = [
   { value: "Bird", label: "Bird", Icon: Bird },
   { value: "Users", label: "Users", Icon: Users },
   { value: "Settings", label: "Settings", Icon: Settings },
+  { value: "MoreHorizontal", label: "More", Icon: MoreHorizontal },
+  { value: "Megaphone", label: "Megaphone", Icon: Megaphone },
 ];
 
 export function MobilePageConfig() {
