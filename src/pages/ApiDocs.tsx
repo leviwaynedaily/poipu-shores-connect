@@ -1,12 +1,54 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Code2, Database, Lock, Image, MessageSquare, FileText, Users, Download, Smartphone } from "lucide-react";
+import { Code2, Database, Lock, Image, MessageSquare, FileText, Users, Download, Smartphone, Search } from "lucide-react";
 import { toast } from "sonner";
+import { useState, useEffect } from "react";
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 
 const ApiDocs = () => {
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
   const baseUrl = "https://api.poipu-shores.com";
   const anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ2cXFuZnNnb3ZseG9jamp1Z3d3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4NTQ2MzgsImV4cCI6MjA3OTQzMDYzOH0.iUzJqQoHRUJ0nmPU1t44OL9I-ZYtCDofNxAN14phjBQ";
+
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setSearchOpen((open) => !open);
+      }
+    };
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
+
+  const searchableContent = [
+    { section: "Auth", tab: "auth", items: ["Sign In", "Sign Out", "Get User", "Token Management"] },
+    { section: "Routes - Public", tab: "routes", items: ["Landing Page", "Auth Page", "Accept Invite", "Privacy Policy", "Terms of Service", "API Docs"] },
+    { section: "Routes - Protected", tab: "routes", items: ["Dashboard", "Assistant", "Chat", "Documents", "Photos", "Announcements", "Members", "Profile"] },
+    { section: "Routes - Admin", tab: "routes", items: ["User Management", "Admin Settings"] },
+    { section: "Functions", tab: "functions", items: ["Community Assistant", "Document Chat", "Weather", "Track Login", "Verify Invite", "Complete Invite", "Invite User", "Update User", "Delete User", "Generate Background", "Generate Photo Title", "Extract Document", "Community Assistant Mobile"] },
+    { section: "Database", tab: "database", items: ["Profiles", "Announcements", "Community Photos", "Documents", "Emergency Contacts", "Chat Messages", "Unit Owners", "User Roles", "Webcams", "Folders", "Pending Invites"] },
+    { section: "Storage", tab: "storage", items: ["Avatars Bucket", "Community Photos Bucket", "Documents Bucket", "Chat Images Bucket"] },
+    { section: "Assets", tab: "assets", items: ["Logos", "Favicon", "Backgrounds", "Mobile Tab Icons", "Mobile Header Logos", "Mobile Configuration"] },
+    { section: "Theme", tab: "theme", items: ["Typography", "Colors", "Glass Effect", "Components", "Animations"] },
+    { section: "Swift", tab: "swift", items: ["Package Setup", "Authentication", "Database Queries", "Storage", "Edge Functions", "Realtime Subscriptions"] },
+    { section: "Examples", tab: "examples", items: ["Auth Example", "Database Query", "Storage Upload", "Edge Function Call", "Realtime Subscription"] },
+  ];
+
+  const handleSearch = (sectionLabel: string, tabValue: string) => {
+    setActiveTab(tabValue);
+    setSearchOpen(false);
+    toast.success(`Navigated to ${sectionLabel}`);
+  };
 
   const downloadAsJson = () => {
     const apiDocs = {
@@ -349,18 +391,46 @@ const ApiDocs = () => {
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-6xl">
-      <div className="mb-8 flex items-start justify-between">
+      <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
+        <CommandInput placeholder="Search documentation..." />
+        <CommandList>
+          <CommandEmpty>No results found.</CommandEmpty>
+          {searchableContent.map((group) => (
+            <CommandGroup key={group.section} heading={group.section}>
+              {group.items.map((item) => (
+                <CommandItem
+                  key={`${group.section}-${item}`}
+                  onSelect={() => handleSearch(item, group.tab)}
+                >
+                  <span>{item}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          ))}
+        </CommandList>
+      </CommandDialog>
+
+      <div className="mb-8 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-4xl font-bold mb-2">Poipu Shores API Documentation</h1>
           <p className="text-muted-foreground">Complete API reference for iOS and mobile app development</p>
         </div>
-        <Button onClick={downloadAsJson} variant="outline" className="flex items-center gap-2">
-          <Download className="h-4 w-4" />
-          Download JSON
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setSearchOpen(true)} variant="outline" className="flex items-center gap-2">
+            <Search className="h-4 w-4" />
+            Search
+            <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
+              <span className="text-xs">⌘</span>K
+            </kbd>
+          </Button>
+          <Button onClick={downloadAsJson} variant="outline" className="flex items-center gap-2">
+            <Download className="h-4 w-4" />
+            Download JSON
+          </Button>
+        </div>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-5 lg:grid-cols-10">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="auth">Auth</TabsTrigger>
