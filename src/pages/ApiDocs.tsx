@@ -263,7 +263,19 @@ const ApiDocs = () => {
           ],
           features: [
             { name: "Chicken Assistant", path: "/src/assets/chicken-assistant.jpeg", usage: "AI assistant avatar (Ask the Chicken)" }
-          ]
+          ],
+          mobileTabIcons: [
+            { name: "Home Tab", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-home.png`, format: "PNG" },
+            { name: "Chat Tab", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-chat.png`, format: "PNG" },
+            { name: "Photos Tab", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-photos.png`, format: "PNG" },
+            { name: "Documents Tab", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-documents.png`, format: "PNG" },
+            { name: "Profile Tab", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-profile.png`, format: "PNG" },
+            { name: "Assistant Tab", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-assistant.png`, format: "PNG" }
+          ],
+          mobileConfig: {
+            endpoint: "/rest/v1/app_settings?setting_key=eq.mobile_pages_config",
+            description: "Fetch mobile page configuration including tab names, titles, subtitles, and visibility"
+          }
         },
         theme: {
           typography: {
@@ -1338,6 +1350,91 @@ border-color: hsl(var(--border));
                   <p className="text-sm text-muted-foreground">AI assistant avatar ("Ask the Chicken")</p>
                   <code className="text-xs bg-muted px-2 py-1 rounded mt-1 inline-block">/src/assets/chicken-assistant.jpeg</code>
                 </div>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-3 mt-6">Mobile Tab Bar Icons</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Fixed PNG icon URLs for mobile app tab bars. These icons can be customized via the Admin Settings → Mobile Configuration panel.
+                </p>
+                <div className="space-y-3">
+                  <div className="border-l-2 border-purple-500 pl-4">
+                    <h4 className="font-medium">Home Tab Icon</h4>
+                    <code className="text-xs bg-muted px-2 py-1 rounded mt-1 inline-block break-all">
+                      {baseUrl}/storage/v1/object/public/avatars/mobile-icon-home.png
+                    </code>
+                  </div>
+                  <div className="border-l-2 border-purple-500 pl-4">
+                    <h4 className="font-medium">Chat Tab Icon</h4>
+                    <code className="text-xs bg-muted px-2 py-1 rounded mt-1 inline-block break-all">
+                      {baseUrl}/storage/v1/object/public/avatars/mobile-icon-chat.png
+                    </code>
+                  </div>
+                  <div className="border-l-2 border-purple-500 pl-4">
+                    <h4 className="font-medium">Photos Tab Icon</h4>
+                    <code className="text-xs bg-muted px-2 py-1 rounded mt-1 inline-block break-all">
+                      {baseUrl}/storage/v1/object/public/avatars/mobile-icon-photos.png
+                    </code>
+                  </div>
+                  <div className="border-l-2 border-purple-500 pl-4">
+                    <h4 className="font-medium">Documents Tab Icon</h4>
+                    <code className="text-xs bg-muted px-2 py-1 rounded mt-1 inline-block break-all">
+                      {baseUrl}/storage/v1/object/public/avatars/mobile-icon-documents.png
+                    </code>
+                  </div>
+                  <div className="border-l-2 border-purple-500 pl-4">
+                    <h4 className="font-medium">Profile Tab Icon</h4>
+                    <code className="text-xs bg-muted px-2 py-1 rounded mt-1 inline-block break-all">
+                      {baseUrl}/storage/v1/object/public/avatars/mobile-icon-profile.png
+                    </code>
+                  </div>
+                  <div className="border-l-2 border-purple-500 pl-4">
+                    <h4 className="font-medium">Assistant Tab Icon</h4>
+                    <code className="text-xs bg-muted px-2 py-1 rounded mt-1 inline-block break-all">
+                      {baseUrl}/storage/v1/object/public/avatars/mobile-icon-assistant.png
+                    </code>
+                  </div>
+                </div>
+                <div className="mt-4 bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                  <h4 className="font-semibold mb-2 text-blue-700 dark:text-blue-300">💡 Implementation Tip</h4>
+                  <p className="text-sm text-muted-foreground">
+                    These URLs are constant and can be hardcoded in your mobile app. When admins upload new icons through the settings panel, 
+                    the files are overwritten at the same URL, so your app automatically shows the updated icons without needing app updates.
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-2 mt-6">Mobile Configuration API</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Fetch complete mobile page configuration including tab names, titles, subtitles, and visibility.
+                </p>
+                <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">
+                  <code>{`// Fetch mobile config from app_settings
+let config = try await supabase
+    .from("app_settings")
+    .select()
+    .eq("setting_key", value: "mobile_pages_config")
+    .single()
+    .execute()
+
+// Response structure:
+{
+  "pages": [
+    {
+      "id": "home",
+      "tabName": "Home",
+      "title": "Dashboard",
+      "subtitle": "Welcome to Poipu Shores",
+      "iconUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-icon-home.png",
+      "fallbackIcon": "Home",
+      "order": 1,
+      "isVisible": true
+    }
+    // ... other pages
+  ]
+}`}</code>
+                </pre>
               </div>
 
               <div>
