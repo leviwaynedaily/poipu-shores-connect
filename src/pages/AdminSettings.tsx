@@ -1,11 +1,12 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings, Palette, Webcam, Phone, Users, Sparkles, Upload, Wand2, Image as ImageIcon, Activity, Copy } from "lucide-react";
+import { Settings, Palette, Webcam, Phone, Users, Sparkles, Upload, Wand2, Image as ImageIcon, Activity, Copy, Smartphone } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { UserManagement } from "@/components/settings/UserManagement";
 import { WebcamManagement } from "@/components/settings/WebcamManagement";
 import { EmergencyContactManagement } from "@/components/settings/EmergencyContactManagement";
 import { LoginActivityTable } from "@/components/settings/LoginActivityTable";
+import { MobilePageConfig } from "@/components/settings/MobilePageConfig";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -615,7 +616,7 @@ export default function AdminSettings() {
       />
 
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="users">
             <Users className="mr-2 h-4 w-4" />
             Users
@@ -631,6 +632,10 @@ export default function AdminSettings() {
           <TabsTrigger value="emergency">
             <Phone className="mr-2 h-4 w-4" />
             Emergency
+          </TabsTrigger>
+          <TabsTrigger value="mobile">
+            <Smartphone className="mr-2 h-4 w-4" />
+            Mobile
           </TabsTrigger>
           <TabsTrigger value="theme">
             <Palette className="mr-2 h-4 w-4" />
@@ -652,6 +657,10 @@ export default function AdminSettings() {
 
         <TabsContent value="emergency" className="space-y-4">
           <EmergencyContactManagement />
+        </TabsContent>
+
+        <TabsContent value="mobile" className="space-y-4">
+          <MobilePageConfig />
         </TabsContent>
 
         <TabsContent value="theme" className="space-y-4">
