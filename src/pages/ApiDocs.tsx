@@ -546,9 +546,21 @@ const ApiDocs = () => {
                 <Code2 className="h-5 w-5" />
                 Quick Start
               </CardTitle>
-              <CardDescription>Essential connection details</CardDescription>
+              <CardDescription>Essential connection details for mobile app development</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="bg-blue-500/10 border-l-4 border-blue-500 p-4 rounded-r-lg">
+                <h3 className="font-semibold mb-2 flex items-center gap-2">
+                  <Smartphone className="h-4 w-4" />
+                  For Mobile Developers
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Theme customization (backgrounds, colors, glass effects, card styling) is managed by admins in 
+                  <strong className="text-foreground"> Admin Settings → Theme → Mobile Theme</strong>. 
+                  All changes are immediately available via the <strong className="text-foreground">Mobile Theme</strong> API tab below—no rebuild required.
+                </p>
+              </div>
+
               <div>
                 <h3 className="font-semibold mb-2">Base Configuration</h3>
                 <div className="bg-muted p-4 rounded-lg space-y-2 font-mono text-sm">
@@ -1242,9 +1254,15 @@ apikey: ${anonKey}`}</code>
 }`}</code>
                     </pre>
                   </div>
-                  <div className="mt-3 p-3 bg-blue-500/10 border-l-2 border-blue-500 rounded">
-                    <p className="text-sm"><strong>Note:</strong> Mobile theme configuration is managed separately in Admin Settings → Theme → Mobile Theme. 
-                    Changes to the web theme do not affect mobile theme and vice versa.</p>
+                  <div className="mt-3 space-y-2">
+                    <div className="p-3 bg-blue-500/10 border-l-2 border-blue-500 rounded">
+                      <p className="text-sm"><strong>Separate Configuration:</strong> Mobile theme is managed independently in <strong>Admin Settings → Theme → Mobile Theme</strong>. 
+                      Changes to web theme do not affect mobile theme and vice versa.</p>
+                    </div>
+                    <div className="p-3 bg-green-500/10 border-l-2 border-green-500 rounded">
+                      <p className="text-sm"><strong>Real-time Updates:</strong> All changes made in the admin panel are immediately available via the API. 
+                      No deployment or rebuild required—simply fetch the theme config again to get the latest settings.</p>
+                    </div>
                   </div>
                 </div>
               </div>
