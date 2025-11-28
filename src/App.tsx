@@ -8,6 +8,7 @@ import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
 import { BackgroundProvider } from "@/contexts/BackgroundContext";
 import { ThemeSettingsDialog } from "@/components/ThemeSettingsDialog";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AdminRoute } from "@/components/AdminRoute";
 import { Layout } from "@/components/Layout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -128,11 +129,11 @@ const AppContent = () => {
             <Route
               path="/settings"
               element={
-                <ProtectedRoute>
+                <AdminRoute>
                   <Layout>
                     <AdminSettings />
                   </Layout>
-                </ProtectedRoute>
+                </AdminRoute>
               }
             />
             <Route
