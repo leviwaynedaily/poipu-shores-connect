@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Copy, Home, MessageSquare, Camera, FileText, User, Bird, Users, Settings, ChevronDown, GripVertical, MoreHorizontal, Megaphone } from "lucide-react";
@@ -199,7 +200,8 @@ const iconOptions = [
 ];
 
 export function MobilePageConfig() {
-  const [pages, setPages] = useState<MobilePage[]>(defaultPages);
+  const [pages, setPages] = useState<MobilePage[]>([]);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
   const [openPages, setOpenPages] = useState<Record<string, boolean>>({});
@@ -214,35 +216,49 @@ export function MobilePageConfig() {
   }, []);
 
   const fetchConfig = async () => {
-    const { data } = await supabase
-      .from('app_settings')
-      .select('setting_value')
-      .eq('setting_key', 'mobile_pages_config')
-      .maybeSingle();
+    setLoading(true);
+    try {
+      const { data } = await supabase
+        .from('app_settings')
+        .select('setting_value')
+        .eq('setting_key', 'mobile_pages_config')
+        .maybeSingle();
 
-    if (data?.setting_value) {
-      const config = data.setting_value as any;
-      if (config?.pages) {
-        // Use saved pages directly from database
-        const savedPages = config.pages as MobilePage[];
-        
-        // Backward compatibility: Add routes to saved pages that don't have them
-        const pagesWithRoutes = savedPages.map(savedPage => {
-          if (!savedPage.route) {
-            const defaultPage = defaultPages.find(dp => dp.id === savedPage.id);
-            return { ...savedPage, route: defaultPage?.route || "/" };
-          }
-          return savedPage;
-        });
-        
-        // Add any new default pages that don't exist in saved config
-        const savedPageIds = pagesWithRoutes.map(p => p.id);
-        const newPages = defaultPages.filter(dp => !savedPageIds.includes(dp.id));
-        
-        // Combine saved pages with any new pages
-        const allPages = [...pagesWithRoutes, ...newPages];
-        setPages(allPages);
+      if (data?.setting_value) {
+        const config = data.setting_value as any;
+        if (config?.pages) {
+          // Use saved pages directly from database
+          const savedPages = config.pages as MobilePage[];
+          
+          // Backward compatibility: Add routes to saved pages that don't have them
+          const pagesWithRoutes = savedPages.map(savedPage => {
+            if (!savedPage.route) {
+              const defaultPage = defaultPages.find(dp => dp.id === savedPage.id);
+              return { ...savedPage, route: defaultPage?.route || "/" };
+            }
+            return savedPage;
+          });
+          
+          // Add any new default pages that don't exist in saved config
+          const savedPageIds = pagesWithRoutes.map(p => p.id);
+          const newPages = defaultPages.filter(dp => !savedPageIds.includes(dp.id));
+          
+          // Combine saved pages with any new pages
+          const allPages = [...pagesWithRoutes, ...newPages];
+          setPages(allPages);
+        } else {
+          // No saved config, use defaults
+          setPages(defaultPages);
+        }
+      } else {
+        // No saved config, use defaults
+        setPages(defaultPages);
       }
+    } catch (error) {
+      console.error('Error fetching config:', error);
+      setPages(defaultPages);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -557,6 +573,20 @@ export function MobilePageConfig() {
   };
 
   const sortedPages = [...pages].sort((a, b) => a.order - b.order);
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <Card key={i}>
+            <CardHeader>
+              <Skeleton className="h-6 w-40" />
+            </CardHeader>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
