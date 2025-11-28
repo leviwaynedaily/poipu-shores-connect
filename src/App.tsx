@@ -44,7 +44,7 @@ const AppContent = () => {
             <Route path="/accept-invite" element={<AcceptInvite />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
-            <Route path="/api-docs" element={<ApiDocs />} />
+            <Route path="/docs" element={<ApiDocs />} />
             <Route
               path="/dashboard"
               element={
