@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
 import { usePageConfig } from "@/hooks/use-page-config";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Interface for member
 interface Member {
@@ -24,6 +25,7 @@ interface Member {
 
 const Members = () => {
   const { pageConfig } = usePageConfig();
+  const isMobile = useIsMobile();
   const [members, setMembers] = useState<Member[]>([]);
   const [filteredMembers, setFilteredMembers] = useState<Member[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -143,90 +145,158 @@ const Members = () => {
             />
           </div>
 
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Member</TableHead>
-                  <TableHead>Unit</TableHead>
-                  <TableHead>Relationship</TableHead>
-                  <TableHead>Contact</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8">
-                      <div className="flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ) : filteredMembers.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                      {searchTerm ? "No members found matching your search" : "No members found"}
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredMembers.map((member) => (
-                    <TableRow key={member.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={member.avatar_url || undefined} />
-                            <AvatarFallback>
-                              {member.full_name.split(' ').map(n => n[0]).join('')}
-                            </AvatarFallback>
-                          </Avatar>
+{isMobile ? (
+            // Mobile card view
+            <div className="space-y-4">
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : filteredMembers.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  {searchTerm ? "No members found matching your search" : "No members found"}
+                </div>
+              ) : (
+                filteredMembers.map((member) => (
+                  <Card key={member.id}>
+                    <CardContent className="pt-6">
+                      <div className="flex items-start gap-4">
+                        <Avatar className="h-14 w-14">
+                          <AvatarImage src={member.avatar_url || undefined} />
+                          <AvatarFallback>
+                            {member.full_name.split(' ').map(n => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 space-y-3">
                           <div>
-                            <div className="font-medium">{member.full_name}</div>
+                            <h3 className="font-semibold text-base">{member.full_name}</h3>
+                            {member.unit_number && (
+                              <p className="text-sm font-medium text-primary">
+                                Unit {member.unit_number}
+                              </p>
+                            )}
                           </div>
+                          
+                          {(member.relationship_type || member.is_primary_contact) && (
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {member.relationship_type && member.relationship_type !== 'primary' && (
+                                <Badge variant="outline" className="text-xs capitalize">
+                                  {member.relationship_type}
+                                </Badge>
+                              )}
+                              {member.is_primary_contact && (
+                                <Badge variant="secondary" className="text-xs">
+                                  Primary Contact
+                                </Badge>
+                              )}
+                            </div>
+                          )}
+                          
+                          {member.show_contact_info && member.phone ? (
+                            <a
+                              href={`tel:${member.phone}`}
+                              className="flex items-center gap-2 text-primary hover:underline text-sm"
+                            >
+                              <Phone className="h-4 w-4" />
+                              {member.phone}
+                            </a>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">Contact not shared</p>
+                          )}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        {member.unit_number ? (
-                          <div className="font-medium text-primary">
-                            Unit {member.unit_number}
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {member.relationship_type && member.relationship_type !== 'primary' && (
-                            <span className="capitalize">{member.relationship_type}</span>
-                          )}
-                          {member.is_primary_contact && (
-                            <Badge variant="secondary" className="text-xs">
-                              Primary Contact
-                            </Badge>
-                          )}
-                          {!member.relationship_type && !member.is_primary_contact && (
-                            <span className="text-muted-foreground">—</span>
-                          )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          ) : (
+            // Desktop table view
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Member</TableHead>
+                    <TableHead>Unit</TableHead>
+                    <TableHead>Relationship</TableHead>
+                    <TableHead>Contact</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-8">
+                        <div className="flex items-center justify-center">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        {member.show_contact_info && member.phone ? (
-                          <a
-                            href={`tel:${member.phone}`}
-                            className="flex items-center gap-2 text-primary hover:underline"
-                          >
-                            <Phone className="h-4 w-4" />
-                            {member.phone}
-                          </a>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">Not shared</span>
-                        )}
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                  ) : filteredMembers.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                        {searchTerm ? "No members found matching your search" : "No members found"}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredMembers.map((member) => (
+                      <TableRow key={member.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={member.avatar_url || undefined} />
+                              <AvatarFallback>
+                                {member.full_name.split(' ').map(n => n[0]).join('')}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="font-medium">{member.full_name}</div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {member.unit_number ? (
+                            <div className="font-medium text-primary">
+                              Unit {member.unit_number}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {member.relationship_type && member.relationship_type !== 'primary' && (
+                              <span className="capitalize">{member.relationship_type}</span>
+                            )}
+                            {member.is_primary_contact && (
+                              <Badge variant="secondary" className="text-xs">
+                                Primary Contact
+                              </Badge>
+                            )}
+                            {!member.relationship_type && !member.is_primary_contact && (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {member.show_contact_info && member.phone ? (
+                            <a
+                              href={`tel:${member.phone}`}
+                              className="flex items-center gap-2 text-primary hover:underline"
+                            >
+                              <Phone className="h-4 w-4" />
+                              {member.phone}
+                            </a>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">Not shared</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
 
           {!loading && filteredMembers.length > 0 && (
             <div className="flex items-center justify-between px-2 py-4">
