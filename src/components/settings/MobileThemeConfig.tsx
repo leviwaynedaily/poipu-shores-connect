@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Wand2, Palette, Smartphone } from "lucide-react";
+import { Upload, Wand2, Palette, Smartphone, Image as ImageIcon } from "lucide-react";
 
 interface MobileThemeConfig {
   appBackground: {
@@ -49,9 +49,11 @@ export function MobileThemeConfig() {
   const [uploading, setUploading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
+  const [availableImages, setAvailableImages] = useState<Array<{ name: string; url: string }>>([]);
 
   useEffect(() => {
     fetchConfig();
+    fetchAvailableImages();
   }, []);
 
   const fetchConfig = async () => {
@@ -77,6 +79,48 @@ export function MobileThemeConfig() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchAvailableImages = async () => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('avatars')
+        .list('', { limit: 100 });
+
+      if (error) throw error;
+
+      const imageFiles = (data || [])
+        .filter(file => file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i))
+        .map(file => ({
+          name: file.name,
+          url: supabase.storage.from('avatars').getPublicUrl(file.name).data.publicUrl,
+        }));
+
+      setAvailableImages(imageFiles);
+    } catch (error: any) {
+      console.error('Error fetching available images:', error);
+    }
+  };
+
+  const handleSelectExistingImage = async (imageUrl: string, target: 'app' | 'home') => {
+    if (!config) return;
+
+    const updatedConfig = { ...config };
+    if (target === 'app') {
+      updatedConfig.appBackground = {
+        ...updatedConfig.appBackground,
+        type: 'uploaded',
+        url: imageUrl,
+      };
+    } else {
+      updatedConfig.homeBackground = {
+        ...updatedConfig.homeBackground,
+        type: 'uploaded',
+        url: imageUrl,
+      };
+    }
+
+    await saveConfig(updatedConfig);
   };
 
   const saveConfig = async (updatedConfig: MobileThemeConfig) => {
@@ -139,6 +183,9 @@ export function MobileThemeConfig() {
         .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
+
+      // Refresh available images list
+      fetchAvailableImages();
 
       // Get stable URL (always the same)
       const { data: { publicUrl } } = supabase.storage
@@ -209,6 +256,9 @@ export function MobileThemeConfig() {
         .upload(filePath, blob, { upsert: true, contentType: 'image/png' });
 
       if (uploadError) throw uploadError;
+
+      // Refresh available images list
+      fetchAvailableImages();
 
       // Get stable URL
       const { data: { publicUrl } } = supabase.storage
@@ -475,18 +525,58 @@ export function MobileThemeConfig() {
                   </CardContent>
                 </Card>
 
+                {availableImages.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <ImageIcon className="h-4 w-4" />
+                        Previously Uploaded Images
+                      </CardTitle>
+                      <CardDescription>Select from existing backgrounds</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-3 gap-2">
+                        {availableImages.map((image) => {
+                          const isActive = (target === 'app' && config.appBackground.url === image.url) ||
+                                         (target === 'home' && config.homeBackground.url === image.url);
+                          return (
+                            <button
+                              key={image.name}
+                              onClick={() => handleSelectExistingImage(image.url, target)}
+                              className={`relative rounded-md overflow-hidden border-2 transition-all hover:scale-105 ${
+                                isActive ? 'border-primary ring-2 ring-primary' : 'border-border'
+                              }`}
+                            >
+                              <img
+                                src={image.url}
+                                alt={image.name}
+                                className="w-full h-20 object-cover"
+                              />
+                              {isActive && (
+                                <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                                  <span className="text-xs font-medium text-primary-foreground bg-primary px-2 py-1 rounded">Active</span>
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-base">
                       <Upload className="h-4 w-4" />
-                      Upload Image
+                      Upload New Image
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {((target === 'app' && config.appBackground.type === 'uploaded' && config.appBackground.url) ||
                       (target === 'home' && config.homeBackground.type === 'uploaded' && config.homeBackground.url)) && (
                       <div className="space-y-2">
-                        <Label className="text-xs text-muted-foreground">Current Image</Label>
+                        <Label className="text-xs text-muted-foreground">Current Background</Label>
                         <div className="rounded-md border border-border overflow-hidden">
                           <img
                             src={target === 'app' ? config.appBackground.url! : config.homeBackground.url!}
