@@ -268,8 +268,12 @@ export function WebPageConfig() {
 
       toast({
         title: "Success",
-        description: "Web page configuration saved. Refresh the page to see changes.",
+        description: "Web page configuration saved. Refreshing...",
       });
+      
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error: any) {
       toast({
         title: "Save failed",
@@ -298,10 +302,6 @@ export function WebPageConfig() {
   return (
     <div className="space-y-6">
       <div className="space-y-4">
-        <CardDescription>
-          Configure the pages shown in the sidebar. Changes will take effect after refreshing the page.
-        </CardDescription>
-        
         {pages
           .sort((a, b) => a.order - b.order)
           .map((page) => {
