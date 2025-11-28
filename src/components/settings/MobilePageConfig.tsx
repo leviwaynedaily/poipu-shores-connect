@@ -377,9 +377,21 @@ export function MobilePageConfig() {
                   <CollapsibleTrigger className="w-full">
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                           <ChevronDown className={`h-4 w-4 transition-transform ${openPages[page.id] ? 'rotate-180' : ''}`} />
-                          <CardTitle className="text-base capitalize">{page.id}</CardTitle>
+                          {page.iconUrl ? (
+                            <img 
+                              src={page.iconUrl} 
+                              alt={`${page.id} icon`} 
+                              className="h-5 w-5 object-contain"
+                            />
+                          ) : (
+                            <IconComponent className="h-5 w-5 text-muted-foreground" />
+                          )}
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-normal text-muted-foreground">#{page.order}</span>
+                            <CardTitle className="text-base capitalize">{page.tabName}</CardTitle>
+                          </div>
                         </div>
                         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                           <Label className="text-xs">Visible</Label>
