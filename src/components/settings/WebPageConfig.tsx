@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { StickyActionBar } from "@/components/ui/sticky-action-bar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -110,7 +111,10 @@ export function WebPageConfig() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
   const [openPages, setOpenPages] = useState<Record<string, boolean>>({});
+  const initialConfig = useRef<WebPage[]>(defaultPages);
   const { toast } = useToast();
+
+  const hasChanges = JSON.stringify(pages) !== JSON.stringify(initialConfig.current);
 
   const togglePage = (pageId: string) => {
     setOpenPages(prev => ({ ...prev, [pageId]: !prev[pageId] }));
@@ -138,7 +142,9 @@ export function WebPageConfig() {
         const newPages = defaultPages.filter(dp => !savedPageIds.includes(dp.id));
         
         // Combine: saved pages first, then any new defaults
-        setPages([...savedPages, ...newPages]);
+        const allPages = [...savedPages, ...newPages];
+        setPages(allPages);
+        initialConfig.current = allPages;
       }
     }
   };
@@ -296,6 +302,9 @@ export function WebPageConfig() {
         description: "Web page configuration saved. Refreshing...",
       });
       
+      // Update initial config to match saved state
+      initialConfig.current = pages;
+      
       setTimeout(() => {
         window.location.reload();
       }, 1000);
@@ -322,6 +331,14 @@ export function WebPageConfig() {
     setPages(prev => prev.map(p => 
       p.id === pageId ? { ...p, ...updates } : p
     ));
+  };
+
+  const handleDiscard = () => {
+    setPages(initialConfig.current);
+    toast({
+      title: "Changes discarded",
+      description: "All changes have been reverted",
+    });
   };
 
   return (
@@ -541,11 +558,12 @@ export function WebPageConfig() {
           })}
       </div>
 
-      <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={saving}>
-          {saving ? "Saving..." : "Save Configuration"}
-        </Button>
-      </div>
+      <StickyActionBar
+        hasChanges={hasChanges}
+        onSave={handleSave}
+        onDiscard={handleDiscard}
+        saving={saving}
+      />
     </div>
   );
 }
