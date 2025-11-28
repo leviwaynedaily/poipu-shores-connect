@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Code2, Database, Lock, Image, MessageSquare, FileText, Users, Download } from "lucide-react";
+import { Code2, Database, Lock, Image, MessageSquare, FileText, Users, Download, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 
 const ApiDocs = () => {
@@ -265,16 +265,35 @@ const ApiDocs = () => {
             { name: "Chicken Assistant", path: "/src/assets/chicken-assistant.jpeg", usage: "AI assistant avatar (Ask the Chicken)" }
           ],
           mobileTabIcons: [
-            { name: "Home Tab", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-home.png`, format: "PNG" },
-            { name: "Chat Tab", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-chat.png`, format: "PNG" },
-            { name: "Photos Tab", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-photos.png`, format: "PNG" },
-            { name: "Documents Tab", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-documents.png`, format: "PNG" },
-            { name: "Profile Tab", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-profile.png`, format: "PNG" },
-            { name: "Assistant Tab", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-assistant.png`, format: "PNG" }
+            { name: "Home Tab", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-home.png`, size: "24-32px", format: "PNG" },
+            { name: "Chat Tab", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-chat.png`, size: "24-32px", format: "PNG" },
+            { name: "Photos Tab", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-photos.png`, size: "24-32px", format: "PNG" },
+            { name: "Documents Tab", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-documents.png`, size: "24-32px", format: "PNG" },
+            { name: "Profile Tab", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-profile.png`, size: "24-32px", format: "PNG" },
+            { name: "Assistant Tab", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-assistant.png`, size: "24-32px", format: "PNG" }
+          ],
+          mobileHeaderLogos: [
+            { name: "Home Header", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-header-home.png`, size: "120-200px wide", format: "PNG" },
+            { name: "Chat Header", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-header-chat.png`, size: "120-200px wide", format: "PNG" },
+            { name: "Photos Header", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-header-photos.png`, size: "120-200px wide", format: "PNG" },
+            { name: "Documents Header", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-header-documents.png`, size: "120-200px wide", format: "PNG" },
+            { name: "Profile Header", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-header-profile.png`, size: "120-200px wide", format: "PNG" },
+            { name: "Assistant Header", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-header-assistant.png`, size: "120-200px wide", format: "PNG" }
           ],
           mobileConfig: {
             endpoint: "/rest/v1/app_settings?setting_key=eq.mobile_pages_config",
-            description: "Fetch mobile page configuration including tab names, titles, subtitles, and visibility"
+            description: "Complete mobile configuration including page order, visibility, tab names, titles, subtitles, icons, and header logos",
+            fields: {
+              id: "Page identifier (home, chat, photos, documents, profile, assistant)",
+              tabName: "Short label for tab bar",
+              title: "Page header title",
+              subtitle: "Page header subtitle/description",
+              iconUrl: "Tab bar icon URL (24-32px PNG)",
+              headerLogoUrl: "Page header logo URL (120-200px wide PNG)",
+              fallbackIcon: "Icon name to use if URLs are null",
+              order: "Sort order (1-6, ascending)",
+              isVisible: "Show/hide page in app"
+            }
           }
         },
         theme: {
@@ -1352,90 +1371,214 @@ border-color: hsl(var(--border));
                 </div>
               </div>
 
-              <div>
-                <h3 className="font-semibold mb-3 mt-6">Mobile Tab Bar Icons</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Fixed PNG icon URLs for mobile app tab bars. These icons can be customized via the Admin Settings → Mobile Configuration panel.
-                </p>
-                <div className="space-y-3">
-                  <div className="border-l-2 border-purple-500 pl-4">
-                    <h4 className="font-medium">Home Tab Icon</h4>
-                    <code className="text-xs bg-muted px-2 py-1 rounded mt-1 inline-block break-all">
-                      {baseUrl}/storage/v1/object/public/avatars/mobile-icon-home.png
+              <Card className="border-2 border-purple-500/20 bg-purple-500/5">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Smartphone className="h-5 w-5 text-purple-500" />
+                    Mobile App Configuration
+                  </CardTitle>
+                  <CardDescription>
+                    Complete mobile page configuration endpoint with tab icons, header logos, and page ordering
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <h3 className="font-semibold mb-2">Configuration Endpoint</h3>
+                    <code className="block p-3 bg-muted rounded-md text-sm break-all mb-3">
+                      GET {baseUrl}/rest/v1/app_settings?select=setting_value&setting_key=eq.mobile_pages_config
                     </code>
+                    
+                    <div className="space-y-2 mb-4">
+                      <h4 className="font-medium text-sm">Required Headers:</h4>
+                      <pre className="block p-3 bg-muted rounded-md text-xs overflow-x-auto">
+{`apikey: ${anonKey}
+Content-Type: application/json`}
+                      </pre>
+                    </div>
                   </div>
-                  <div className="border-l-2 border-purple-500 pl-4">
-                    <h4 className="font-medium">Chat Tab Icon</h4>
-                    <code className="text-xs bg-muted px-2 py-1 rounded mt-1 inline-block break-all">
-                      {baseUrl}/storage/v1/object/public/avatars/mobile-icon-chat.png
-                    </code>
-                  </div>
-                  <div className="border-l-2 border-purple-500 pl-4">
-                    <h4 className="font-medium">Photos Tab Icon</h4>
-                    <code className="text-xs bg-muted px-2 py-1 rounded mt-1 inline-block break-all">
-                      {baseUrl}/storage/v1/object/public/avatars/mobile-icon-photos.png
-                    </code>
-                  </div>
-                  <div className="border-l-2 border-purple-500 pl-4">
-                    <h4 className="font-medium">Documents Tab Icon</h4>
-                    <code className="text-xs bg-muted px-2 py-1 rounded mt-1 inline-block break-all">
-                      {baseUrl}/storage/v1/object/public/avatars/mobile-icon-documents.png
-                    </code>
-                  </div>
-                  <div className="border-l-2 border-purple-500 pl-4">
-                    <h4 className="font-medium">Profile Tab Icon</h4>
-                    <code className="text-xs bg-muted px-2 py-1 rounded mt-1 inline-block break-all">
-                      {baseUrl}/storage/v1/object/public/avatars/mobile-icon-profile.png
-                    </code>
-                  </div>
-                  <div className="border-l-2 border-purple-500 pl-4">
-                    <h4 className="font-medium">Assistant Tab Icon</h4>
-                    <code className="text-xs bg-muted px-2 py-1 rounded mt-1 inline-block break-all">
-                      {baseUrl}/storage/v1/object/public/avatars/mobile-icon-assistant.png
-                    </code>
-                  </div>
-                </div>
-                <div className="mt-4 bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-                  <h4 className="font-semibold mb-2 text-blue-700 dark:text-blue-300">💡 Implementation Tip</h4>
-                  <p className="text-sm text-muted-foreground">
-                    These URLs are constant and can be hardcoded in your mobile app. When admins upload new icons through the settings panel, 
-                    the files are overwritten at the same URL, so your app automatically shows the updated icons without needing app updates.
-                  </p>
-                </div>
-              </div>
 
-              <div>
-                <h3 className="font-semibold mb-2 mt-6">Mobile Configuration API</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Fetch complete mobile page configuration including tab names, titles, subtitles, and visibility.
-                </p>
-                <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">
-                  <code>{`// Fetch mobile config from app_settings
-let config = try await supabase
-    .from("app_settings")
-    .select()
-    .eq("setting_key", value: "mobile_pages_config")
-    .single()
-    .execute()
-
-// Response structure:
-{
-  "pages": [
-    {
-      "id": "home",
-      "tabName": "Home",
-      "title": "Dashboard",
-      "subtitle": "Welcome to Poipu Shores",
-      "iconUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-icon-home.png",
-      "fallbackIcon": "Home",
-      "order": 1,
-      "isVisible": true
+                  <div>
+                    <h3 className="font-semibold mb-2">Response Format</h3>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      The endpoint returns an array with a single object containing the configuration:
+                    </p>
+                    <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-xs">
+                      <code>{`[
+  {
+    "setting_value": {
+      "pages": [
+        {
+          "id": "home",
+          "tabName": "Home",
+          "title": "Dashboard",
+          "subtitle": "Welcome to Poipu Shores",
+          "iconUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-icon-home.png",
+          "headerLogoUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-header-home.png",
+          "fallbackIcon": "Home",
+          "order": 1,
+          "isVisible": true
+        },
+        {
+          "id": "chat",
+          "tabName": "Chat",
+          "title": "Community Chat",
+          "subtitle": "Connect with neighbors",
+          "iconUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-icon-chat.png",
+          "headerLogoUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-header-chat.png",
+          "fallbackIcon": "MessageSquare",
+          "order": 2,
+          "isVisible": true
+        },
+        {
+          "id": "photos",
+          "tabName": "Photos",
+          "title": "Photo Gallery",
+          "subtitle": "Community photos",
+          "iconUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-icon-photos.png",
+          "headerLogoUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-header-photos.png",
+          "fallbackIcon": "Camera",
+          "order": 3,
+          "isVisible": true
+        },
+        {
+          "id": "documents",
+          "tabName": "Docs",
+          "title": "Documents",
+          "subtitle": "Important files",
+          "iconUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-icon-documents.png",
+          "headerLogoUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-header-documents.png",
+          "fallbackIcon": "FileText",
+          "order": 4,
+          "isVisible": true
+        },
+        {
+          "id": "profile",
+          "tabName": "Profile",
+          "title": "My Profile",
+          "subtitle": "Account settings",
+          "iconUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-icon-profile.png",
+          "headerLogoUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-header-profile.png",
+          "fallbackIcon": "User",
+          "order": 5,
+          "isVisible": true
+        },
+        {
+          "id": "assistant",
+          "tabName": "Ask",
+          "title": "Ask the Chicken",
+          "subtitle": "AI Assistant",
+          "iconUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-icon-assistant.png",
+          "headerLogoUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-header-assistant.png",
+          "fallbackIcon": "Bird",
+          "order": 6,
+          "isVisible": true
+        }
+      ]
     }
-    // ... other pages
-  ]
+  }
+]`}</code>
+                    </pre>
+                  </div>
+
+                  <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 space-y-3">
+                    <h4 className="font-semibold text-blue-700 dark:text-blue-300">📱 Implementation Guide</h4>
+                    <ul className="text-sm text-muted-foreground space-y-2">
+                      <li><strong>1. Filter visible pages:</strong> Show only pages where <code>isVisible === true</code></li>
+                      <li><strong>2. Sort by order:</strong> Sort pages by the <code>order</code> field (ascending)</li>
+                      <li><strong>3. Tab bar icons:</strong> Use <code>iconUrl</code> for bottom tab navigation (24-32px recommended)</li>
+                      <li><strong>4. Page header logos:</strong> Use <code>headerLogoUrl</code> for page title bars (120-200px wide)</li>
+                      <li><strong>5. Fallback icons:</strong> Use <code>fallbackIcon</code> if <code>iconUrl</code> or <code>headerLogoUrl</code> is null</li>
+                      <li><strong>6. Tab names:</strong> Use <code>tabName</code> for tab labels</li>
+                      <li><strong>7. Page titles:</strong> Use <code>title</code> in the page header</li>
+                      <li><strong>8. Subtitles:</strong> Use <code>subtitle</code> for secondary header text</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold mb-2">Swift Implementation Example</h3>
+                    <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-xs">
+                      <code>{`struct MobilePage: Codable {
+    let id: String
+    let tabName: String
+    let title: String
+    let subtitle: String
+    let iconUrl: String?
+    let headerLogoUrl: String?
+    let fallbackIcon: String
+    let order: Int
+    let isVisible: Bool
+}
+
+struct MobileConfig: Codable {
+    let pages: [MobilePage]
+}
+
+struct AppSettingResponse: Codable {
+    let setting_value: MobileConfig
+}
+
+func fetchMobileConfig() async throws -> [MobilePage] {
+    let response: [AppSettingResponse] = try await supabase
+        .from("app_settings")
+        .select()
+        .eq("setting_key", value: "mobile_pages_config")
+        .execute()
+        .value
+    
+    guard let config = response.first?.setting_value else {
+        throw NSError(domain: "Config", code: 404)
+    }
+    
+    // Filter visible pages and sort by order
+    return config.pages
+        .filter { $0.isVisible }
+        .sorted { $0.order < $1.order }
 }`}</code>
-                </pre>
-              </div>
+                    </pre>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold mb-2 mt-4">Fixed Asset URLs</h3>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Icon and logo URLs use fixed filenames and can be hardcoded:
+                    </p>
+                    
+                    <div className="space-y-3">
+                      <div>
+                        <h4 className="text-sm font-medium mb-2">Tab Bar Icons (24-32px):</h4>
+                        <div className="space-y-1 text-xs font-mono bg-muted/50 p-3 rounded">
+                          <div>{baseUrl}/storage/v1/object/public/avatars/mobile-icon-home.png</div>
+                          <div>{baseUrl}/storage/v1/object/public/avatars/mobile-icon-chat.png</div>
+                          <div>{baseUrl}/storage/v1/object/public/avatars/mobile-icon-photos.png</div>
+                          <div>{baseUrl}/storage/v1/object/public/avatars/mobile-icon-documents.png</div>
+                          <div>{baseUrl}/storage/v1/object/public/avatars/mobile-icon-profile.png</div>
+                          <div>{baseUrl}/storage/v1/object/public/avatars/mobile-icon-assistant.png</div>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h4 className="text-sm font-medium mb-2">Page Header Logos (120-200px wide):</h4>
+                        <div className="space-y-1 text-xs font-mono bg-muted/50 p-3 rounded">
+                          <div>{baseUrl}/storage/v1/object/public/avatars/mobile-header-home.png</div>
+                          <div>{baseUrl}/storage/v1/object/public/avatars/mobile-header-chat.png</div>
+                          <div>{baseUrl}/storage/v1/object/public/avatars/mobile-header-photos.png</div>
+                          <div>{baseUrl}/storage/v1/object/public/avatars/mobile-header-documents.png</div>
+                          <div>{baseUrl}/storage/v1/object/public/avatars/mobile-header-profile.png</div>
+                          <div>{baseUrl}/storage/v1/object/public/avatars/mobile-header-assistant.png</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
+                    <h4 className="font-semibold mb-2 text-green-700 dark:text-green-300">✨ Auto-Update Feature</h4>
+                    <p className="text-sm text-muted-foreground">
+                      When admins upload new icons through Admin Settings → Mobile tab, the files are overwritten at these same URLs. 
+                      Your app automatically displays updated icons without requiring an app update or code changes.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
 
               <div>
                 <h3 className="font-semibold mb-2 mt-6">Accessing Assets in Swift</h3>
