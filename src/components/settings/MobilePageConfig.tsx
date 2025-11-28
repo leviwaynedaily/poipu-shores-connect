@@ -455,6 +455,9 @@ export function MobilePageConfig() {
         title: "Success",
         description: "Mobile page configuration saved successfully",
       });
+      
+      // Refetch to show the saved data
+      await fetchConfig();
     } catch (error: any) {
       toast({
         title: "Save failed",
