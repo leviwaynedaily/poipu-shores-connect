@@ -196,48 +196,6 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         
-        {isAdmin && (
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  {!open ? (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton asChild>
-                          <NavLink
-                            to="/settings"
-                            end
-                            className="flex items-center gap-3 py-4 text-base"
-                            activeClassName="bg-accent text-accent-foreground font-semibold"
-                          >
-                            <Settings className="h-5 w-5" />
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      <TooltipContent side="right" className="font-medium">
-                        Admin Settings
-                      </TooltipContent>
-                    </Tooltip>
-                  ) : (
-                    <SidebarMenuButton asChild>
-                      <NavLink
-                        to="/settings"
-                        end
-                        className="flex items-center gap-3 py-4 text-base"
-                        activeClassName="bg-accent text-accent-foreground font-semibold"
-                      >
-                        <Settings className="h-5 w-5" />
-                        <span>Admin Settings</span>
-                      </NavLink>
-                    </SidebarMenuButton>
-                  )}
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-        
         {profile && (
           <div className="mt-auto border-t border-border/20">
             <DropdownMenu>
