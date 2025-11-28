@@ -31,6 +31,7 @@ interface MobilePage {
   id: string;
   tabName: string;
   iconUrl: string | null;
+  floatingIconUrl: string | null;
   headerLogoUrl: string | null;
   fallbackIcon: string;
   title: string;
@@ -45,6 +46,7 @@ const defaultPages: MobilePage[] = [
     id: "home",
     tabName: "Home",
     iconUrl: null,
+    floatingIconUrl: null,
     headerLogoUrl: null,
     fallbackIcon: "Home",
     title: "Dashboard",
@@ -57,6 +59,7 @@ const defaultPages: MobilePage[] = [
     id: "chat",
     tabName: "Chat",
     iconUrl: null,
+    floatingIconUrl: null,
     headerLogoUrl: null,
     fallbackIcon: "MessageSquare",
     title: "Community Chat",
@@ -69,6 +72,7 @@ const defaultPages: MobilePage[] = [
     id: "photos",
     tabName: "Photos",
     iconUrl: null,
+    floatingIconUrl: null,
     headerLogoUrl: null,
     fallbackIcon: "Camera",
     title: "Photo Gallery",
@@ -81,6 +85,7 @@ const defaultPages: MobilePage[] = [
     id: "documents",
     tabName: "Docs",
     iconUrl: null,
+    floatingIconUrl: null,
     headerLogoUrl: null,
     fallbackIcon: "FileText",
     title: "Documents",
@@ -93,6 +98,7 @@ const defaultPages: MobilePage[] = [
     id: "profile",
     tabName: "Profile",
     iconUrl: null,
+    floatingIconUrl: null,
     headerLogoUrl: null,
     fallbackIcon: "User",
     title: "My Profile",
@@ -105,6 +111,7 @@ const defaultPages: MobilePage[] = [
     id: "assistant",
     tabName: "Ask",
     iconUrl: null,
+    floatingIconUrl: null,
     headerLogoUrl: null,
     fallbackIcon: "Bird",
     title: "Ask the Chicken",
@@ -117,6 +124,7 @@ const defaultPages: MobilePage[] = [
     id: "members",
     tabName: "Members",
     iconUrl: null,
+    floatingIconUrl: null,
     headerLogoUrl: null,
     fallbackIcon: "Users",
     title: "Poipu Shores Members",
@@ -129,6 +137,7 @@ const defaultPages: MobilePage[] = [
     id: "settings",
     tabName: "Settings",
     iconUrl: null,
+    floatingIconUrl: null,
     headerLogoUrl: null,
     fallbackIcon: "Settings",
     title: "Settings",
@@ -141,6 +150,7 @@ const defaultPages: MobilePage[] = [
     id: "announcements",
     tabName: "News",
     iconUrl: null,
+    floatingIconUrl: null,
     headerLogoUrl: null,
     fallbackIcon: "MessageSquare",
     title: "Announcements",
@@ -288,6 +298,64 @@ export function MobilePageConfig() {
       });
     } catch (error: any) {
       console.error('Error uploading icon:', error);
+      toast({
+        title: "Upload failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(null);
+    }
+  };
+
+  const handleFloatingIconUpload = async (pageId: string, file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploading(`floating-${pageId}`);
+    try {
+      const pngBlob = await convertToPng(file);
+      const fileName = `mobile-floating-${pageId}.png`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, pngBlob, {
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      const updatedPages = pages.map(p => 
+        p.id === pageId ? { ...p, floatingIconUrl: publicUrl } : p
+      );
+      setPages(updatedPages);
+
+      // Auto-save to database
+      await supabase
+        .from('app_settings')
+        .upsert([{
+          setting_key: 'mobile_pages_config',
+          setting_value: { pages: updatedPages } as any,
+        }], {
+          onConflict: 'setting_key',
+        });
+
+      toast({
+        title: "Success",
+        description: "Floating icon uploaded and saved successfully",
+      });
+    } catch (error: any) {
+      console.error('Error uploading floating icon:', error);
       toast({
         title: "Upload failed",
         description: error.message,
@@ -458,6 +526,7 @@ export function MobilePageConfig() {
                   onToggle={() => togglePage(page.id)}
                   onUpdate={(updates) => updatePage(page.id, updates)}
                   onIconUpload={(file) => handleIconUpload(page.id, file)}
+                  onFloatingIconUpload={(file) => handleFloatingIconUpload(page.id, file)}
                   onHeaderLogoUpload={(file) => handleHeaderLogoUpload(page.id, file)}
                   onCopyUrl={copyToClipboard}
                   uploading={uploading}

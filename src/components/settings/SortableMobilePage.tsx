@@ -14,6 +14,7 @@ interface MobilePage {
   id: string;
   tabName: string;
   iconUrl: string | null;
+  floatingIconUrl: string | null;
   headerLogoUrl: string | null;
   fallbackIcon: string;
   title: string;
@@ -29,6 +30,7 @@ interface SortableMobilePageProps {
   onToggle: () => void;
   onUpdate: (updates: Partial<MobilePage>) => void;
   onIconUpload: (file: File) => void;
+  onFloatingIconUpload: (file: File) => void;
   onHeaderLogoUpload: (file: File) => void;
   onCopyUrl: (url: string, label: string) => void;
   uploading: string | null;
@@ -42,6 +44,7 @@ export function SortableMobilePage({
   onToggle,
   onUpdate,
   onIconUpload,
+  onFloatingIconUpload,
   onHeaderLogoUpload,
   onCopyUrl,
   uploading,
@@ -194,6 +197,41 @@ export function SortableMobilePage({
                   </div>
                 )}
               </div>
+
+              {page.isFloating && (
+                <div className="space-y-2 p-4 border rounded-lg bg-muted/50">
+                  <Label>Floating Tab Icon (PNG, 48-56px recommended)</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Upload a larger icon specifically for the floating action button
+                  </p>
+                  <div className="flex gap-2">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) onFloatingIconUpload(file);
+                      }}
+                      disabled={uploading === `floating-${page.id}`}
+                    />
+                    {page.floatingIconUrl && (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => onCopyUrl(page.floatingIconUrl!, "Floating icon")}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  {page.floatingIconUrl && (
+                    <div className="flex items-center gap-2">
+                      <img src={page.floatingIconUrl} alt="Custom floating icon" className="h-12 w-12 object-contain" />
+                      <span className="text-xs text-muted-foreground">Current floating icon</span>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label>Custom Header Logo (PNG recommended)</Label>
