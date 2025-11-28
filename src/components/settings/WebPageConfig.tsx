@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Home, Megaphone, MessageSquare, FileText, Camera, Users, Copy } from "lucide-react";
+import { Home, Megaphone, MessageSquare, FileText, Camera, Users, Settings, Copy } from "lucide-react";
 
 interface WebPage {
   id: string;
@@ -82,6 +82,16 @@ const defaultPages: WebPage[] = [
     order: 6,
     isVisible: true,
   },
+  {
+    id: "admin-settings",
+    title: "Admin Settings",
+    route: "/settings",
+    icon: "Settings",
+    iconUrl: null,
+    headerLogoUrl: null,
+    order: 7,
+    isVisible: true,
+  },
 ];
 
 const iconOptions = [
@@ -91,6 +101,7 @@ const iconOptions = [
   { value: "FileText", label: "File", Icon: FileText },
   { value: "Camera", label: "Camera", Icon: Camera },
   { value: "Users", label: "Users", Icon: Users },
+  { value: "Settings", label: "Settings", Icon: Settings },
 ];
 
 export function WebPageConfig() {
@@ -478,7 +489,7 @@ export function WebPageConfig() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {[1, 2, 3, 4, 5, 6].map((num) => (
+                            {[1, 2, 3, 4, 5, 6, 7].map((num) => (
                               <SelectItem key={num} value={num.toString()}>
                                 {num}
                               </SelectItem>
