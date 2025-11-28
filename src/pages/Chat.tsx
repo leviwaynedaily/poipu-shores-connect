@@ -12,6 +12,8 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ChannelManager } from "@/components/ChannelManager";
+import { PageHeader } from "@/components/PageHeader";
+import { usePageConfig } from "@/hooks/use-page-config";
 
 interface Message {
   id: string;
@@ -45,6 +47,7 @@ interface Channel {
 const Chat = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { pageConfig } = usePageConfig();
   const [channels, setChannels] = useState<Channel[]>([]);
   const [selectedChannel, setSelectedChannel] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -429,15 +432,12 @@ const Chat = () => {
 
   return (
     <div className="space-y-3 md:space-y-6">
-      <Card>
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 pb-3 sm:pb-6">
-          <div className="space-y-1">
-            <CardTitle className="text-xl sm:text-2xl md:text-3xl">Community Chat</CardTitle>
-            <CardDescription className="text-sm sm:text-base">
-              Connect with your neighbors and community
-            </CardDescription>
-          </div>
-          {isAdmin && (
+      <PageHeader
+        title={pageConfig?.title || "Community Chat"}
+        description={pageConfig?.subtitle || "Connect with your neighbors and community"}
+        logoUrl={pageConfig?.headerLogoUrl}
+        actions={
+          isAdmin ? (
             <Button 
               onClick={() => setShowChannelManager(!showChannelManager)} 
               className="shrink-0 w-full sm:w-auto"
@@ -446,9 +446,9 @@ const Chat = () => {
               <Settings className="h-4 w-4 mr-2" />
               Manage Channels
             </Button>
-          )}
-        </CardHeader>
-      </Card>
+          ) : undefined
+        }
+      />
 
       {showChannelManager && isAdmin && (
         <ChannelManager onClose={() => setShowChannelManager(false)} />
