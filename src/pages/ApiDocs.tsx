@@ -265,12 +265,20 @@ const ApiDocs = () => {
             { name: "Chicken Assistant", path: "/src/assets/chicken-assistant.jpeg", usage: "AI assistant avatar (Ask the Chicken)" }
           ],
           mobileTabIcons: [
-            { name: "Home Tab", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-home.png`, format: "PNG" },
-            { name: "Chat Tab", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-chat.png`, format: "PNG" },
-            { name: "Photos Tab", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-photos.png`, format: "PNG" },
-            { name: "Documents Tab", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-documents.png`, format: "PNG" },
-            { name: "Profile Tab", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-profile.png`, format: "PNG" },
-            { name: "Assistant Tab", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-assistant.png`, format: "PNG" }
+            { name: "Home Tab Icon", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-home.png`, format: "PNG", size: "24-32px" },
+            { name: "Chat Tab Icon", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-chat.png`, format: "PNG", size: "24-32px" },
+            { name: "Photos Tab Icon", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-photos.png`, format: "PNG", size: "24-32px" },
+            { name: "Documents Tab Icon", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-documents.png`, format: "PNG", size: "24-32px" },
+            { name: "Profile Tab Icon", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-profile.png`, format: "PNG", size: "24-32px" },
+            { name: "Assistant Tab Icon", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-icon-assistant.png`, format: "PNG", size: "24-32px" }
+          ],
+          mobileHeaderLogos: [
+            { name: "Home Header Logo", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-header-home.png`, format: "PNG", size: "120-200px wide" },
+            { name: "Chat Header Logo", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-header-chat.png`, format: "PNG", size: "120-200px wide" },
+            { name: "Photos Header Logo", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-header-photos.png`, format: "PNG", size: "120-200px wide" },
+            { name: "Documents Header Logo", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-header-documents.png`, format: "PNG", size: "120-200px wide" },
+            { name: "Profile Header Logo", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-header-profile.png`, format: "PNG", size: "120-200px wide" },
+            { name: "Assistant Header Logo", url: `${baseUrl}/storage/v1/object/public/avatars/mobile-header-assistant.png`, format: "PNG", size: "120-200px wide" }
           ],
           mobileConfig: {
             endpoint: "/rest/v1/app_settings?setting_key=eq.mobile_pages_config",
