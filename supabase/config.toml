@@ -1,5 +1,8 @@
 project_id = "rvqqnfsgovlxocjjugww"
 
+[functions.get-page-config]
+verify_jwt = false
+
 [functions.community-assistant-mobile]
 verify_jwt = false
 

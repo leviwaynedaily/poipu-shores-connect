@@ -67,6 +67,19 @@ Deno.serve(async (req) => {
 
     // Include theme data if requested
     if (includeTheme) {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+      
+      // Define stable URLs for backgrounds
+      const STABLE_URLS = {
+        mobile: {
+          app: `${supabaseUrl}/storage/v1/object/public/avatars/mobile-app-background.png`,
+          login: `${supabaseUrl}/storage/v1/object/public/avatars/mobile-login-background.png`,
+        },
+        web: {
+          app: `${supabaseUrl}/storage/v1/object/public/avatars/web-app-background.png`,
+        }
+      };
+
       // Fetch platform-specific theme config
       const themeConfigKey = platform === 'web' ? 'web_theme_config' : 'mobile_theme_config';
       
@@ -145,6 +158,20 @@ Deno.serve(async (req) => {
       }
 
       const themeConfig = themeConfigData?.setting_value || defaultThemeConfig;
+
+      // Override URLs with stable URLs if type is 'uploaded'
+      if (platform === 'mobile') {
+        if (themeConfig.appBackground?.type === 'uploaded') {
+          themeConfig.appBackground.url = STABLE_URLS.mobile.app;
+        }
+        if (themeConfig.homeBackground?.type === 'uploaded') {
+          themeConfig.homeBackground.url = STABLE_URLS.mobile.login;
+        }
+      } else if (platform === 'web') {
+        if (themeConfig.appBackground?.type === 'uploaded') {
+          themeConfig.appBackground.url = STABLE_URLS.web.app;
+        }
+      }
 
       response.theme = {
         ...themeConfig,
