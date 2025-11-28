@@ -40,6 +40,7 @@ const ApiDocs = () => {
     { section: "Storage", tab: "storage", items: ["Avatars Bucket", "Community Photos Bucket", "Documents Bucket", "Chat Images Bucket"] },
     { section: "Assets", tab: "assets", items: ["Logos", "Favicon", "Backgrounds", "Mobile Tab Icons", "Mobile Header Logos", "Mobile Configuration"] },
     { section: "Theme", tab: "theme", items: ["Typography", "Colors", "Glass Effect", "Components", "Animations"] },
+    { section: "Mobile Theme", tab: "mobile-theme", items: ["Theme API", "Background Types", "Color System", "Glass Effect", "Card Styling", "Swift Examples"] },
     { section: "Swift", tab: "swift", items: ["Package Setup", "Authentication", "Database Queries", "Storage", "Edge Functions", "Realtime Subscriptions"] },
     { section: "Examples", tab: "examples", items: ["Auth Example", "Database Query", "Storage Upload", "Edge Function Call", "Realtime Subscription"] },
   ];
@@ -324,7 +325,8 @@ const ApiDocs = () => {
           ],
           mobileConfig: {
             endpoint: "/rest/v1/app_settings?setting_key=eq.mobile_pages_config",
-            description: "Complete mobile configuration including page order, visibility, tab names, titles, subtitles, routes, icons, header logos, and floating action button",
+            themeEndpoint: "/functions/v1/get-page-config?platform=mobile&include=theme",
+            description: "Complete mobile configuration including page order, visibility, tab names, titles, subtitles, routes, icons, header logos, floating action button, and theme settings",
             tabBarLayout: {
               totalTabs: 5,
               regularTabs: "First 3 visible pages shown in bottom nav",
@@ -388,6 +390,75 @@ const ApiDocs = () => {
             "Sheet", "Sidebar", "Carousel"
           ],
           animations: ["accordion-down", "accordion-up"]
+        },
+        mobileTheme: {
+          api: {
+            endpoint: `${baseUrl}/functions/v1/get-page-config?platform=mobile&include=theme`,
+            method: "GET",
+            headers: {
+              Authorization: "Bearer <user_access_token>",
+              apikey: anonKey
+            }
+          },
+          backgroundTypes: ["default", "generated", "uploaded", "color", "gradient"],
+          colors: {
+            format: "HSL",
+            example: "266 4% 20.8%",
+            lightMode: {
+              background: "0 0% 100%",
+              foreground: "265 4% 12.9%",
+              card: "0 0% 100%",
+              cardForeground: "265 4% 12.9%",
+              primary: "266 4% 20.8%",
+              primaryForeground: "248 0.3% 98.4%",
+              secondary: "248 0.7% 96.8%",
+              secondaryForeground: "266 4% 20.8%",
+              muted: "248 0.7% 96.8%",
+              mutedForeground: "257 4.6% 55.4%",
+              accent: "248 0.7% 96.8%",
+              accentForeground: "266 4% 20.8%",
+              destructive: "27 24.5% 57.7%",
+              destructiveForeground: "0 0% 100%",
+              border: "256 1.3% 92.9%",
+              input: "256 1.3% 92.9%",
+              ring: "257 4% 70.4%"
+            },
+            darkMode: {
+              background: "0 0% 15%",
+              foreground: "248 0.3% 98.4%",
+              card: "266 4% 20.8%",
+              cardForeground: "248 0.3% 98.4%",
+              primary: "256 1.3% 92.9%",
+              primaryForeground: "266 4% 20.8%",
+              secondary: "260 4.1% 27.9%",
+              secondaryForeground: "248 0.3% 98.4%",
+              muted: "260 4.1% 27.9%",
+              mutedForeground: "257 4% 70.4%",
+              accent: "260 4.1% 27.9%",
+              accentForeground: "248 0.3% 98.4%",
+              destructive: "22 19.1% 70.4%",
+              destructiveForeground: "248 0.3% 98.4%",
+              border: "0 0% 100% / 10%",
+              input: "0 0% 100% / 15%",
+              ring: "264 2.7% 55.1%"
+            }
+          },
+          glassEffect: {
+            defaultIntensity: 90,
+            range: { min: 0, max: 100 },
+            materials: {
+              ultraThin: "70-100 intensity",
+              thin: "50-69 intensity",
+              regular: "30-49 intensity",
+              thick: "0-29 intensity"
+            }
+          },
+          cardStyling: {
+            cornerRadius: 12,
+            padding: 16,
+            borderWidth: 1,
+            shadowRadius: 2
+          }
         }
       },
       swiftSetup: {
@@ -450,11 +521,12 @@ const ApiDocs = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 lg:grid-cols-10">
+        <TabsList className="flex flex-wrap gap-1">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="auth">Auth</TabsTrigger>
           <TabsTrigger value="routes">Routes</TabsTrigger>
           <TabsTrigger value="theme">Theme</TabsTrigger>
+          <TabsTrigger value="mobile-theme">Mobile Theme</TabsTrigger>
           <TabsTrigger value="functions">Functions</TabsTrigger>
           <TabsTrigger value="database">Database</TabsTrigger>
           <TabsTrigger value="storage">Storage</TabsTrigger>
@@ -1086,6 +1158,496 @@ border-color: hsl(var(--border));
                       <li>/admin-settings - System configuration</li>
                     </ul>
                   </div>
+                </div>
+              </div>
+
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Mobile Theme Tab */}
+        <TabsContent value="mobile-theme" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Smartphone className="h-5 w-5" />
+                Mobile Theme API
+              </CardTitle>
+              <CardDescription>Complete theme configuration for mobile apps including backgrounds, colors, glass effects, and card styling</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              
+              {/* Theme API Endpoint */}
+              <div>
+                <h3 className="font-semibold mb-3 text-lg">Fetching Theme Configuration</h3>
+                <div className="bg-muted p-4 rounded-lg space-y-3">
+                  <div>
+                    <h4 className="font-medium mb-2">Endpoint</h4>
+                    <code className="text-sm bg-background px-3 py-2 rounded block">{`GET ${baseUrl}/functions/v1/get-page-config?platform=mobile&include=theme`}</code>
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-2">Headers</h4>
+                    <pre className="bg-background p-3 rounded-lg overflow-x-auto text-xs">
+                      <code>{`Authorization: Bearer <user_access_token>
+apikey: ${anonKey}`}</code>
+                    </pre>
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-2">Response Format</h4>
+                    <pre className="bg-background p-3 rounded-lg overflow-x-auto text-xs">
+                      <code>{`{
+  "platform": "mobile",
+  "pages": [...],
+  "theme": {
+    "appBackground": {
+      "type": "generated" | "uploaded" | "color" | "gradient" | "default",
+      "url": "https://...",
+      "opacity": 95,
+      "overlayColor": "#000000",
+      "overlayOpacity": 30,
+      "gradientStart": "#ffffff",
+      "gradientEnd": "#000000",
+      "gradientDirection": "to-bottom"
+    },
+    "homeBackground": { /* same structure as appBackground */ },
+    "faviconUrl": "https://...",
+    "colors": {
+      "light": { /* HSL color values */ },
+      "dark": { /* HSL color values */ }
+    },
+    "glassEffect": {
+      "defaultIntensity": 90,
+      "description": "...",
+      "css": "...",
+      "implementation": "..."
+    }
+  },
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}`}</code>
+                    </pre>
+                  </div>
+                </div>
+              </div>
+
+              {/* Background Types */}
+              <div>
+                <h3 className="font-semibold mb-3 text-lg">Background Types & Rendering</h3>
+                <p className="text-sm text-muted-foreground mb-4">Different background types require different rendering approaches</p>
+                <div className="space-y-3">
+                  <div className="border-l-2 border-primary pl-4">
+                    <h4 className="font-medium">Default Background</h4>
+                    <p className="text-sm text-muted-foreground mb-2">type: "default"</p>
+                    <pre className="bg-muted p-3 rounded-lg overflow-x-auto text-xs">
+                      <code>{`// Use system background color
+struct ContentView: View {
+    var body: some View {
+        ZStack {
+            Color(.systemBackground)
+                .ignoresSafeArea()
+            // Your content
+        }
+    }
+}`}</code>
+                    </pre>
+                  </div>
+
+                  <div className="border-l-2 border-blue-500 pl-4">
+                    <h4 className="font-medium">Generated/Uploaded Image Background</h4>
+                    <p className="text-sm text-muted-foreground mb-2">type: "generated" or "uploaded"</p>
+                    <pre className="bg-muted p-3 rounded-lg overflow-x-auto text-xs">
+                      <code>{`// Display image with opacity
+AsyncImage(url: URL(string: background.url)) { image in
+    image
+        .resizable()
+        .scaledToFill()
+        .opacity(Double(background.opacity) / 100.0)
+        .overlay(
+            Color(hex: background.overlayColor)
+                .opacity(Double(background.overlayOpacity) / 100.0)
+        )
+} placeholder: {
+    Color(.systemGray6)
+}
+.ignoresSafeArea()`}</code>
+                    </pre>
+                  </div>
+
+                  <div className="border-l-2 border-green-500 pl-4">
+                    <h4 className="font-medium">Solid Color Background</h4>
+                    <p className="text-sm text-muted-foreground mb-2">type: "color"</p>
+                    <pre className="bg-muted p-3 rounded-lg overflow-x-auto text-xs">
+                      <code>{`// Render solid color
+Color(hex: background.color)
+    .ignoresSafeArea()`}</code>
+                    </pre>
+                  </div>
+
+                  <div className="border-l-2 border-orange-500 pl-4">
+                    <h4 className="font-medium">Gradient Background</h4>
+                    <p className="text-sm text-muted-foreground mb-2">type: "gradient"</p>
+                    <pre className="bg-muted p-3 rounded-lg overflow-x-auto text-xs">
+                      <code>{`// Render linear gradient
+let gradient = LinearGradient(
+    colors: [
+        Color(hex: background.gradientStart),
+        Color(hex: background.gradientEnd)
+    ],
+    startPoint: background.gradientDirection == "to-bottom" ? .top : .leading,
+    endPoint: background.gradientDirection == "to-bottom" ? .bottom : .trailing
+)
+gradient.ignoresSafeArea()`}</code>
+                    </pre>
+                  </div>
+                </div>
+              </div>
+
+              {/* Color System */}
+              <div>
+                <h3 className="font-semibold mb-3 text-lg">Color System for Mobile</h3>
+                <p className="text-sm text-muted-foreground mb-4">Colors are provided in HSL format and need conversion to iOS color formats</p>
+                <div className="space-y-3">
+                  <div className="bg-muted p-4 rounded-lg">
+                    <h4 className="font-medium mb-2">HSL Format</h4>
+                    <p className="text-sm text-muted-foreground mb-2">Example: "266 4% 20.8%" = HSL(266°, 4%, 20.8%)</p>
+                    <pre className="bg-background p-3 rounded-lg overflow-x-auto text-xs">
+                      <code>{`// HSL to RGB Conversion Extension
+extension Color {
+    init(hslString: String) {
+        let components = hslString.split(separator: " ").compactMap { Double($0.replacingOccurrences(of: "%", with: "")) }
+        guard components.count == 3 else {
+            self = .white
+            return
+        }
+        
+        let h = components[0] / 360.0
+        let s = components[1] / 100.0
+        let l = components[2] / 100.0
+        
+        let rgb = Color.hslToRgb(h: h, s: s, l: l)
+        self = Color(red: rgb.r, green: rgb.g, blue: rgb.b)
+    }
+    
+    private static func hslToRgb(h: Double, s: Double, l: Double) -> (r: Double, g: Double, b: Double) {
+        let c = (1.0 - abs(2.0 * l - 1.0)) * s
+        let x = c * (1.0 - abs((h * 6.0).truncatingRemainder(dividingBy: 2.0) - 1.0))
+        let m = l - c / 2.0
+        
+        var r = 0.0, g = 0.0, b = 0.0
+        
+        switch h * 6.0 {
+        case 0..<1: (r, g, b) = (c, x, 0)
+        case 1..<2: (r, g, b) = (x, c, 0)
+        case 2..<3: (r, g, b) = (0, c, x)
+        case 3..<4: (r, g, b) = (0, x, c)
+        case 4..<5: (r, g, b) = (x, 0, c)
+        default: (r, g, b) = (c, 0, x)
+        }
+        
+        return (r + m, g + m, b + m)
+    }
+}
+
+// Hex to Color Extension (for overlays and solid colors)
+extension Color {
+    init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let r, g, b: UInt64
+        switch hex.count {
+        case 3: // RGB (12-bit)
+            (r, g, b) = ((int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+        case 6: // RGB (24-bit)
+            (r, g, b) = (int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        default:
+            (r, g, b) = (255, 255, 255)
+        }
+        self.init(.sRGB, red: Double(r) / 255, green: Double(g) / 255, blue: Double(b) / 255, opacity: 1)
+    }
+}`}</code>
+                    </pre>
+                  </div>
+
+                  <div className="bg-muted p-4 rounded-lg">
+                    <h4 className="font-medium mb-2">Theme Manager</h4>
+                    <pre className="bg-background p-3 rounded-lg overflow-x-auto text-xs">
+                      <code>{`struct AppTheme {
+    let colors: ThemeColors
+    let isDarkMode: Bool
+    
+    init(themeData: ThemeResponse, isDarkMode: Bool) {
+        self.isDarkMode = isDarkMode
+        let colorSet = isDarkMode ? themeData.colors.dark : themeData.colors.light
+        
+        self.colors = ThemeColors(
+            background: Color(hslString: colorSet.background),
+            foreground: Color(hslString: colorSet.foreground),
+            card: Color(hslString: colorSet.card),
+            cardForeground: Color(hslString: colorSet.cardForeground),
+            primary: Color(hslString: colorSet.primary),
+            primaryForeground: Color(hslString: colorSet.primaryForeground),
+            secondary: Color(hslString: colorSet.secondary),
+            secondaryForeground: Color(hslString: colorSet.secondaryForeground),
+            muted: Color(hslString: colorSet.muted),
+            mutedForeground: Color(hslString: colorSet.mutedForeground),
+            accent: Color(hslString: colorSet.accent),
+            accentForeground: Color(hslString: colorSet.accentForeground),
+            destructive: Color(hslString: colorSet.destructive),
+            destructiveForeground: Color(hslString: colorSet.destructiveForeground),
+            border: Color(hslString: colorSet.border),
+            input: Color(hslString: colorSet.input)
+        )
+    }
+}
+
+struct ThemeColors {
+    let background: Color
+    let foreground: Color
+    let card: Color
+    let cardForeground: Color
+    let primary: Color
+    let primaryForeground: Color
+    let secondary: Color
+    let secondaryForeground: Color
+    let muted: Color
+    let mutedForeground: Color
+    let accent: Color
+    let accentForeground: Color
+    let destructive: Color
+    let destructiveForeground: Color
+    let border: Color
+    let input: Color
+}`}</code>
+                    </pre>
+                  </div>
+                </div>
+              </div>
+
+              {/* Glass Effect */}
+              <div>
+                <h3 className="font-semibold mb-3 text-lg">Glass Effect Implementation</h3>
+                <p className="text-sm text-muted-foreground mb-4">Glass morphism effects for cards and overlays</p>
+                <div className="space-y-3">
+                  <div className="bg-muted p-4 rounded-lg">
+                    <h4 className="font-medium mb-2">Glass Effect Modifier</h4>
+                    <p className="text-sm text-muted-foreground mb-2">Users can customize intensity per-profile (0-100, default 90)</p>
+                    <pre className="bg-background p-3 rounded-lg overflow-x-auto text-xs">
+                      <code>{`struct GlassEffect: ViewModifier {
+    var intensity: Double = 90
+    var theme: AppTheme
+    
+    func body(content: Content) -> some View {
+        content
+            .background {
+                if intensity > 50 {
+                    // High intensity = stronger glass effect
+                    theme.colors.card
+                        .opacity(0.1)
+                        .background(.ultraThinMaterial)
+                } else {
+                    // Lower intensity = more subtle
+                    theme.colors.card
+                        .opacity(Double(intensity) / 100.0)
+                        .background(.regularMaterial)
+                }
+            }
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(theme.colors.border.opacity(0.2), lineWidth: 1)
+            )
+    }
+}
+
+// Usage
+VStack {
+    Text("Card Content")
+}
+.padding()
+.modifier(GlassEffect(intensity: 90, theme: appTheme))`}</code>
+                    </pre>
+                  </div>
+
+                  <div className="bg-muted p-4 rounded-lg">
+                    <h4 className="font-medium mb-2">Material Types</h4>
+                    <ul className="text-sm space-y-2">
+                      <li><strong>.ultraThinMaterial:</strong> Very subtle blur (intensity 70-100)</li>
+                      <li><strong>.thinMaterial:</strong> Light blur (intensity 50-69)</li>
+                      <li><strong>.regularMaterial:</strong> Moderate blur (intensity 30-49)</li>
+                      <li><strong>.thickMaterial:</strong> Strong blur (intensity 0-29)</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card Styling */}
+              <div>
+                <h3 className="font-semibold mb-3 text-lg">Card Component Styling</h3>
+                <p className="text-sm text-muted-foreground mb-4">Match web card appearance in mobile</p>
+                <div className="bg-muted p-4 rounded-lg">
+                  <h4 className="font-medium mb-2">Standard Card</h4>
+                  <pre className="bg-background p-3 rounded-lg overflow-x-auto text-xs">
+                    <code>{`struct CardView<Content: View>: View {
+    let theme: AppTheme
+    let content: Content
+    let glassIntensity: Double
+    
+    init(theme: AppTheme, glassIntensity: Double = 0, @ViewBuilder content: () -> Content) {
+        self.theme = theme
+        self.glassIntensity = glassIntensity
+        self.content = content()
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            content
+        }
+        .padding(16)
+        .background(
+            glassIntensity > 0
+                ? AnyView(
+                    theme.colors.card
+                        .opacity(0.1)
+                        .background(.ultraThinMaterial)
+                  )
+                : AnyView(theme.colors.card)
+        )
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(theme.colors.border, lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.05), radius: 2, y: 1)
+    }
+}
+
+// Usage
+CardView(theme: appTheme, glassIntensity: 90) {
+    VStack(alignment: .leading) {
+        Text("Card Title")
+            .font(.headline)
+            .foregroundColor(theme.colors.cardForeground)
+        
+        Text("Card content goes here")
+            .font(.body)
+            .foregroundColor(theme.colors.mutedForeground)
+    }
+}`}</code>
+                  </pre>
+                </div>
+              </div>
+
+              {/* Complete Example */}
+              <div>
+                <h3 className="font-semibold mb-3 text-lg">Complete SwiftUI Example</h3>
+                <div className="bg-muted p-4 rounded-lg">
+                  <h4 className="font-medium mb-2">Full Theme Integration</h4>
+                  <pre className="bg-background p-3 rounded-lg overflow-x-auto text-xs">
+                    <code>{`import SwiftUI
+import Supabase
+
+@MainActor
+class ThemeManager: ObservableObject {
+    @Published var theme: AppTheme?
+    @Published var background: BackgroundConfig?
+    @Published var isLoading = false
+    
+    func fetchTheme() async {
+        isLoading = true
+        defer { isLoading = false }
+        
+        do {
+            let response: ThemeResponse = try await supabase.functions
+                .invoke("get-page-config", options: FunctionInvokeOptions(
+                    query: [URLQueryItem(name: "platform", value: "mobile"),
+                           URLQueryItem(name: "include", value: "theme")]
+                ))
+            
+            let isDark = UITraitCollection.current.userInterfaceStyle == .dark
+            self.theme = AppTheme(themeData: response.theme, isDarkMode: isDark)
+            self.background = response.theme.appBackground
+        } catch {
+            print("Error fetching theme: \\(error)")
+        }
+    }
+}
+
+struct ContentView: View {
+    @StateObject private var themeManager = ThemeManager()
+    @Environment(\\.colorScheme) var colorScheme
+    
+    var body: some View {
+        ZStack {
+            // Background
+            if let background = themeManager.background {
+                BackgroundView(background: background)
+            }
+            
+            // Content
+            if let theme = themeManager.theme {
+                ScrollView {
+                    VStack(spacing: 16) {
+                        CardView(theme: theme, glassIntensity: 90) {
+                            VStack(alignment: .leading) {
+                                Text("Welcome to Poipu Shores")
+                                    .font(.title2)
+                                    .foregroundColor(theme.colors.cardForeground)
+                                
+                                Text("Your community portal")
+                                    .foregroundColor(theme.colors.mutedForeground)
+                            }
+                        }
+                    }
+                    .padding()
+                }
+            }
+        }
+        .task {
+            await themeManager.fetchTheme()
+        }
+        .onChange(of: colorScheme) { newScheme in
+            Task {
+                await themeManager.fetchTheme()
+            }
+        }
+    }
+}
+
+struct BackgroundView: View {
+    let background: BackgroundConfig
+    
+    var body: some View {
+        Group {
+            switch background.type {
+            case "generated", "uploaded":
+                AsyncImage(url: URL(string: background.url ?? "")) { image in
+                    image.resizable().scaledToFill()
+                } placeholder: {
+                    Color.gray.opacity(0.1)
+                }
+                .opacity(Double(background.opacity ?? 100) / 100.0)
+                
+            case "color":
+                Color(hex: background.color ?? "#FFFFFF")
+                
+            case "gradient":
+                LinearGradient(
+                    colors: [
+                        Color(hex: background.gradientStart ?? "#FFFFFF"),
+                        Color(hex: background.gradientEnd ?? "#000000")
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                
+            default:
+                Color(.systemBackground)
+            }
+        }
+        .ignoresSafeArea()
+    }
+}`}</code>
+                  </pre>
                 </div>
               </div>
 
