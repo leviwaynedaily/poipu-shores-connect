@@ -140,7 +140,7 @@ serve(async (req) => {
       `;
 
       try {
-        await resend.emails.send({
+        const emailResponse = await resend.emails.send({
           from: 'Poipu Shores <noreply@poipu-shores.com>',
           to: targetUser.user.email!,
           replyTo: "support@poipu-shores.com",
@@ -150,6 +150,23 @@ serve(async (req) => {
           subject: 'Your Password Has Been Reset - Poipu Shores',
           html: emailHtml,
         });
+        
+        // Log the email for delivery tracking
+        try {
+          await supabaseClient
+            .from("email_logs")
+            .insert({
+              from_email: "noreply@poipu-shores.com",
+              to_email: targetUser.user.email!,
+              subject: 'Your Password Has Been Reset - Poipu Shores',
+              status: "sent",
+              sent_by: user.id,
+              resend_email_id: emailResponse.data?.id,
+              delivery_status: "sent",
+            });
+        } catch (logError) {
+          console.error('Failed to log email:', logError);
+        }
       } catch (emailError) {
         console.error('Email error:', emailError);
       }
