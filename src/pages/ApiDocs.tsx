@@ -324,7 +324,7 @@ const ApiDocs = () => {
           ],
           mobileConfig: {
             endpoint: "/rest/v1/app_settings?setting_key=eq.mobile_pages_config",
-            description: "Complete mobile configuration including page order, visibility, tab names, titles, subtitles, icons, header logos, and floating action button",
+            description: "Complete mobile configuration including page order, visibility, tab names, titles, subtitles, routes, icons, header logos, and floating action button",
             tabBarLayout: {
               totalTabs: 5,
               regularTabs: "First 3 visible pages shown in bottom nav",
@@ -334,6 +334,7 @@ const ApiDocs = () => {
             fields: {
               id: "Page identifier (home, chat, photos, documents, more, profile, assistant, members, settings, announcements)",
               tabName: "Short label for tab bar",
+              route: "Web app route (e.g., /dashboard, /chat) - links mobile pages to web pages",
               title: "Page header title",
               subtitle: "Page header subtitle/description",
               iconUrl: "Tab bar icon URL (24-32px for regular tabs)",
@@ -350,6 +351,9 @@ const ApiDocs = () => {
               position: "Center of bottom nav, elevated 24px above bar",
               usage: "Use for primary/most important action (e.g., Ask the Chicken assistant)",
               restriction: "Only ONE page can have isFloating: true at a time"
+            },
+            maintenance: {
+              note: "⚠️ When adding new pages to the app, update this documentation with the new page ID, route, and default settings"
             }
           }
         },
@@ -1495,68 +1499,80 @@ Content-Type: application/json`}
         {
           "id": "home",
           "tabName": "Home",
+          "route": "/dashboard",
           "title": "Dashboard",
           "subtitle": "Welcome to Poipu Shores",
           "iconUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-icon-home.png",
           "headerLogoUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-header-home.png",
           "fallbackIcon": "Home",
           "order": 1,
-          "isVisible": true
+          "isVisible": true,
+          "isFloating": false
         },
         {
           "id": "chat",
           "tabName": "Chat",
+          "route": "/chat",
           "title": "Community Chat",
           "subtitle": "Connect with neighbors",
           "iconUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-icon-chat.png",
           "headerLogoUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-header-chat.png",
           "fallbackIcon": "MessageSquare",
           "order": 2,
-          "isVisible": true
+          "isVisible": true,
+          "isFloating": false
         },
         {
           "id": "photos",
           "tabName": "Photos",
+          "route": "/photos",
           "title": "Photo Gallery",
           "subtitle": "Community photos",
           "iconUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-icon-photos.png",
           "headerLogoUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-header-photos.png",
           "fallbackIcon": "Camera",
           "order": 3,
-          "isVisible": true
+          "isVisible": true,
+          "isFloating": false
         },
         {
           "id": "documents",
           "tabName": "Docs",
+          "route": "/documents",
           "title": "Documents",
           "subtitle": "Important files",
           "iconUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-icon-documents.png",
           "headerLogoUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-header-documents.png",
           "fallbackIcon": "FileText",
           "order": 4,
-          "isVisible": true
+          "isVisible": true,
+          "isFloating": false
         },
         {
           "id": "profile",
           "tabName": "Profile",
+          "route": "/profile",
           "title": "My Profile",
           "subtitle": "Account settings",
           "iconUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-icon-profile.png",
           "headerLogoUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-header-profile.png",
           "fallbackIcon": "User",
           "order": 5,
-          "isVisible": true
+          "isVisible": true,
+          "isFloating": false
         },
         {
           "id": "assistant",
           "tabName": "Ask",
+          "route": "/assistant",
           "title": "Ask the Chicken",
           "subtitle": "AI Assistant",
           "iconUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-icon-assistant.png",
           "headerLogoUrl": "${baseUrl}/storage/v1/object/public/avatars/mobile-header-assistant.png",
           "fallbackIcon": "Bird",
           "order": 6,
-          "isVisible": true
+          "isVisible": true,
+          "isFloating": false
         }
       ]
     }
@@ -1570,13 +1586,23 @@ Content-Type: application/json`}
                     <ul className="text-sm text-muted-foreground space-y-2">
                       <li><strong>1. Filter visible pages:</strong> Show only pages where <code>isVisible === true</code></li>
                       <li><strong>2. Sort by order:</strong> Sort pages by the <code>order</code> field (ascending)</li>
-                      <li><strong>3. Tab bar icons:</strong> Use <code>iconUrl</code> for bottom tab navigation (24-32px recommended)</li>
-                      <li><strong>4. Page header logos:</strong> Use <code>headerLogoUrl</code> for page title bars (120-200px wide)</li>
-                      <li><strong>5. Fallback icons:</strong> Use <code>fallbackIcon</code> if <code>iconUrl</code> or <code>headerLogoUrl</code> is null</li>
-                      <li><strong>6. Tab names:</strong> Use <code>tabName</code> for tab labels</li>
-                      <li><strong>7. Page titles:</strong> Use <code>title</code> in the page header</li>
-                      <li><strong>8. Subtitles:</strong> Use <code>subtitle</code> for secondary header text</li>
+                      <li><strong>3. Routes:</strong> The <code>route</code> field references the web app page (e.g., /dashboard, /chat). Use this for navigation and deep linking.</li>
+                      <li><strong>4. Tab bar icons:</strong> Use <code>iconUrl</code> for bottom tab navigation (24-32px recommended)</li>
+                      <li><strong>5. Floating icons:</strong> For pages with <code>isFloating: true</code>, use <code>floatingIconUrl</code> (48-56px) if available</li>
+                      <li><strong>6. Page header logos:</strong> Use <code>headerLogoUrl</code> for page title bars (120-200px wide)</li>
+                      <li><strong>7. Fallback icons:</strong> Use <code>fallbackIcon</code> if <code>iconUrl</code>, <code>floatingIconUrl</code>, or <code>headerLogoUrl</code> is null</li>
+                      <li><strong>8. Tab names:</strong> Use <code>tabName</code> for tab labels</li>
+                      <li><strong>9. Page titles:</strong> Use <code>title</code> in the page header</li>
+                      <li><strong>10. Subtitles:</strong> Use <code>subtitle</code> for secondary header text</li>
                     </ul>
+                  </div>
+                  
+                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4">
+                    <h4 className="font-semibold mb-2 text-amber-700 dark:text-amber-300">⚠️ Documentation Maintenance</h4>
+                    <p className="text-sm text-muted-foreground">
+                      When adding new pages to the app, this documentation must be updated in <code>/src/pages/ApiDocs.tsx</code>. 
+                      Add the new page to the JSON examples above and ensure the route field references the correct web page path.
+                    </p>
                   </div>
 
                   <div>
@@ -1585,13 +1611,16 @@ Content-Type: application/json`}
                       <code>{`struct MobilePage: Codable {
     let id: String
     let tabName: String
+    let route: String
     let title: String
     let subtitle: String
     let iconUrl: String?
+    let floatingIconUrl: String?
     let headerLogoUrl: String?
     let fallbackIcon: String
     let order: Int
     let isVisible: Bool
+    let isFloating: Bool
 }
 
 struct MobileConfig: Codable {
