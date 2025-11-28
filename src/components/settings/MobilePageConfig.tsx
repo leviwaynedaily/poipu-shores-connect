@@ -8,7 +8,24 @@ import { Switch } from "@/components/ui/switch";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Copy, Home, MessageSquare, Camera, FileText, User, Bird, Users, Settings, ChevronDown } from "lucide-react";
+import { Upload, Copy, Home, MessageSquare, Camera, FileText, User, Bird, Users, Settings, ChevronDown, GripVertical } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { SortableMobilePage } from "./SortableMobilePage";
 
 interface MobilePage {
   id: string;
@@ -363,227 +380,70 @@ export function MobilePageConfig() {
     ));
   };
 
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setPages((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        
+        const newItems = arrayMove(items, oldIndex, newIndex);
+        
+        // Update order numbers based on new positions
+        const updatedItems = newItems.map((item, index) => ({
+          ...item,
+          order: index + 1,
+        }));
+        
+        return updatedItems;
+      });
+    }
+  };
+
+  const sortedPages = [...pages].sort((a, b) => a.order - b.order);
+
   return (
     <div className="space-y-6">
-      <div className="space-y-4">
-        {pages
-          .sort((a, b) => a.order - b.order)
-          .map((page) => {
-            const IconComponent = iconOptions.find(i => i.value === page.fallbackIcon)?.Icon || Home;
-            
-            return (
-              <Collapsible key={page.id} open={openPages[page.id]} onOpenChange={() => togglePage(page.id)}>
-                <Card>
-                  <CollapsibleTrigger className="w-full">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <ChevronDown className={`h-4 w-4 transition-transform ${openPages[page.id] ? 'rotate-180' : ''}`} />
-                          {page.iconUrl ? (
-                            <img 
-                              src={page.iconUrl} 
-                              alt={`${page.id} icon`} 
-                              className="h-5 w-5 object-contain"
-                            />
-                          ) : (
-                            <IconComponent className="h-5 w-5 text-muted-foreground" />
-                          )}
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-normal text-muted-foreground">#{page.order}</span>
-                            <CardTitle className="text-base capitalize">{page.tabName}</CardTitle>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                          <Label className="text-xs">Visible</Label>
-                          <Switch
-                            checked={page.isVisible}
-                            onCheckedChange={(checked) => updatePage(page.id, { isVisible: checked })}
-                          />
-                        </div>
-                      </div>
-                    </CardHeader>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <CardContent className="space-y-4 pt-0">
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                    {/* Tab Bar Icon Section */}
-                    <div className="space-y-3">
-                      <Label className="text-sm font-semibold">Tab Bar Icon</Label>
-                      <CardDescription className="text-xs">Recommended: 24-32px square</CardDescription>
-                      
-                      {page.iconUrl && (
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-center p-4 rounded-md border border-border bg-muted/30">
-                            <img 
-                              src={page.iconUrl} 
-                              alt={`${page.id} icon`} 
-                              className="h-8 w-8 object-contain"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-xs text-muted-foreground">Fixed URL</Label>
-                            <div className="flex gap-2">
-                              <code className="flex-1 text-xs bg-muted px-2 py-1.5 rounded overflow-x-auto block">
-                                https://api.poipu-shores.com/storage/v1/object/public/avatars/mobile-icon-{page.id}.png
-                              </code>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => copyToClipboard(`https://api.poipu-shores.com/storage/v1/object/public/avatars/mobile-icon-${page.id}.png`, `${page.id} icon`)}
-                              >
-                                <Copy className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {!page.iconUrl && (
-                        <div className="flex items-center justify-center p-4 rounded-md border border-border bg-muted/30">
-                          <IconComponent className="h-8 w-8 text-muted-foreground" />
-                        </div>
-                      )}
-
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleIconUpload(page.id, file);
-                        }}
-                        disabled={uploading === `icon-${page.id}`}
-                        className="text-sm"
-                      />
-
-                      <div className="space-y-2">
-                        <Label className="text-xs">Fallback Icon</Label>
-                        <Select
-                          value={page.fallbackIcon}
-                          onValueChange={(value) => updatePage(page.id, { fallbackIcon: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {iconOptions.map((icon) => (
-                              <SelectItem key={icon.value} value={icon.value}>
-                                <div className="flex items-center gap-2">
-                                  <icon.Icon className="h-4 w-4" />
-                                  {icon.label}
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    {/* Page Header Logo Section */}
-                    <div className="space-y-3">
-                      <Label className="text-sm font-semibold">Page Header Logo</Label>
-                      <CardDescription className="text-xs">Recommended: 120-200px wide</CardDescription>
-                      
-                      {page.headerLogoUrl && (
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-center p-4 rounded-md border border-border bg-muted/30">
-                            <img 
-                              src={page.headerLogoUrl} 
-                              alt={`${page.id} header`} 
-                              className="h-16 max-w-full object-contain"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-xs text-muted-foreground">Fixed URL</Label>
-                            <div className="flex gap-2">
-                              <code className="flex-1 text-xs bg-muted px-2 py-1.5 rounded overflow-x-auto block">
-                                https://api.poipu-shores.com/storage/v1/object/public/avatars/mobile-header-{page.id}.png
-                              </code>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => copyToClipboard(`https://api.poipu-shores.com/storage/v1/object/public/avatars/mobile-header-${page.id}.png`, `${page.id} header logo`)}
-                              >
-                                <Copy className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {!page.headerLogoUrl && (
-                        <div className="flex items-center justify-center p-4 rounded-md border border-border bg-muted/30 h-24">
-                          <span className="text-xs text-muted-foreground">No logo uploaded</span>
-                        </div>
-                      )}
-
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleHeaderLogoUpload(page.id, file);
-                        }}
-                        disabled={uploading === `header-${page.id}`}
-                        className="text-sm"
-                      />
-                    </div>
-
-                    {/* Text Fields */}
-                    <div className="space-y-3">
-                      <div className="space-y-2">
-                        <Label className="text-sm">Tab Name</Label>
-                        <Input
-                          value={page.tabName}
-                          onChange={(e) => updatePage(page.id, { tabName: e.target.value })}
-                          placeholder="Short name"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label className="text-sm">Page Title</Label>
-                        <Input
-                          value={page.title}
-                          onChange={(e) => updatePage(page.id, { title: e.target.value })}
-                          placeholder="Page header"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label className="text-sm">Subtitle</Label>
-                        <Input
-                          value={page.subtitle}
-                          onChange={(e) => updatePage(page.id, { subtitle: e.target.value })}
-                          placeholder="Description"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label className="text-sm">Order</Label>
-                        <Select
-                          value={page.order.toString()}
-                          onValueChange={(value) => updatePage(page.id, { order: parseInt(value) })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
-                              <SelectItem key={num} value={num.toString()}>
-                                {num}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </CollapsibleContent>
-            </Card>
-          </Collapsible>
-        );
-          })}
-      </div>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={sortedPages.map(p => p.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="space-y-4">
+            {sortedPages.map((page) => {
+              const IconComponent = iconOptions.find(i => i.value === page.fallbackIcon)?.Icon || Home;
+              
+              return (
+                <SortableMobilePage
+                  key={page.id}
+                  page={page}
+                  isOpen={openPages[page.id] || false}
+                  onToggle={() => togglePage(page.id)}
+                  onUpdate={(updates) => updatePage(page.id, updates)}
+                  onIconUpload={(file) => handleIconUpload(page.id, file)}
+                  onHeaderLogoUpload={(file) => handleHeaderLogoUpload(page.id, file)}
+                  onCopyUrl={copyToClipboard}
+                  uploading={uploading}
+                  IconComponent={IconComponent}
+                  iconOptions={iconOptions}
+                />
+              );
+            })}
+          </div>
+        </SortableContext>
+      </DndContext>
 
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={saving}>
