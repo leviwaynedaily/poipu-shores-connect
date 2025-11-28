@@ -453,12 +453,8 @@ export function MobilePageConfig() {
 
       toast({
         title: "Success",
-        description: "Mobile page configuration saved. Refreshing...",
+        description: "Mobile page configuration saved successfully",
       });
-      
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
     } catch (error: any) {
       toast({
         title: "Save failed",
