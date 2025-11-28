@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
+import { usePageConfig } from "@/hooks/use-page-config";
 
 // Interface for member
 interface Member {
@@ -22,6 +23,7 @@ interface Member {
 }
 
 const Members = () => {
+  const { pageConfig } = usePageConfig();
   const [members, setMembers] = useState<Member[]>([]);
   const [filteredMembers, setFilteredMembers] = useState<Member[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -119,6 +121,7 @@ const Members = () => {
       <PageHeader
         title="Poipu Shores Members"
         description="Connect with your neighbors at Poipu Shores"
+        logoUrl={pageConfig?.headerLogoUrl}
       />
 
       <Card>

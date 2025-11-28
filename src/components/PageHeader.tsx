@@ -5,9 +5,10 @@ interface PageHeaderProps {
   title: string;
   description?: string;
   actions?: ReactNode;
+  logoUrl?: string | null;
 }
 
-export const PageHeader = ({ title, description, actions }: PageHeaderProps) => {
+export const PageHeader = ({ title, description, actions, logoUrl }: PageHeaderProps) => {
   const { isGlassTheme, glassIntensity } = useTheme();
   
   // Calculate opacity based on intensity (matching Card component)
@@ -27,13 +28,22 @@ export const PageHeader = ({ title, description, actions }: PageHeaderProps) => 
       } : undefined}
     >
       <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4">
-        <div className="flex-1 min-w-0">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-card-foreground break-words">{title}</h2>
-          {description && (
-            <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
-              {description}
-            </p>
+        <div className="flex-1 min-w-0 flex items-center gap-3">
+          {logoUrl && (
+            <img 
+              src={logoUrl} 
+              alt={title}
+              className="h-10 w-auto object-contain flex-shrink-0"
+            />
           )}
+          <div className="min-w-0 flex-1">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-card-foreground break-words">{title}</h2>
+            {description && (
+              <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
+                {description}
+              </p>
+            )}
+          </div>
         </div>
         {actions && <div className="flex-shrink-0 w-full sm:w-auto">{actions}</div>}
       </div>

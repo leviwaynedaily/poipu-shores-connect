@@ -18,10 +18,12 @@ import { useBackground } from "@/contexts/BackgroundContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { usePageConfig } from "@/hooks/use-page-config";
 
 export default function AdminSettings() {
   const { isGlassTheme, toggleGlassTheme, glassIntensity, setGlassIntensity, sidebarOpacity, setSidebarOpacity, authPageOpacity, setAuthPageOpacity } = useTheme();
   const { appBackground, setAppBackground, refreshBackgrounds } = useBackground();
+  const { pageConfig } = usePageConfig();
   const [localIntensity, setLocalIntensity] = useState(glassIntensity);
   const [localSidebarOpacity, setLocalSidebarOpacity] = useState(sidebarOpacity);
   const [localAuthPageOpacity, setLocalAuthPageOpacity] = useState(authPageOpacity);
@@ -614,6 +616,7 @@ export default function AdminSettings() {
       <PageHeader
         title="Settings"
         description="Manage app settings, theme, and system configuration"
+        logoUrl={pageConfig?.headerLogoUrl}
       />
 
       <Tabs defaultValue="users" className="w-full">

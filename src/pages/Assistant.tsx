@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { TypingIndicator } from "@/components/TypingIndicator";
 import { useNavigate } from "react-router-dom";
+import { usePageConfig } from "@/hooks/use-page-config";
 import defaultChickenIcon from "@/assets/chicken-assistant.jpeg";
 
 interface Message {
@@ -22,6 +23,7 @@ const Assistant = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { pageConfig } = usePageConfig();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -235,7 +237,7 @@ const Assistant = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
-              src={chickenIcon}
+              src={pageConfig?.headerLogoUrl || chickenIcon}
               alt="Community Assistant"
               className="h-12 w-12 rounded-full object-cover ring-2 ring-primary/20"
             />

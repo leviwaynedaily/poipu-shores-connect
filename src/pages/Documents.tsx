@@ -11,9 +11,11 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import { usePageConfig } from "@/hooks/use-page-config";
 
 export default function Documents() {
   const { isAdmin, isOwner } = useAuth();
+  const { pageConfig } = usePageConfig();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
@@ -68,6 +70,7 @@ export default function Documents() {
       <PageHeader
         title="Poipu Documents"
         description="Navigate folders, manage documents, and ask questions with AI"
+        logoUrl={pageConfig?.headerLogoUrl}
         actions={
           canManage && (
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
