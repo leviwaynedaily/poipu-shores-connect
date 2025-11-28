@@ -67,22 +67,27 @@ Deno.serve(async (req) => {
 
     // Include theme data if requested
     if (includeTheme) {
-      const { data: themeData } = await supabaseClient
+      // Fetch platform-specific theme config
+      const themeConfigKey = platform === 'web' ? 'web_theme_config' : 'mobile_theme_config';
+      
+      const { data: themeConfigData } = await supabaseClient
         .from('app_settings')
-        .select('setting_key, setting_value')
-        .in('setting_key', ['app_background', 'home_background', 'favicon_url']);
+        .select('setting_value')
+        .eq('setting_key', themeConfigKey)
+        .maybeSingle();
 
-      const themeSettings: any = {};
-      themeData?.forEach((setting) => {
-        themeSettings[setting.setting_key] = setting.setting_value;
-      });
+      // Also fetch favicon which is shared across platforms
+      const { data: faviconData } = await supabaseClient
+        .from('app_settings')
+        .select('setting_value')
+        .eq('setting_key', 'favicon_url')
+        .maybeSingle();
 
-      response.theme = {
-        appBackground: themeSettings.app_background || { type: 'default' },
-        homeBackground: themeSettings.home_background || { type: 'default' },
-        faviconUrl: themeSettings.favicon_url || null,
+      // Default theme config if none exists
+      const defaultThemeConfig: any = {
+        appBackground: { type: 'default', url: null, opacity: 100 },
+        homeBackground: { type: 'default', url: null, opacity: 100 },
         colors: {
-          // Light mode colors (HSL format)
           light: {
             background: '0 0% 100%',
             foreground: '265 4% 12.9%',
@@ -102,7 +107,6 @@ Deno.serve(async (req) => {
             input: '256 1.3% 92.9%',
             ring: '257 4% 70.4%',
           },
-          // Dark mode colors (HSL format)
           dark: {
             background: '0 0% 15%',
             foreground: '248 0.3% 98.4%',
@@ -124,12 +128,34 @@ Deno.serve(async (req) => {
           }
         },
         glassEffect: {
-          defaultIntensity: 90,
-          description: 'Users can customize glass intensity per-profile. Default is 90.',
-          css: 'backdrop-filter: blur(10px); background: rgba(255, 255, 255, var(--glass-opacity));',
-          implementation: 'Use SwiftUI .background(.ultraThinMaterial) or .regularMaterial for glass effect'
+          enabled: platform === 'web',
+          defaultIntensity: platform === 'web' ? 90 : 50
         }
       };
+
+      // Mobile-specific defaults
+      if (platform === 'mobile') {
+        defaultThemeConfig.cardRadius = 12;
+        defaultThemeConfig.navBarStyle = 'solid';
+      }
+
+      // Web-specific defaults
+      if (platform === 'web') {
+        defaultThemeConfig.authBackground = { type: 'default', url: null, opacity: 100 };
+      }
+
+      const themeConfig = themeConfigData?.setting_value || defaultThemeConfig;
+
+      response.theme = {
+        ...themeConfig,
+        faviconUrl: faviconData?.setting_value || null,
+      };
+
+      // Add implementation notes for mobile
+      if (platform === 'mobile') {
+        response.theme.glassEffect.description = 'Glass effect using SwiftUI materials';
+        response.theme.glassEffect.implementation = 'Use .background(.ultraThinMaterial) or .regularMaterial';
+      }
     }
 
     return new Response(

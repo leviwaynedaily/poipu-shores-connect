@@ -444,7 +444,8 @@ const ApiDocs = () => {
             }
           },
           glassEffect: {
-            defaultIntensity: 90,
+            enabled: false,
+            defaultIntensity: 50,
             range: { min: 0, max: 100 },
             materials: {
               ultraThin: "70-100 intensity",
@@ -454,11 +455,13 @@ const ApiDocs = () => {
             }
           },
           cardStyling: {
-            cornerRadius: 12,
+            cardRadius: 12,
+            navBarStyle: "solid",
             padding: 16,
             borderWidth: 1,
             shadowRadius: 2
-          }
+          },
+          note: "Mobile theme is managed separately from web theme in Admin Settings → Theme → Mobile Theme"
         }
       },
       swiftSetup: {
@@ -1179,7 +1182,11 @@ border-color: hsl(var(--border));
               
               {/* Theme API Endpoint */}
               <div>
-                <h3 className="font-semibold mb-3 text-lg">Fetching Theme Configuration</h3>
+                <h3 className="font-semibold mb-3 text-lg">Fetching Mobile Theme Configuration</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Mobile theme configuration is independent from web theme. Use the <code>platform=mobile</code> parameter 
+                  to fetch mobile-specific theme settings including card styling and navigation bar options.
+                </p>
                 <div className="bg-muted p-4 rounded-lg space-y-3">
                   <div>
                     <h4 className="font-medium mb-2">Endpoint</h4>
@@ -1203,28 +1210,41 @@ apikey: ${anonKey}`}</code>
       "type": "generated" | "uploaded" | "color" | "gradient" | "default",
       "url": "https://...",
       "opacity": 95,
-      "overlayColor": "#000000",
-      "overlayOpacity": 30,
-      "gradientStart": "#ffffff",
-      "gradientEnd": "#000000",
-      "gradientDirection": "to-bottom"
+      "color": "#0066cc",
+      "gradientStart": "#0066cc",
+      "gradientEnd": "#00ccff",
+      "gradientDirection": "135deg"
     },
     "homeBackground": { /* same structure as appBackground */ },
     "faviconUrl": "https://...",
     "colors": {
-      "light": { /* HSL color values */ },
-      "dark": { /* HSL color values */ }
+      "light": {
+        "background": "0 0% 100%",
+        "foreground": "265 4% 12.9%",
+        "card": "0 0% 100%",
+        "cardForeground": "265 4% 12.9%",
+        "primary": "266 4% 20.8%",
+        "primaryForeground": "248 0.3% 98.4%",
+        /* ... more HSL color values */
+      },
+      "dark": { /* HSL color values for dark mode */ }
     },
     "glassEffect": {
-      "defaultIntensity": 90,
-      "description": "...",
-      "css": "...",
-      "implementation": "..."
-    }
+      "enabled": false,
+      "defaultIntensity": 50,
+      "description": "Glass effect using SwiftUI materials",
+      "implementation": "Use .background(.ultraThinMaterial) or .regularMaterial"
+    },
+    "cardRadius": 12,
+    "navBarStyle": "solid" | "translucent"
   },
   "timestamp": "2024-01-01T00:00:00.000Z"
 }`}</code>
                     </pre>
+                  </div>
+                  <div className="mt-3 p-3 bg-blue-500/10 border-l-2 border-blue-500 rounded">
+                    <p className="text-sm"><strong>Note:</strong> Mobile theme configuration is managed separately in Admin Settings → Theme → Mobile Theme. 
+                    Changes to the web theme do not affect mobile theme and vice versa.</p>
                   </div>
                 </div>
               </div>
