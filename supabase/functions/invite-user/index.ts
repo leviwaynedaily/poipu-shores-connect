@@ -168,8 +168,12 @@ serve(async (req) => {
 
     try {
       await resend.emails.send({
-        from: 'Poipu Shores <onboarding@resend.dev>',
+        from: 'Poipu Shores <noreply@poipu-shores.com>',
         to: email,
+        replyTo: "support@poipu-shores.com",
+        headers: {
+          "X-Entity-Ref-ID": crypto.randomUUID(),
+        },
         subject: 'Welcome to Poipu Shores - Your Login Details',
         html: emailHtml,
       });
