@@ -13,6 +13,7 @@ interface MobilePage {
   id: string;
   tabName: string;
   iconUrl: string | null;
+  headerLogoUrl: string | null;
   fallbackIcon: string;
   title: string;
   subtitle: string;
@@ -25,6 +26,7 @@ const defaultPages: MobilePage[] = [
     id: "home",
     tabName: "Home",
     iconUrl: null,
+    headerLogoUrl: null,
     fallbackIcon: "Home",
     title: "Dashboard",
     subtitle: "Welcome to Poipu Shores",
@@ -35,6 +37,7 @@ const defaultPages: MobilePage[] = [
     id: "chat",
     tabName: "Chat",
     iconUrl: null,
+    headerLogoUrl: null,
     fallbackIcon: "MessageSquare",
     title: "Community Chat",
     subtitle: "Connect with neighbors",
@@ -45,6 +48,7 @@ const defaultPages: MobilePage[] = [
     id: "photos",
     tabName: "Photos",
     iconUrl: null,
+    headerLogoUrl: null,
     fallbackIcon: "Camera",
     title: "Photo Gallery",
     subtitle: "Community photos",
@@ -55,6 +59,7 @@ const defaultPages: MobilePage[] = [
     id: "documents",
     tabName: "Docs",
     iconUrl: null,
+    headerLogoUrl: null,
     fallbackIcon: "FileText",
     title: "Documents",
     subtitle: "Important files",
@@ -65,6 +70,7 @@ const defaultPages: MobilePage[] = [
     id: "profile",
     tabName: "Profile",
     iconUrl: null,
+    headerLogoUrl: null,
     fallbackIcon: "User",
     title: "My Profile",
     subtitle: "Account settings",
@@ -75,6 +81,7 @@ const defaultPages: MobilePage[] = [
     id: "assistant",
     tabName: "Ask",
     iconUrl: null,
+    headerLogoUrl: null,
     fallbackIcon: "Bird",
     title: "Ask the Chicken",
     subtitle: "AI Assistant",
@@ -192,10 +199,57 @@ export function MobilePageConfig() {
 
       toast({
         title: "Success",
-        description: "Icon uploaded successfully",
+        description: "Tab icon uploaded successfully",
       });
     } catch (error: any) {
       console.error('Error uploading icon:', error);
+      toast({
+        title: "Upload failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(null);
+    }
+  };
+
+  const handleHeaderLogoUpload = async (pageId: string, file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploading(`${pageId}-header`);
+    try {
+      const pngBlob = await convertToPng(file);
+      const fileName = `mobile-header-${pageId}.png`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, pngBlob, {
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      setPages(prev => prev.map(p => 
+        p.id === pageId ? { ...p, headerLogoUrl: publicUrl } : p
+      ));
+
+      toast({
+        title: "Success",
+        description: "Page header logo uploaded successfully",
+      });
+    } catch (error: any) {
+      console.error('Error uploading header logo:', error);
       toast({
         title: "Upload failed",
         description: error.message,
@@ -270,41 +324,44 @@ export function MobilePageConfig() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Icon Section */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    {/* Tab Bar Icon Section */}
                     <div className="space-y-3">
-                      <Label className="text-sm">Tab Bar Icon</Label>
+                      <Label className="text-sm font-semibold">Tab Bar Icon (Small)</Label>
+                      <p className="text-xs text-muted-foreground">24-32px, shown in tab bar</p>
+                      
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground">Fixed URL - Never Changes</Label>
+                        <div className="flex gap-2">
+                          <code className="flex-1 text-xs bg-muted px-2 py-1.5 rounded overflow-x-auto block">
+                            https://api.poipu-shores.com/storage/v1/object/public/avatars/mobile-icon-{page.id}.png
+                          </code>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => copyToClipboard(
+                              `https://api.poipu-shores.com/storage/v1/object/public/avatars/mobile-icon-${page.id}.png`,
+                              `${page.id} tab icon URL`
+                            )}
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
                       
                       {page.iconUrl && (
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-center p-4 rounded-md border border-border bg-muted/30">
-                            <img 
-                              src={page.iconUrl} 
-                              alt={`${page.id} icon`} 
-                              className="h-12 w-12 object-contain"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-xs text-muted-foreground">Fixed URL</Label>
-                            <div className="flex gap-2">
-                              <code className="flex-1 text-xs bg-muted px-2 py-1.5 rounded overflow-x-auto block">
-                                {page.iconUrl}
-                              </code>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => copyToClipboard(page.iconUrl!, `${page.id} icon`)}
-                              >
-                                <Copy className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </div>
+                        <div className="flex items-center justify-center p-4 rounded-md border border-border bg-muted/30">
+                          <img 
+                            src={page.iconUrl} 
+                            alt={`${page.id} tab icon`} 
+                            className="h-8 w-8 object-contain"
+                          />
                         </div>
                       )}
                       
                       {!page.iconUrl && (
                         <div className="flex items-center justify-center p-4 rounded-md border border-border bg-muted/30">
-                          <IconComponent className="h-12 w-12 text-muted-foreground" />
+                          <IconComponent className="h-8 w-8 text-muted-foreground" />
                         </div>
                       )}
 
@@ -340,6 +397,58 @@ export function MobilePageConfig() {
                           </SelectContent>
                         </Select>
                       </div>
+                    </div>
+
+                    {/* Page Header Logo Section */}
+                    <div className="space-y-3">
+                      <Label className="text-sm font-semibold">Page Header Logo (Large)</Label>
+                      <p className="text-xs text-muted-foreground">120-200px wide, shown in title bar</p>
+                      
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground">Fixed URL - Never Changes</Label>
+                        <div className="flex gap-2">
+                          <code className="flex-1 text-xs bg-muted px-2 py-1.5 rounded overflow-x-auto block">
+                            https://api.poipu-shores.com/storage/v1/object/public/avatars/mobile-header-{page.id}.png
+                          </code>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => copyToClipboard(
+                              `https://api.poipu-shores.com/storage/v1/object/public/avatars/mobile-header-${page.id}.png`,
+                              `${page.id} header logo URL`
+                            )}
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      {page.headerLogoUrl && (
+                        <div className="flex items-center justify-center p-4 rounded-md border border-border bg-muted/30">
+                          <img 
+                            src={page.headerLogoUrl} 
+                            alt={`${page.id} header logo`} 
+                            className="h-16 object-contain"
+                          />
+                        </div>
+                      )}
+                      
+                      {!page.headerLogoUrl && (
+                        <div className="flex items-center justify-center p-4 rounded-md border border-border bg-muted/30">
+                          <div className="text-xs text-muted-foreground">No logo uploaded</div>
+                        </div>
+                      )}
+
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleHeaderLogoUpload(page.id, file);
+                        }}
+                        disabled={uploading === `${page.id}-header`}
+                        className="text-sm"
+                      />
                     </div>
 
                     {/* Text Fields */}
