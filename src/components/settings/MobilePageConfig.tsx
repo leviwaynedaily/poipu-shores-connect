@@ -30,6 +30,7 @@ import { SortableMobilePage } from "./SortableMobilePage";
 interface MobilePage {
   id: string;
   tabName: string;
+  route: string;
   iconUrl: string | null;
   floatingIconUrl: string | null;
   headerLogoUrl: string | null;
@@ -45,6 +46,7 @@ const defaultPages: MobilePage[] = [
   {
     id: "home",
     tabName: "Home",
+    route: "/dashboard",
     iconUrl: null,
     floatingIconUrl: null,
     headerLogoUrl: null,
@@ -58,6 +60,7 @@ const defaultPages: MobilePage[] = [
   {
     id: "chat",
     tabName: "Chat",
+    route: "/chat",
     iconUrl: null,
     floatingIconUrl: null,
     headerLogoUrl: null,
@@ -71,6 +74,7 @@ const defaultPages: MobilePage[] = [
   {
     id: "photos",
     tabName: "Photos",
+    route: "/photos",
     iconUrl: null,
     floatingIconUrl: null,
     headerLogoUrl: null,
@@ -84,6 +88,7 @@ const defaultPages: MobilePage[] = [
   {
     id: "documents",
     tabName: "Docs",
+    route: "/documents",
     iconUrl: null,
     floatingIconUrl: null,
     headerLogoUrl: null,
@@ -97,6 +102,7 @@ const defaultPages: MobilePage[] = [
   {
     id: "more",
     tabName: "More",
+    route: "#",
     iconUrl: null,
     floatingIconUrl: null,
     headerLogoUrl: null,
@@ -110,6 +116,7 @@ const defaultPages: MobilePage[] = [
   {
     id: "profile",
     tabName: "Profile",
+    route: "/profile",
     iconUrl: null,
     floatingIconUrl: null,
     headerLogoUrl: null,
@@ -123,6 +130,7 @@ const defaultPages: MobilePage[] = [
   {
     id: "assistant",
     tabName: "Ask",
+    route: "/assistant",
     iconUrl: null,
     floatingIconUrl: null,
     headerLogoUrl: null,
@@ -136,6 +144,7 @@ const defaultPages: MobilePage[] = [
   {
     id: "members",
     tabName: "Members",
+    route: "/members",
     iconUrl: null,
     floatingIconUrl: null,
     headerLogoUrl: null,
@@ -149,6 +158,7 @@ const defaultPages: MobilePage[] = [
   {
     id: "settings",
     tabName: "Settings",
+    route: "/settings",
     iconUrl: null,
     floatingIconUrl: null,
     headerLogoUrl: null,
@@ -162,6 +172,7 @@ const defaultPages: MobilePage[] = [
   {
     id: "announcements",
     tabName: "News",
+    route: "/announcements",
     iconUrl: null,
     floatingIconUrl: null,
     headerLogoUrl: null,
@@ -215,12 +226,21 @@ export function MobilePageConfig() {
         // Use saved pages directly from database
         const savedPages = config.pages as MobilePage[];
         
+        // Backward compatibility: Add routes to saved pages that don't have them
+        const pagesWithRoutes = savedPages.map(savedPage => {
+          if (!savedPage.route) {
+            const defaultPage = defaultPages.find(dp => dp.id === savedPage.id);
+            return { ...savedPage, route: defaultPage?.route || "/" };
+          }
+          return savedPage;
+        });
+        
         // Add any new default pages that don't exist in saved config
-        const savedPageIds = savedPages.map(p => p.id);
+        const savedPageIds = pagesWithRoutes.map(p => p.id);
         const newPages = defaultPages.filter(dp => !savedPageIds.includes(dp.id));
         
         // Combine saved pages with any new pages
-        const allPages = [...savedPages, ...newPages];
+        const allPages = [...pagesWithRoutes, ...newPages];
         setPages(allPages);
       }
     }
