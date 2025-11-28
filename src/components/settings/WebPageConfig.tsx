@@ -12,6 +12,7 @@ import { Home, Megaphone, MessageSquare, FileText, Camera, Users, Copy } from "l
 interface WebPage {
   id: string;
   title: string;
+  subtitle?: string;
   route: string;
   icon: string;
   iconUrl: string | null;
@@ -455,6 +456,15 @@ export function WebPageConfig() {
                           value={page.title}
                           onChange={(e) => updatePage(page.id, { title: e.target.value })}
                           placeholder="Page title"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-sm">Page Subtitle</Label>
+                        <Input
+                          value={page.subtitle || ""}
+                          onChange={(e) => updatePage(page.id, { subtitle: e.target.value })}
+                          placeholder="Page subtitle (optional)"
                         />
                       </div>
 
