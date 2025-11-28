@@ -13,6 +13,7 @@ import { LucideIcon } from "lucide-react";
 interface MobilePage {
   id: string;
   tabName: string;
+  route: string;
   iconUrl: string | null;
   floatingIconUrl: string | null;
   headerLogoUrl: string | null;
@@ -124,6 +125,17 @@ export function SortableMobilePage({
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label>Route</Label>
+                  <Input
+                    value={page.route}
+                    onChange={(e) => onUpdate({ route: e.target.value })}
+                    placeholder="/page-route"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
                   <Label>Fallback Icon</Label>
                   <Select
                     value={page.fallbackIcon}
@@ -143,6 +155,14 @@ export function SortableMobilePage({
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Page ID</Label>
+                  <Input
+                    value={page.id}
+                    readOnly
+                    className="bg-muted"
+                  />
                 </div>
               </div>
 

@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 interface MobilePage {
   id: string;
   tabName: string;
+  route: string;
   iconUrl: string | null;
   floatingIconUrl: string | null;
   headerLogoUrl: string | null;
@@ -121,7 +122,7 @@ export function BottomNav() {
         {bottomNavPages.map((page) => (
           <NavLink
             key={page.id}
-            to={routeMap[page.id] || "/"}
+            to={page.route || "/"}
             className="flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground transition-colors"
             activeClassName="text-primary font-medium"
           >
@@ -133,7 +134,7 @@ export function BottomNav() {
         {/* Floating Action Button - centered and elevated */}
         {floatingPage && (
           <NavLink
-            to={routeMap[floatingPage.id] || "/"}
+            to={floatingPage.route || "/"}
             className="absolute left-1/2 -translate-x-1/2 -top-6 flex flex-col items-center justify-center gap-1 bg-primary text-primary-foreground rounded-full w-16 h-16 shadow-lg hover:shadow-xl transition-all hover:scale-105"
             activeClassName="ring-2 ring-primary ring-offset-2"
           >
@@ -161,7 +162,7 @@ export function BottomNav() {
               {morePages.map((page) => (
                 <NavLink
                   key={page.id}
-                  to={routeMap[page.id] || "/"}
+                  to={page.route || "/"}
                   onClick={() => setMoreOpen(false)}
                   className="flex flex-col items-center justify-center gap-2 p-4 rounded-lg border bg-card text-card-foreground hover:bg-accent transition-colors"
                 >
