@@ -36,6 +36,7 @@ const iconMap: Record<string, any> = {
   Users,
   Settings,
   Megaphone,
+  MoreHorizontal,
 };
 
 const routeMap: Record<string, string> = {
