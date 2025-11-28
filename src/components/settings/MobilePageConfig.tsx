@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { StickyActionBar } from "@/components/ui/sticky-action-bar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -205,7 +206,10 @@ export function MobilePageConfig() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
   const [openPages, setOpenPages] = useState<Record<string, boolean>>({});
+  const initialConfig = useRef<MobilePage[]>([]);
   const { toast } = useToast();
+
+  const hasChanges = JSON.stringify(pages) !== JSON.stringify(initialConfig.current);
 
   const togglePage = (pageId: string) => {
     setOpenPages(prev => ({ ...prev, [pageId]: !prev[pageId] }));
@@ -246,17 +250,21 @@ export function MobilePageConfig() {
           // Combine saved pages with any new pages
           const allPages = [...pagesWithRoutes, ...newPages];
           setPages(allPages);
+          initialConfig.current = allPages;
         } else {
           // No saved config, use defaults
           setPages(defaultPages);
+          initialConfig.current = defaultPages;
         }
       } else {
         // No saved config, use defaults
         setPages(defaultPages);
+        initialConfig.current = defaultPages;
       }
     } catch (error) {
       console.error('Error fetching config:', error);
       setPages(defaultPages);
+      initialConfig.current = defaultPages;
     } finally {
       setLoading(false);
     }
@@ -513,8 +521,8 @@ export function MobilePageConfig() {
         description: "Mobile page configuration saved successfully",
       });
       
-      // Refetch to show the saved data
-      await fetchConfig();
+      // Update initial config to match saved state
+      initialConfig.current = pages;
     } catch (error: any) {
       toast({
         title: "Save failed",
@@ -542,6 +550,14 @@ export function MobilePageConfig() {
       }
       return p.id === pageId ? { ...p, ...updates } : p;
     }));
+  };
+
+  const handleDiscard = () => {
+    setPages(initialConfig.current);
+    toast({
+      title: "Changes discarded",
+      description: "All changes have been reverted",
+    });
   };
 
   const sensors = useSensors(
@@ -624,11 +640,12 @@ export function MobilePageConfig() {
         </SortableContext>
       </DndContext>
 
-      <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={saving}>
-          {saving ? "Saving..." : "Save Configuration"}
-        </Button>
-      </div>
+      <StickyActionBar
+        hasChanges={hasChanges}
+        onSave={handleSave}
+        onDiscard={handleDiscard}
+        saving={saving}
+      />
     </div>
   );
 }
