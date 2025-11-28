@@ -292,8 +292,11 @@ export function MobilePageConfig() {
         .from('avatars')
         .getPublicUrl(fileName);
 
+      // Add cache-busting timestamp
+      const iconUrl = `${publicUrl}?t=${Date.now()}`;
+
       const updatedPages = pages.map(p => 
-        p.id === pageId ? { ...p, iconUrl: publicUrl } : p
+        p.id === pageId ? { ...p, iconUrl } : p
       );
       setPages(updatedPages);
 
@@ -311,6 +314,9 @@ export function MobilePageConfig() {
         title: "Success",
         description: "Icon uploaded and saved successfully",
       });
+      
+      // Refetch to ensure UI is in sync
+      await fetchConfig();
     } catch (error: any) {
       console.error('Error uploading icon:', error);
       toast({
@@ -350,8 +356,11 @@ export function MobilePageConfig() {
         .from('avatars')
         .getPublicUrl(fileName);
 
+      // Add cache-busting timestamp
+      const floatingIconUrl = `${publicUrl}?t=${Date.now()}`;
+
       const updatedPages = pages.map(p => 
-        p.id === pageId ? { ...p, floatingIconUrl: publicUrl } : p
+        p.id === pageId ? { ...p, floatingIconUrl } : p
       );
       setPages(updatedPages);
 
@@ -369,6 +378,9 @@ export function MobilePageConfig() {
         title: "Success",
         description: "Floating icon uploaded and saved successfully",
       });
+      
+      // Refetch to ensure UI is in sync
+      await fetchConfig();
     } catch (error: any) {
       console.error('Error uploading floating icon:', error);
       toast({
@@ -408,8 +420,11 @@ export function MobilePageConfig() {
         .from('avatars')
         .getPublicUrl(fileName);
 
+      // Add cache-busting timestamp
+      const headerLogoUrl = `${publicUrl}?t=${Date.now()}`;
+
       const updatedPages = pages.map(p => 
-        p.id === pageId ? { ...p, headerLogoUrl: publicUrl } : p
+        p.id === pageId ? { ...p, headerLogoUrl } : p
       );
       setPages(updatedPages);
 
@@ -427,6 +442,9 @@ export function MobilePageConfig() {
         title: "Success",
         description: "Header logo uploaded and saved successfully",
       });
+      
+      // Refetch to ensure UI is in sync
+      await fetchConfig();
     } catch (error: any) {
       console.error('Error uploading header logo:', error);
       toast({
