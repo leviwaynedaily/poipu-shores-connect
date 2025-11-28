@@ -327,6 +327,13 @@ const ApiDocs = () => {
             endpoint: "/rest/v1/app_settings?setting_key=eq.mobile_pages_config",
             themeEndpoint: "/functions/v1/get-page-config?platform=mobile&include=theme",
             description: "Complete mobile configuration including page order, visibility, tab names, titles, subtitles, routes, icons, header logos, floating action button, and theme settings",
+            stableBackgroundUrls: {
+              description: "Uploaded backgrounds use fixed paths for reliable caching. URLs never change when new images are uploaded.",
+              mobileAppBackground: `${baseUrl}/storage/v1/object/public/avatars/mobile-app-background.png`,
+              mobileLoginBackground: `${baseUrl}/storage/v1/object/public/avatars/mobile-login-background.png`,
+              webAppBackground: `${baseUrl}/storage/v1/object/public/avatars/web-app-background.png`,
+              note: "When admins upload new backgrounds in Settings > Theme, the URL stays the same but the file content changes. Perfect for mobile app caching!"
+            },
             tabBarLayout: {
               totalTabs: 5,
               regularTabs: "First 3 visible pages shown in bottom nav",
@@ -1292,6 +1299,16 @@ struct ContentView: View {
                   <div className="border-l-2 border-blue-500 pl-4">
                     <h4 className="font-medium">Generated/Uploaded Image Background</h4>
                     <p className="text-sm text-muted-foreground mb-2">type: "generated" or "uploaded"</p>
+                    <div className="mb-3 p-3 bg-green-500/10 border border-green-500/20 rounded">
+                      <p className="text-sm font-medium mb-2">✨ Stable Background URLs (Never Change)</p>
+                      <p className="text-xs text-muted-foreground mb-2">All uploaded backgrounds use fixed paths for reliable caching:</p>
+                      <ul className="text-xs space-y-1 list-disc list-inside">
+                        <li><strong>Mobile App Background:</strong> <code className="bg-background px-1">/storage/v1/object/public/avatars/mobile-app-background.png</code></li>
+                        <li><strong>Mobile Login Background:</strong> <code className="bg-background px-1">/storage/v1/object/public/avatars/mobile-login-background.png</code></li>
+                        <li><strong>Web App Background:</strong> <code className="bg-background px-1">/storage/v1/object/public/avatars/web-app-background.png</code></li>
+                      </ul>
+                      <p className="text-xs text-muted-foreground mt-2">💡 When admins upload new images, the URL stays the same—only the file content changes. Perfect for caching!</p>
+                    </div>
                     <pre className="bg-muted p-3 rounded-lg overflow-x-auto text-xs">
                       <code>{`// Display image with opacity
 AsyncImage(url: URL(string: background.url)) { image in
