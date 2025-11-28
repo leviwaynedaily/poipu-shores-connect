@@ -230,8 +230,49 @@ const Dashboard = () => {
         </Card>
       </Link>
 
-      {/* Other Announcements */}
+      {/* Live Camera & Weather */}
       <div className="grid gap-3 grid-cols-1 lg:grid-cols-2 mt-3">
+        <LiveCameraEmbed compact={isMobile} />
+        <WeatherAndBeachConditions compact={isMobile} />
+      </div>
+
+      {/* Community Photos */}
+      {isMobile ? (
+        <Card className="mt-3">
+          <CardHeader className="p-4 sm:p-6">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">Community Photos</CardTitle>
+              <Link to="/photos" className="text-sm text-primary hover:underline font-medium">
+                View All →
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-6 pt-0">
+            <PhotoCarousel compact={isMobile} />
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="mt-3">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0 p-4 sm:p-6">
+            <div>
+              <CardTitle className="text-xl sm:text-2xl">Community Photos</CardTitle>
+              <CardDescription className="text-sm sm:text-base md:text-lg">Recent photos from Poipu Shores</CardDescription>
+            </div>
+            <Link to="/photos">
+              <button className="text-sm text-primary hover:underline font-medium whitespace-nowrap">
+                View All Photos →
+              </button>
+            </Link>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-6">
+            <PhotoCarousel compact={false} />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Emergency Contacts & Other Announcements */}
+      <div className="grid gap-3 grid-cols-1 lg:grid-cols-2 mt-3">
+        <EmergencyContacts compact={isMobile} />
         {isMobile ? (
           <Card>
             <CardHeader className="p-4 sm:p-6">
@@ -286,47 +327,6 @@ const Dashboard = () => {
             </Card>
           </Link>
         )}
-        <WeatherAndBeachConditions compact={isMobile} />
-      </div>
-
-      {/* Community Photos */}
-      {isMobile ? (
-        <Card className="mt-3">
-          <CardHeader className="p-4 sm:p-6">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Community Photos</CardTitle>
-              <Link to="/photos" className="text-sm text-primary hover:underline font-medium">
-                View All →
-              </Link>
-            </div>
-          </CardHeader>
-          <CardContent className="p-4 sm:p-6 pt-0">
-            <PhotoCarousel compact={isMobile} />
-          </CardContent>
-        </Card>
-      ) : (
-        <Card className="mt-3">
-          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0 p-4 sm:p-6">
-            <div>
-              <CardTitle className="text-xl sm:text-2xl">Community Photos</CardTitle>
-              <CardDescription className="text-sm sm:text-base md:text-lg">Recent photos from Poipu Shores</CardDescription>
-            </div>
-            <Link to="/photos">
-              <button className="text-sm text-primary hover:underline font-medium whitespace-nowrap">
-                View All Photos →
-              </button>
-            </Link>
-          </CardHeader>
-          <CardContent className="p-4 sm:p-6">
-            <PhotoCarousel compact={false} />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Emergency Contacts & Live Camera */}
-      <div className="grid gap-3 grid-cols-1 lg:grid-cols-2 mt-3">
-        <EmergencyContacts compact={isMobile} />
-        <LiveCameraEmbed compact={isMobile} />
       </div>
       </div>
     </>
