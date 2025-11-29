@@ -239,7 +239,7 @@ export function MobileDisplaySettings() {
                 </SelectContent>
               </Select>
 
-              {config.navBarStyle === 'translucent' ? (
+              {config.navBarStyle === 'translucent' && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label>Opacity</Label>
@@ -259,42 +259,66 @@ export function MobileDisplaySettings() {
                     step={5}
                   />
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  <Label>Background Color</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      type="color"
-                      value={localNavBarColor}
-                      onChange={async (e) => {
+              )}
+
+              {config.navBarStyle === 'solid' && (
+                <>
+                  <div className="space-y-2">
+                    <Label>Background Color</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="color"
+                        value={localNavBarColor}
+                        onChange={async (e) => {
+                          const updatedConfig = {
+                            ...config,
+                            navBarColor: e.target.value,
+                          };
+                          setLocalNavBarColor(e.target.value);
+                          await saveConfig(updatedConfig);
+                        }}
+                        className="w-16 h-10 p-1 cursor-pointer"
+                      />
+                      <Input
+                        type="text"
+                        value={localNavBarColor}
+                        onChange={(e) => {
+                          setLocalNavBarColor(e.target.value);
+                        }}
+                        onBlur={async (e) => {
+                          const value = e.target.value.trim();
+                          if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
+                            await saveConfig({ ...config, navBarColor: value });
+                          } else {
+                            setLocalNavBarColor(config.navBarColor);
+                          }
+                        }}
+                        placeholder="#ffffff"
+                        className="flex-1 font-mono"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Opacity</Label>
+                      <span className="text-sm text-muted-foreground">{config.navBarOpacity}%</span>
+                    </div>
+                    <Slider
+                      value={[config.navBarOpacity]}
+                      onValueChange={async ([value]) => {
                         const updatedConfig = {
                           ...config,
-                          navBarColor: e.target.value,
+                          navBarOpacity: value,
                         };
-                        setLocalNavBarColor(e.target.value);
                         await saveConfig(updatedConfig);
                       }}
-                      className="w-16 h-10 p-1 cursor-pointer"
-                    />
-                    <Input
-                      type="text"
-                      value={localNavBarColor}
-                      onChange={(e) => {
-                        setLocalNavBarColor(e.target.value);
-                      }}
-                      onBlur={async (e) => {
-                        const value = e.target.value.trim();
-                        if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
-                          await saveConfig({ ...config, navBarColor: value });
-                        } else {
-                          setLocalNavBarColor(config.navBarColor);
-                        }
-                      }}
-                      placeholder="#ffffff"
-                      className="flex-1 font-mono"
+                      min={0}
+                      max={100}
+                      step={5}
                     />
                   </div>
-                </div>
+                </>
               )}
             </CardContent>
           </Card>
@@ -324,7 +348,7 @@ export function MobileDisplaySettings() {
                 </SelectContent>
               </Select>
 
-              {config.headerStyle === 'translucent' ? (
+              {config.headerStyle === 'translucent' && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label>Opacity</Label>
@@ -344,42 +368,66 @@ export function MobileDisplaySettings() {
                     step={5}
                   />
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  <Label>Background Color</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      type="color"
-                      value={localHeaderColor}
-                      onChange={async (e) => {
+              )}
+
+              {config.headerStyle === 'solid' && (
+                <>
+                  <div className="space-y-2">
+                    <Label>Background Color</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="color"
+                        value={localHeaderColor}
+                        onChange={async (e) => {
+                          const updatedConfig = {
+                            ...config,
+                            headerColor: e.target.value,
+                          };
+                          setLocalHeaderColor(e.target.value);
+                          await saveConfig(updatedConfig);
+                        }}
+                        className="w-16 h-10 p-1 cursor-pointer"
+                      />
+                      <Input
+                        type="text"
+                        value={localHeaderColor}
+                        onChange={(e) => {
+                          setLocalHeaderColor(e.target.value);
+                        }}
+                        onBlur={async (e) => {
+                          const value = e.target.value.trim();
+                          if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
+                            await saveConfig({ ...config, headerColor: value });
+                          } else {
+                            setLocalHeaderColor(config.headerColor);
+                          }
+                        }}
+                        placeholder="#ffffff"
+                        className="flex-1 font-mono"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Opacity</Label>
+                      <span className="text-sm text-muted-foreground">{config.headerOpacity}%</span>
+                    </div>
+                    <Slider
+                      value={[config.headerOpacity]}
+                      onValueChange={async ([value]) => {
                         const updatedConfig = {
                           ...config,
-                          headerColor: e.target.value,
+                          headerOpacity: value,
                         };
-                        setLocalHeaderColor(e.target.value);
                         await saveConfig(updatedConfig);
                       }}
-                      className="w-16 h-10 p-1 cursor-pointer"
-                    />
-                    <Input
-                      type="text"
-                      value={localHeaderColor}
-                      onChange={(e) => {
-                        setLocalHeaderColor(e.target.value);
-                      }}
-                      onBlur={async (e) => {
-                        const value = e.target.value.trim();
-                        if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
-                          await saveConfig({ ...config, headerColor: value });
-                        } else {
-                          setLocalHeaderColor(config.headerColor);
-                        }
-                      }}
-                      placeholder="#ffffff"
-                      className="flex-1 font-mono"
+                      min={0}
+                      max={100}
+                      step={5}
                     />
                   </div>
-                </div>
+                </>
               )}
             </CardContent>
           </Card>
