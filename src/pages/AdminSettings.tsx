@@ -623,7 +623,7 @@ export default function AdminSettings() {
       />
 
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="w-full h-auto flex-wrap justify-start gap-1 p-1 md:grid md:grid-cols-8">
+        <TabsList className="w-full h-auto flex-wrap justify-start gap-1 p-1 md:grid md:grid-cols-7">
           <TabsTrigger value="users" className="flex-shrink-0">
             <Users className="mr-2 h-4 w-4" />
             <span className="hidden sm:inline">Users</span>
@@ -652,10 +652,6 @@ export default function AdminSettings() {
             <Smartphone className="mr-2 h-4 w-4" />
             <span className="hidden sm:inline">Mobile</span>
           </TabsTrigger>
-          <TabsTrigger value="theme" className="flex-shrink-0">
-            <Palette className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Theme</span>
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="space-y-4">
@@ -679,28 +675,24 @@ export default function AdminSettings() {
         </TabsContent>
 
         <TabsContent value="web" className="space-y-4">
-          <WebPageConfig />
-        </TabsContent>
-
-        <TabsContent value="mobile" className="space-y-4">
-          <MobilePageConfig />
-        </TabsContent>
-
-        <TabsContent value="theme" className="space-y-4">
-          <Tabs defaultValue="web" className="w-full">
-            <TabsList className="w-full h-auto flex-wrap justify-start gap-1 p-1 md:grid md:grid-cols-2">
-              <TabsTrigger value="web" className="flex-1 min-w-[120px]">Web Theme</TabsTrigger>
-              <TabsTrigger value="mobile" className="flex-1 min-w-[120px]">Mobile Theme</TabsTrigger>
+          <Card>
+            <CardHeader>
+              <CardTitle>Web Configuration</CardTitle>
+              <CardDescription>Configure web pages, theme, and appearance</CardDescription>
+            </CardHeader>
+          </Card>
+          
+          <Tabs defaultValue="pages" className="w-full">
+            <TabsList className="w-full h-auto flex-wrap justify-start gap-1 p-1 md:grid md:grid-cols-4">
+              <TabsTrigger value="pages" className="flex-1 min-w-[100px]">Pages</TabsTrigger>
+              <TabsTrigger value="display" className="flex-1 min-w-[100px]">Display</TabsTrigger>
+              <TabsTrigger value="background" className="flex-1 min-w-[100px]">Background</TabsTrigger>
+              <TabsTrigger value="advanced" className="flex-1 min-w-[100px]">Advanced</TabsTrigger>
             </TabsList>
-
-            <TabsContent value="web" className="space-y-4 pt-4">
-              <Tabs defaultValue="display" className="w-full">
-                <TabsList className="w-full h-auto flex-wrap justify-start gap-1 p-1 md:grid md:grid-cols-3">
-                  <TabsTrigger value="display" className="flex-1 min-w-[100px]">Display</TabsTrigger>
-                  <TabsTrigger value="background" className="flex-1 min-w-[100px]">Background</TabsTrigger>
-                  <TabsTrigger value="advanced" className="flex-1 min-w-[100px]">Advanced</TabsTrigger>
-                </TabsList>
-
+            
+            <TabsContent value="pages" className="space-y-4 pt-4">
+              <WebPageConfig />
+            </TabsContent>
             <TabsContent value="display" className="space-y-4 pt-4">
               {/* Theme Mode Toggle */}
               <Card>
@@ -1094,12 +1086,50 @@ export default function AdminSettings() {
           </Tabs>
         </TabsContent>
 
-        <TabsContent value="mobile" className="space-y-4 pt-4">
-          <MobileThemeConfig />
+        <TabsContent value="mobile" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Mobile Configuration</CardTitle>
+              <CardDescription>Configure mobile pages, theme, and appearance</CardDescription>
+            </CardHeader>
+          </Card>
+          
+          <Tabs defaultValue="pages" className="w-full">
+            <TabsList className="w-full h-auto flex-wrap justify-start gap-1 p-1 md:grid md:grid-cols-4">
+              <TabsTrigger value="pages" className="flex-1 min-w-[100px]">Pages</TabsTrigger>
+              <TabsTrigger value="display" className="flex-1 min-w-[100px]">Display</TabsTrigger>
+              <TabsTrigger value="background" className="flex-1 min-w-[100px]">Background</TabsTrigger>
+              <TabsTrigger value="advanced" className="flex-1 min-w-[100px]">Advanced</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="pages" className="space-y-4 pt-4">
+              <MobilePageConfig />
+            </TabsContent>
+            
+            <TabsContent value="display" className="space-y-4 pt-4">
+              <MobileThemeConfig />
+            </TabsContent>
+            
+            <TabsContent value="background" className="space-y-4 pt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Mobile Backgrounds</CardTitle>
+                  <CardDescription>Configure mobile app and login page backgrounds in the Display tab</CardDescription>
+                </CardHeader>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="advanced" className="space-y-4 pt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Advanced Mobile Settings</CardTitle>
+                  <CardDescription>Primary color customization available in the Display tab</CardDescription>
+                </CardHeader>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </TabsContent>
       </Tabs>
-    </TabsContent>
-  </Tabs>
-</div>
+    </div>
   );
 }
