@@ -132,14 +132,14 @@ export function WebcamManagement() {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <CardTitle>Webcam Management</CardTitle>
             <CardDescription>Manage live camera feeds displayed on the dashboard</CardDescription>
           </div>
           <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="w-full sm:w-auto">
                 <Plus className="mr-2 h-4 w-4" />
                 Add Webcam
               </Button>
@@ -210,9 +210,10 @@ export function WebcamManagement() {
         {loading ? (
           <p className="text-sm text-muted-foreground">Loading...</p>
         ) : webcams.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No webcams configured yet</p>
+          <p className="text-sm text-muted-foreground text-center py-4">No webcams configured yet</p>
         ) : (
-          <Table>
+          <div className="border rounded-lg overflow-auto">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Order</TableHead>
@@ -268,6 +269,7 @@ export function WebcamManagement() {
               ))}
             </TableBody>
           </Table>
+          </div>
         )}
       </CardContent>
     </Card>
