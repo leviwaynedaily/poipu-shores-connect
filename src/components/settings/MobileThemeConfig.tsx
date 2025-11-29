@@ -113,6 +113,15 @@ export function MobileThemeConfig() {
 // Display Settings Component
 export function MobileDisplaySettings() {
   const { config, saveConfig } = useMobileThemeConfig();
+  const [localTitleColor, setLocalTitleColor] = useState("");
+  const [localSubtitleColor, setLocalSubtitleColor] = useState("");
+  
+  useEffect(() => {
+    if (config) {
+      setLocalTitleColor(config.headerTitleColor);
+      setLocalSubtitleColor(config.headerSubtitleColor);
+    }
+  }, [config]);
   
   if (!config) {
     return <div className="text-center py-8 text-muted-foreground">Loading display settings...</div>;
@@ -421,21 +430,23 @@ export function MobileDisplaySettings() {
                         ...config,
                         headerTitleColor: e.target.value,
                       };
+                      setLocalTitleColor(e.target.value);
                       await saveConfig(updatedConfig);
                     }}
                     className="w-16 h-10 p-1 cursor-pointer"
                   />
                   <Input
                     type="text"
-                    value={config.headerTitleColor}
+                    value={localTitleColor}
+                    onChange={(e) => {
+                      setLocalTitleColor(e.target.value);
+                    }}
                     onBlur={async (e) => {
                       const value = e.target.value.trim();
                       if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
-                        const updatedConfig = {
-                          ...config,
-                          headerTitleColor: value,
-                        };
-                        await saveConfig(updatedConfig);
+                        await saveConfig({ ...config, headerTitleColor: value });
+                      } else {
+                        setLocalTitleColor(config.headerTitleColor);
                       }
                     }}
                     placeholder="#000000"
@@ -534,21 +545,23 @@ export function MobileDisplaySettings() {
                         ...config,
                         headerSubtitleColor: e.target.value,
                       };
+                      setLocalSubtitleColor(e.target.value);
                       await saveConfig(updatedConfig);
                     }}
                     className="w-16 h-10 p-1 cursor-pointer"
                   />
                   <Input
                     type="text"
-                    value={config.headerSubtitleColor}
+                    value={localSubtitleColor}
+                    onChange={(e) => {
+                      setLocalSubtitleColor(e.target.value);
+                    }}
                     onBlur={async (e) => {
                       const value = e.target.value.trim();
                       if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
-                        const updatedConfig = {
-                          ...config,
-                          headerSubtitleColor: value,
-                        };
-                        await saveConfig(updatedConfig);
+                        await saveConfig({ ...config, headerSubtitleColor: value });
+                      } else {
+                        setLocalSubtitleColor(config.headerSubtitleColor);
                       }
                     }}
                     placeholder="#4B5563"
