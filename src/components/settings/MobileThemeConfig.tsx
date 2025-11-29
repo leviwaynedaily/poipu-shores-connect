@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Wand2, Palette, Smartphone, Image as ImageIcon } from "lucide-react";
+import { BackgroundImageDialog } from "./BackgroundImageDialog";
 
 // Helper functions for color conversion
 const hslToHex = (hsl: string): string => {
@@ -220,13 +221,28 @@ export function MobileDisplaySettings() {
 // Background Settings Component
 export function MobileBackgroundSettings() {
   const { config, uploading, generating, aiPrompt, setAiPrompt, availableImages, saveConfig, handleBackgroundUpload, handleGenerateBackground, handleColorBackground, handleGradientBackground, handleResetBackground, handleSelectExistingImage } = useMobileThemeConfig();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [currentTarget, setCurrentTarget] = useState<'app' | 'home'>('app');
   
   if (!config) {
     return <div className="text-center py-8 text-muted-foreground">Loading background settings...</div>;
   }
 
+  const openImageDialog = (target: 'app' | 'home') => {
+    setCurrentTarget(target);
+    setDialogOpen(true);
+  };
+
   return (
     <div className="space-y-4">
+      <BackgroundImageDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        images={availableImages}
+        activeUrl={currentTarget === 'app' ? config.appBackground.url : config.homeBackground.url}
+        onSelect={(url) => handleSelectExistingImage(url, currentTarget)}
+      />
+      
       <Tabs defaultValue="app" className="w-full">
             <TabsList className="w-full h-auto flex-wrap justify-start gap-1 p-1 md:grid md:grid-cols-2">
               <TabsTrigger value="app" className="flex-1 min-w-[140px]">App Background</TabsTrigger>
@@ -263,50 +279,25 @@ export function MobileBackgroundSettings() {
                   </CardContent>
                 </Card>
 
-                {availableImages.length > 0 && (
-                  <Card className="bg-card">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-base">
-                        <ImageIcon className="h-4 w-4" />
-                        Previously Uploaded Images
-                      </CardTitle>
-                      <CardDescription>Select from existing backgrounds</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {availableImages.map((image) => {
-                          const isActive = (target === 'app' && config.appBackground.url === image.url) ||
-                                         (target === 'home' && config.homeBackground.url === image.url);
-                          return (
-                            <button
-                              key={image.name}
-                              onClick={() => handleSelectExistingImage(image.url, target)}
-                              className={`relative rounded-lg overflow-hidden border-2 transition-all hover:scale-105 bg-muted ${
-                                isActive ? 'border-primary ring-2 ring-primary ring-offset-2' : 'border-border hover:border-primary/50'
-                              }`}
-                            >
-                              <div className="aspect-video bg-background">
-                                <img
-                                  src={image.url}
-                                  alt={image.name}
-                                  className="w-full h-full object-cover"
-                                  loading="lazy"
-                                />
-                              </div>
-                              {isActive && (
-                                <div className="absolute inset-0 bg-primary/20 flex items-center justify-center backdrop-blur-[2px]">
-                                  <span className="text-xs font-semibold text-primary-foreground bg-primary px-3 py-1.5 rounded-full shadow-lg">
-                                    Active
-                                  </span>
-                                </div>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+                <Card className="bg-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <ImageIcon className="h-4 w-4" />
+                      Previously Uploaded Images
+                    </CardTitle>
+                    <CardDescription>Select from existing background images</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button
+                      variant="outline"
+                      onClick={() => openImageDialog(target)}
+                      className="w-full"
+                    >
+                      <ImageIcon className="h-4 w-4 mr-2" />
+                      Browse {availableImages.length} Background{availableImages.length !== 1 ? 's' : ''}
+                    </Button>
+                  </CardContent>
+                </Card>
 
                 <Card>
                   <CardHeader>
@@ -589,8 +580,12 @@ function useMobileThemeConfig() {
 
       if (error) throw error;
 
+      // Only show background images (mobile-app-background, mobile-login-background, etc.)
       const imageFiles = (data || [])
-        .filter(file => file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i))
+        .filter(file => 
+          file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i) &&
+          (file.name.includes('background') || file.name.includes('mobile-'))
+        )
         .map(file => ({
           name: file.name,
           url: supabase.storage.from('avatars').getPublicUrl(file.name).data.publicUrl,
