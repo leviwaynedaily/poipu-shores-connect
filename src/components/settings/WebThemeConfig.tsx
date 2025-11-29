@@ -533,9 +533,16 @@ export function WebBackgroundSettings() {
               type="color"
               value={customColor}
               onChange={(e) => setCustomColor(e.target.value)}
-              className="w-16 h-9"
+              className="w-16 h-9 p-1 cursor-pointer"
             />
-            <Button onClick={() => handleColorBackground(customColor)} variant="outline" size="sm" className="flex-1">
+            <Input
+              type="text"
+              value={customColor}
+              onChange={(e) => setCustomColor(e.target.value)}
+              placeholder="#0066cc"
+              className="flex-1 font-mono"
+            />
+            <Button onClick={() => handleColorBackground(customColor)} variant="outline" size="sm">
               Apply
             </Button>
           </div>
@@ -547,21 +554,39 @@ export function WebBackgroundSettings() {
           <CardTitle className="text-base">Gradient</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-2">
-            <Input
-              type="color"
-              value={gradientStart}
-              onChange={(e) => setGradientStart(e.target.value)}
-              className="w-16 h-9"
-            />
-            <Input
-              type="color"
-              value={gradientEnd}
-              onChange={(e) => setGradientEnd(e.target.value)}
-              className="w-16 h-9"
-            />
-            <Button onClick={() => handleGradientBackground(gradientStart, gradientEnd)} variant="outline" size="sm" className="flex-1">
-              Apply
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Input
+                type="color"
+                value={gradientStart}
+                onChange={(e) => setGradientStart(e.target.value)}
+                className="w-16 h-9 p-1 cursor-pointer"
+              />
+              <Input
+                type="text"
+                value={gradientStart}
+                onChange={(e) => setGradientStart(e.target.value)}
+                placeholder="#0066cc"
+                className="flex-1 font-mono text-sm"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Input
+                type="color"
+                value={gradientEnd}
+                onChange={(e) => setGradientEnd(e.target.value)}
+                className="w-16 h-9 p-1 cursor-pointer"
+              />
+              <Input
+                type="text"
+                value={gradientEnd}
+                onChange={(e) => setGradientEnd(e.target.value)}
+                placeholder="#00ccff"
+                className="flex-1 font-mono text-sm"
+              />
+            </div>
+            <Button onClick={() => handleGradientBackground(gradientStart, gradientEnd)} variant="outline" size="sm" className="w-full">
+              Apply Gradient
             </Button>
           </div>
         </CardContent>
@@ -612,7 +637,7 @@ export function WebColorSettings() {
           <div className="space-y-4">
             <div className="space-y-3">
               <Label className="text-sm font-medium">Light Mode Primary</Label>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <Input
                   type="color"
                   value={`#${hslToHex(config.colors.light.primary)}`}
@@ -630,17 +655,37 @@ export function WebColorSettings() {
                     };
                     setConfig(updatedConfig);
                   }}
-                  className="w-20 h-10"
+                  className="w-16 h-10 p-1 cursor-pointer"
                 />
-                <code className="flex-1 text-xs bg-muted px-3 py-2 rounded">
-                  {config.colors.light.primary}
-                </code>
+                <Input
+                  type="text"
+                  value={`#${hslToHex(config.colors.light.primary)}`}
+                  onChange={(e) => {
+                    const value = e.target.value.trim();
+                    if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
+                      const hsl = hexToHsl(value);
+                      const updatedConfig = {
+                        ...config,
+                        colors: {
+                          ...config.colors,
+                          light: {
+                            ...config.colors.light,
+                            primary: hsl,
+                          },
+                        },
+                      };
+                      setConfig(updatedConfig);
+                    }
+                  }}
+                  placeholder="#000000"
+                  className="flex-1 font-mono text-xs"
+                />
               </div>
             </div>
 
             <div className="space-y-3">
               <Label className="text-sm font-medium">Dark Mode Primary</Label>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <Input
                   type="color"
                   value={`#${hslToHex(config.colors.dark.primary)}`}
@@ -658,11 +703,31 @@ export function WebColorSettings() {
                     };
                     setConfig(updatedConfig);
                   }}
-                  className="w-20 h-10"
+                  className="w-16 h-10 p-1 cursor-pointer"
                 />
-                <code className="flex-1 text-xs bg-muted px-3 py-2 rounded">
-                  {config.colors.dark.primary}
-                </code>
+                <Input
+                  type="text"
+                  value={`#${hslToHex(config.colors.dark.primary)}`}
+                  onChange={(e) => {
+                    const value = e.target.value.trim();
+                    if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
+                      const hsl = hexToHsl(value);
+                      const updatedConfig = {
+                        ...config,
+                        colors: {
+                          ...config.colors,
+                          dark: {
+                            ...config.colors.dark,
+                            primary: hsl,
+                          },
+                        },
+                      };
+                      setConfig(updatedConfig);
+                    }
+                  }}
+                  placeholder="#ffffff"
+                  className="flex-1 font-mono text-xs"
+                />
               </div>
             </div>
           </div>
