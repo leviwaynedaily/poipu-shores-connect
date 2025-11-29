@@ -9,7 +9,7 @@ import { LoginActivityTable } from "@/components/settings/LoginActivityTable";
 import { MobilePageConfig } from "@/components/settings/MobilePageConfig";
 import { WebPageConfig } from "@/components/settings/WebPageConfig";
 import { EmailSettings } from "@/components/settings/EmailSettings";
-import { MobileThemeConfig } from "@/components/settings/MobileThemeConfig";
+import { MobileDisplaySettings, MobileBackgroundSettings, MobileColorSettings } from "@/components/settings/MobileThemeConfig";
 import { WebThemeConfig } from "@/components/settings/WebThemeConfig";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -1107,25 +1107,15 @@ export default function AdminSettings() {
             </TabsContent>
             
             <TabsContent value="display" className="space-y-4 pt-4">
-              <MobileThemeConfig />
+              <MobileDisplaySettings />
             </TabsContent>
             
             <TabsContent value="background" className="space-y-4 pt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Mobile Backgrounds</CardTitle>
-                  <CardDescription>Configure mobile app and login page backgrounds in the Display tab</CardDescription>
-                </CardHeader>
-              </Card>
+              <MobileBackgroundSettings />
             </TabsContent>
             
             <TabsContent value="advanced" className="space-y-4 pt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Advanced Mobile Settings</CardTitle>
-                  <CardDescription>Primary color customization available in the Display tab</CardDescription>
-                </CardHeader>
-              </Card>
+              <MobileColorSettings />
             </TabsContent>
           </Tabs>
         </TabsContent>
