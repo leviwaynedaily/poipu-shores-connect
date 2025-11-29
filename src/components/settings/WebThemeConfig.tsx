@@ -3,8 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Upload, Wand2, Palette, ImageIcon } from "lucide-react";
+import { BackgroundImageDialog } from "./BackgroundImageDialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Helper functions for color conversion
 const hslToHex = (hsl: string): string => {
@@ -61,16 +65,30 @@ interface WebThemeConfig {
     light: Record<string, string>;
     dark: Record<string, string>;
   };
+  appBackground?: {
+    type: 'default' | 'uploaded' | 'color' | 'gradient';
+    url: string | null;
+    opacity: number;
+    color?: string;
+    gradientStart?: string;
+    gradientEnd?: string;
+  };
 }
 
-export function WebThemeConfig() {
+// Custom hook to share state across components
+function useWebThemeConfig() {
   const { toast } = useToast();
   const [config, setConfig] = useState<WebThemeConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [availableImages, setAvailableImages] = useState<Array<{ name: string; url: string }>>([]);
 
   useEffect(() => {
     fetchConfig();
+    fetchAvailableImages();
   }, []);
 
   const fetchConfig = async () => {
@@ -89,12 +107,13 @@ export function WebThemeConfig() {
         // Use default theme if none exists
         setConfig({
           colors: {
-            light: {
-              primary: '266 4% 20.8%',
-            },
-            dark: {
-              primary: '256 1.3% 92.9%',
-            },
+            light: { primary: '266 4% 20.8%' },
+            dark: { primary: '256 1.3% 92.9%' },
+          },
+          appBackground: {
+            type: 'default',
+            url: null,
+            opacity: 100,
           },
         });
       }
@@ -107,6 +126,39 @@ export function WebThemeConfig() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAvailableImages = async () => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('avatars')
+        .list('', { limit: 100 });
+
+      if (error) throw error;
+
+      // Only show background images, exclude header icons and logos
+      const imageFiles = (data || [])
+        .filter(file => {
+          const name = file.name.toLowerCase();
+          return (
+            name.match(/\.(jpg|jpeg|png|gif|webp)$/i) &&
+            name.includes('background') &&
+            !name.includes('header') &&
+            !name.includes('icon') &&
+            !name.includes('logo') &&
+            !name.includes('avatar') &&
+            !name.includes('mobile')
+          );
+        })
+        .map(file => ({
+          name: file.name,
+          url: supabase.storage.from('avatars').getPublicUrl(file.name).data.publicUrl,
+        }));
+
+      setAvailableImages(imageFiles);
+    } catch (error: any) {
+      console.error('Error fetching available images:', error);
     }
   };
 
@@ -127,7 +179,7 @@ export function WebThemeConfig() {
       setConfig(updatedConfig);
       toast({
         title: "Success",
-        description: "Web theme configuration saved. Refresh the page to see changes.",
+        description: "Web theme configuration saved",
       });
     } catch (error: any) {
       console.error('Error saving web theme config:', error);
@@ -141,12 +193,414 @@ export function WebThemeConfig() {
     }
   };
 
-  if (loading || !config) {
-    return <div className="text-center py-8 text-muted-foreground">Loading web theme configuration...</div>;
+  const handleSelectExistingImage = async (imageUrl: string) => {
+    if (!config) return;
+
+    const updatedConfig = {
+      ...config,
+      appBackground: {
+        ...config.appBackground!,
+        type: 'uploaded' as const,
+        url: imageUrl,
+      },
+    };
+
+    await saveConfig(updatedConfig);
+  };
+
+  const handleBackgroundUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !config) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const filePath = 'web-app-background.png';
+      await supabase.storage.from('avatars').remove([filePath]);
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      fetchAvailableImages();
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      const updatedConfig = {
+        ...config,
+        appBackground: {
+          ...config.appBackground!,
+          type: 'uploaded' as const,
+          url: publicUrl,
+        },
+      };
+
+      await saveConfig(updatedConfig);
+    } catch (error: any) {
+      console.error('Error uploading background:', error);
+      toast({
+        title: "Upload failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleGenerateBackground = async () => {
+    if (!aiPrompt.trim() || !config) {
+      toast({
+        title: "Error",
+        description: "Please enter a description for the background",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-background', {
+        body: { prompt: aiPrompt },
+      });
+
+      if (error) throw error;
+
+      const response = await fetch(data.imageUrl);
+      const blob = await response.blob();
+
+      const filePath = 'web-app-background.png';
+      await supabase.storage.from('avatars').remove([filePath]);
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, blob, { upsert: true, contentType: 'image/png' });
+
+      if (uploadError) throw uploadError;
+
+      fetchAvailableImages();
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      const updatedConfig = {
+        ...config,
+        appBackground: {
+          ...config.appBackground!,
+          type: 'uploaded' as const,
+          url: publicUrl,
+        },
+      };
+
+      await saveConfig(updatedConfig);
+      setAiPrompt('');
+    } catch (error: any) {
+      console.error('Error generating background:', error);
+      toast({
+        title: "Generation failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleColorBackground = async (color: string) => {
+    if (!config) return;
+
+    const updatedConfig = {
+      ...config,
+      appBackground: {
+        ...config.appBackground!,
+        type: 'color' as const,
+        url: null,
+        color,
+      },
+    };
+
+    await saveConfig(updatedConfig);
+  };
+
+  const handleGradientBackground = async (start: string, end: string) => {
+    if (!config) return;
+
+    const updatedConfig = {
+      ...config,
+      appBackground: {
+        ...config.appBackground!,
+        type: 'gradient' as const,
+        url: null,
+        gradientStart: start,
+        gradientEnd: end,
+      },
+    };
+
+    await saveConfig(updatedConfig);
+  };
+
+  const handleResetBackground = async () => {
+    if (!config) return;
+
+    const updatedConfig = {
+      ...config,
+      appBackground: {
+        type: 'default' as const,
+        url: null,
+        opacity: 100,
+      },
+    };
+
+    await saveConfig(updatedConfig);
+  };
+
+  return {
+    config,
+    saving,
+    uploading,
+    generating,
+    aiPrompt,
+    setAiPrompt,
+    availableImages,
+    saveConfig,
+    handleBackgroundUpload,
+    handleGenerateBackground,
+    handleColorBackground,
+    handleGradientBackground,
+    handleResetBackground,
+    handleSelectExistingImage,
+  };
+}
+
+// Background Settings Component
+export function WebBackgroundSettings() {
+  const {
+    config,
+    uploading,
+    generating,
+    aiPrompt,
+    setAiPrompt,
+    availableImages,
+    saveConfig,
+    handleBackgroundUpload,
+    handleGenerateBackground,
+    handleColorBackground,
+    handleGradientBackground,
+    handleResetBackground,
+    handleSelectExistingImage,
+  } = useWebThemeConfig();
+  
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [customColor, setCustomColor] = useState('#0066cc');
+  const [gradientStart, setGradientStart] = useState('#0066cc');
+  const [gradientEnd, setGradientEnd] = useState('#00ccff');
+
+  if (!config) {
+    return <div className="text-center py-8 text-muted-foreground">Loading background settings...</div>;
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      <BackgroundImageDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        images={availableImages}
+        activeUrl={config.appBackground?.url || null}
+        onSelect={(url) => handleSelectExistingImage(url)}
+      />
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Opacity</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">{config.appBackground?.opacity || 100}%</span>
+          </div>
+          <Slider
+            value={[config.appBackground?.opacity || 100]}
+            onValueChange={async ([value]) => {
+              const updatedConfig = {
+                ...config,
+                appBackground: {
+                  ...config.appBackground!,
+                  opacity: value,
+                },
+              };
+              await saveConfig(updatedConfig);
+            }}
+            min={0}
+            max={100}
+            step={5}
+          />
+        </CardContent>
+      </Card>
+
+      <Card className="bg-card">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <ImageIcon className="h-4 w-4" />
+            Previously Uploaded Images
+          </CardTitle>
+          <CardDescription>Select from existing background images</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            variant="outline"
+            onClick={() => setDialogOpen(true)}
+            className="w-full"
+          >
+            <ImageIcon className="h-4 w-4 mr-2" />
+            Browse {availableImages.length} Background{availableImages.length !== 1 ? 's' : ''}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Upload className="h-4 w-4" />
+            Upload New Image
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {config.appBackground?.type === 'uploaded' && config.appBackground.url && (
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">Current Background</Label>
+              <div className="rounded-md border border-border overflow-hidden">
+                <img
+                  src={config.appBackground.url}
+                  alt="Current background"
+                  className="w-full h-24 object-cover"
+                />
+              </div>
+            </div>
+          )}
+          <Input
+            type="file"
+            accept="image/*"
+            onChange={handleBackgroundUpload}
+            disabled={uploading}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Wand2 className="h-4 w-4" />
+            Generate with AI
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex gap-2">
+            <Input
+              placeholder="Describe your background..."
+              value={aiPrompt}
+              onChange={(e) => setAiPrompt(e.target.value)}
+              disabled={generating}
+            />
+            <Button onClick={handleGenerateBackground} disabled={generating}>
+              Generate
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Palette className="h-4 w-4" />
+            Solid Color
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-2">
+            <Input
+              type="color"
+              value={customColor}
+              onChange={(e) => setCustomColor(e.target.value)}
+              className="w-16 h-9"
+            />
+            <Button onClick={() => handleColorBackground(customColor)} variant="outline" size="sm" className="flex-1">
+              Apply
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Gradient</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-2">
+            <Input
+              type="color"
+              value={gradientStart}
+              onChange={(e) => setGradientStart(e.target.value)}
+              className="w-16 h-9"
+            />
+            <Input
+              type="color"
+              value={gradientEnd}
+              onChange={(e) => setGradientEnd(e.target.value)}
+              className="w-16 h-9"
+            />
+            <Button onClick={() => handleGradientBackground(gradientStart, gradientEnd)} variant="outline" size="sm" className="flex-1">
+              Apply
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Button
+        variant="outline"
+        onClick={handleResetBackground}
+        className="w-full"
+      >
+        Reset to Default
+      </Button>
+    </div>
+  );
+}
+
+// Color Settings Component
+export function WebColorSettings() {
+  const { config: globalConfig, saving, saveConfig } = useWebThemeConfig();
+  const [config, setConfig] = useState(globalConfig);
+
+  useEffect(() => {
+    if (globalConfig) {
+      setConfig(globalConfig);
+    }
+  }, [globalConfig]);
+
+  if (!config) {
+    return <div className="text-center py-8 text-muted-foreground">Loading color settings...</div>;
+  }
+
+  const handleSave = async () => {
+    if (config) {
+      await saveConfig(config);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Primary Color</CardTitle>
@@ -214,7 +668,7 @@ export function WebThemeConfig() {
           </div>
 
           <Button
-            onClick={() => saveConfig(config)}
+            onClick={handleSave}
             disabled={saving}
             className="w-full"
           >
@@ -224,4 +678,9 @@ export function WebThemeConfig() {
       </Card>
     </div>
   );
+}
+
+// Legacy export - kept for backwards compatibility
+export function WebThemeConfig() {
+  return <WebColorSettings />;
 }
