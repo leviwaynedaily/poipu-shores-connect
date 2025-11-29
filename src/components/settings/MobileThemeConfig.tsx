@@ -428,9 +428,9 @@ export function MobileDisplaySettings() {
                   <Input
                     type="text"
                     value={config.headerTitleColor}
-                    onChange={async (e) => {
-                      const value = e.target.value;
-                      if (value.match(/^#[0-9A-Fa-f]{6}$/)) {
+                    onBlur={async (e) => {
+                      const value = e.target.value.trim();
+                      if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
                         const updatedConfig = {
                           ...config,
                           headerTitleColor: value,
@@ -541,9 +541,9 @@ export function MobileDisplaySettings() {
                   <Input
                     type="text"
                     value={config.headerSubtitleColor}
-                    onChange={async (e) => {
-                      const value = e.target.value;
-                      if (value.match(/^#[0-9A-Fa-f]{6}$/)) {
+                    onBlur={async (e) => {
+                      const value = e.target.value.trim();
+                      if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
                         const updatedConfig = {
                           ...config,
                           headerSubtitleColor: value,
