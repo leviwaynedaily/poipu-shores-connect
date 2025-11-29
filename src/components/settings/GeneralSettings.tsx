@@ -95,8 +95,8 @@ export function GeneralSettings() {
         <CardTitle>General Application Settings</CardTitle>
         <CardDescription>Configure general application settings and information</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-4">
+      <CardContent className="space-y-4 md:space-y-6">
+        <div className="space-y-4 md:space-y-5">
           <div>
             <Label htmlFor="app_name">Application Name</Label>
             <Input
@@ -118,7 +118,7 @@ export function GeneralSettings() {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="support_email">Support Email</Label>
               <Input
@@ -165,8 +165,8 @@ export function GeneralSettings() {
           </div>
         </div>
 
-        <div className="flex justify-end">
-          <Button onClick={handleSave} disabled={saving}>
+        <div className="flex justify-end pt-2">
+          <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto">
             <Save className="mr-2 h-4 w-4" />
             {saving ? "Saving..." : "Save Settings"}
           </Button>

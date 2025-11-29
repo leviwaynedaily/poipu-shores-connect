@@ -200,8 +200,8 @@ export function EmailSettings() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Info Card */}
+    <div className="space-y-4 md:space-y-6">
+      {/* Test Email Form */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -209,21 +209,11 @@ export function EmailSettings() {
             Email Testing Tools
           </CardTitle>
           <CardDescription>
-            Send test emails to warm up your domain and verify email delivery. All emails are sent from noreply@poipu-shores.com
+            Send test emails to warm up your domain and verify delivery. All emails are sent from noreply@poipu-shores.com
           </CardDescription>
         </CardHeader>
-      </Card>
-
-      {/* Test Email Form */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Send Test Email</CardTitle>
-          <CardDescription>
-            Choose a template or create a custom message
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
+        <CardContent className="space-y-4 md:space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="recipient">Recipient Email</Label>
               <Input
@@ -274,7 +264,7 @@ export function EmailSettings() {
             />
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Button onClick={handleSendTestEmail} disabled={sending} className="flex-1">
               {sending ? (
                 <>
@@ -288,7 +278,7 @@ export function EmailSettings() {
                 </>
               )}
             </Button>
-            <Button onClick={handleQuickSend} variant="outline" disabled={sending}>
+            <Button onClick={handleQuickSend} variant="outline" disabled={sending} className="sm:w-auto">
               Send to Myself
             </Button>
           </div>
@@ -298,45 +288,46 @@ export function EmailSettings() {
       {/* Email Log */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <CardTitle className="text-base">Recent Email Log</CardTitle>
+              <CardTitle>Recent Email Log</CardTitle>
               <CardDescription>
                 Track emails sent through the testing tool
               </CardDescription>
             </div>
-            <Button onClick={fetchEmailLogs} variant="outline" size="sm" disabled={loadingLogs}>
-              {loadingLogs ? <Loader2 className="h-4 w-4 animate-spin" /> : "Refresh"}
+            <Button onClick={fetchEmailLogs} variant="outline" size="sm" disabled={loadingLogs} className="w-full sm:w-auto">
+              {loadingLogs ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Refresh
             </Button>
           </div>
         </CardHeader>
         <CardContent>
           {emailLogs.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="text-center py-8 text-sm text-muted-foreground">
               No emails sent yet. Send your first test email above!
             </div>
           ) : (
-            <div className="border rounded-lg">
+            <div className="border rounded-lg overflow-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Date/Time</TableHead>
-                    <TableHead>To</TableHead>
-                    <TableHead>Subject</TableHead>
-                    <TableHead>Delivery Status</TableHead>
+                    <TableHead className="whitespace-nowrap">Date/Time</TableHead>
+                    <TableHead className="min-w-[150px]">To</TableHead>
+                    <TableHead className="min-w-[200px]">Subject</TableHead>
+                    <TableHead className="whitespace-nowrap">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {emailLogs.map((log) => (
                     <TableRow key={log.id}>
-                      <TableCell className="font-medium whitespace-nowrap">
+                      <TableCell className="font-medium whitespace-nowrap text-sm">
                         {formatDate(log.sent_at)}
                       </TableCell>
-                      <TableCell>{log.to_email}</TableCell>
-                      <TableCell className="max-w-[300px] truncate">
+                      <TableCell className="text-sm">{log.to_email}</TableCell>
+                      <TableCell className="max-w-[300px] truncate text-sm">
                         {log.subject}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="whitespace-nowrap">
                         {getDeliveryStatusBadge(log)}
                       </TableCell>
                     </TableRow>
