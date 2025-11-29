@@ -10,7 +10,7 @@ import { MobilePageConfig } from "@/components/settings/MobilePageConfig";
 import { WebPageConfig } from "@/components/settings/WebPageConfig";
 import { EmailSettings } from "@/components/settings/EmailSettings";
 import { MobileDisplaySettings, MobileBackgroundSettings, MobileColorSettings } from "@/components/settings/MobileThemeConfig";
-import { WebThemeConfig } from "@/components/settings/WebThemeConfig";
+import { WebBackgroundSettings, WebColorSettings } from "@/components/settings/WebThemeConfig";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -777,109 +777,9 @@ export default function AdminSettings() {
             </TabsContent>
 
             <TabsContent value="background" className="space-y-4 pt-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Background Opacity */}
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Opacity</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">{backgroundOpacity}%</span>
-                    </div>
-                    <Slider
-                      value={[backgroundOpacity]}
-                      onValueChange={(val) => setBackgroundOpacity(val[0])}
-                      min={0}
-                      max={100}
-                      step={5}
-                      className="w-full"
-                    />
-                  </CardContent>
-                </Card>
+              <WebBackgroundSettings />
 
-                {/* Upload Background */}
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <Upload className="h-4 w-4" />
-                      Upload Image
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {appBackground.type === 'uploaded' && appBackground.url && (
-                      <div className="space-y-2">
-                        <Label className="text-xs text-muted-foreground">Current Image</Label>
-                        <div className="rounded-md border border-border overflow-hidden">
-                          <img 
-                            src={appBackground.url} 
-                            alt="Current background" 
-                            className="w-full h-24 object-cover"
-                          />
-                        </div>
-                      </div>
-                    )}
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleBackgroundUpload}
-                      disabled={uploading}
-                      className="text-sm"
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Solid Color */}
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <Palette className="h-4 w-4" />
-                      Solid Color
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex gap-2">
-                      <Input
-                        type="color"
-                        value={customColor}
-                        onChange={(e) => setCustomColor(e.target.value)}
-                        className="w-16 h-9"
-                      />
-                      <Button onClick={handleSolidColor} variant="outline" size="sm" className="flex-1">
-                        Apply
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Gradient */}
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Gradient</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex gap-2">
-                      <Input
-                        type="color"
-                        value={gradientStart}
-                        onChange={(e) => setGradientStart(e.target.value)}
-                        className="w-16 h-9"
-                      />
-                      <Input
-                        type="color"
-                        value={gradientEnd}
-                        onChange={(e) => setGradientEnd(e.target.value)}
-                        className="w-16 h-9"
-                      />
-                      <Button onClick={handleGradient} variant="outline" size="sm" className="flex-1">
-                        Apply
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Sign-in Logo - Full Width */}
+              {/* Sign-in Logo */}
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-2 text-base">
@@ -978,7 +878,7 @@ export default function AdminSettings() {
             </TabsContent>
 
             <TabsContent value="advanced" className="space-y-4 pt-4">
-              <WebThemeConfig />
+              <WebColorSettings />
 
               {/* Ask the Chicken Logo */}
               <Card>
