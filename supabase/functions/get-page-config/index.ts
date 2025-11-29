@@ -149,7 +149,28 @@ Deno.serve(async (req) => {
       // Mobile-specific defaults
       if (platform === 'mobile') {
         defaultThemeConfig.cardRadius = 12;
+        
+        // Navigation Bar (enhanced)
         defaultThemeConfig.navBarStyle = 'solid';
+        defaultThemeConfig.navBarOpacity = 80;
+        defaultThemeConfig.navBarColor = '#000000';
+        
+        // Header Background
+        defaultThemeConfig.headerStyle = 'solid';
+        defaultThemeConfig.headerOpacity = 80;
+        defaultThemeConfig.headerColor = '#FFFFFF';
+        
+        // Header Title (matching current app: text-xl, font-bold, text-gray-800)
+        defaultThemeConfig.headerTitleFont = 'system';
+        defaultThemeConfig.headerTitleSize = 'text-xl';
+        defaultThemeConfig.headerTitleWeight = 'bold';
+        defaultThemeConfig.headerTitleColor = '#1F2937';
+        
+        // Header Subtitle (matching current app: text-sm, regular, text-gray-600)
+        defaultThemeConfig.headerSubtitleFont = 'system';
+        defaultThemeConfig.headerSubtitleSize = 'text-sm';
+        defaultThemeConfig.headerSubtitleWeight = 'normal';
+        defaultThemeConfig.headerSubtitleColor = '#4B5563';
       }
 
       // Web-specific defaults
