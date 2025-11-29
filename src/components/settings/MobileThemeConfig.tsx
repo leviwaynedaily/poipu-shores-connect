@@ -580,12 +580,19 @@ function useMobileThemeConfig() {
 
       if (error) throw error;
 
-      // Only show background images (mobile-app-background, mobile-login-background, etc.)
+      // Only show actual background images, exclude header icons, logos, and avatars
       const imageFiles = (data || [])
-        .filter(file => 
-          file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i) &&
-          (file.name.includes('background') || file.name.includes('mobile-'))
-        )
+        .filter(file => {
+          const name = file.name.toLowerCase();
+          return (
+            name.match(/\.(jpg|jpeg|png|gif|webp)$/i) &&
+            name.includes('background') &&
+            !name.includes('header') &&
+            !name.includes('icon') &&
+            !name.includes('logo') &&
+            !name.includes('avatar')
+          );
+        })
         .map(file => ({
           name: file.name,
           url: supabase.storage.from('avatars').getPublicUrl(file.name).data.publicUrl,
