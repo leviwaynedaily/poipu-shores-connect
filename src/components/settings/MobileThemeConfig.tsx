@@ -90,6 +90,19 @@ interface MobileThemeConfig {
   };
   cardRadius: number;
   navBarStyle: 'solid' | 'translucent';
+  navBarOpacity: number;
+  navBarColor: string;
+  headerStyle: 'solid' | 'translucent';
+  headerOpacity: number;
+  headerColor: string;
+  headerTitleFont: 'system' | 'Outfit' | 'Merriweather';
+  headerTitleSize: 'text-lg' | 'text-xl' | 'text-2xl' | 'text-3xl';
+  headerTitleWeight: 'normal' | 'medium' | 'semibold' | 'bold';
+  headerTitleColor: string;
+  headerSubtitleFont: 'system' | 'Outfit' | 'Merriweather';
+  headerSubtitleSize: 'text-xs' | 'text-sm' | 'text-base';
+  headerSubtitleWeight: 'normal' | 'medium' | 'semibold';
+  headerSubtitleColor: string;
 }
 
 // Legacy export - kept for backwards compatibility but not recommended
@@ -193,7 +206,7 @@ export function MobileDisplaySettings() {
               <CardTitle className="text-base">Navigation Bar Style</CardTitle>
               <CardDescription>Choose the style for the navigation bar</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <Select
                 value={config.navBarStyle}
                 onValueChange={async (value: 'solid' | 'translucent') => {
@@ -212,6 +225,301 @@ export function MobileDisplaySettings() {
                   <SelectItem value="translucent">Translucent</SelectItem>
                 </SelectContent>
               </Select>
+
+              {config.navBarStyle === 'translucent' ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label>Opacity</Label>
+                    <span className="text-sm text-muted-foreground">{config.navBarOpacity}%</span>
+                  </div>
+                  <Slider
+                    value={[config.navBarOpacity]}
+                    onValueChange={async ([value]) => {
+                      const updatedConfig = {
+                        ...config,
+                        navBarOpacity: value,
+                      };
+                      await saveConfig(updatedConfig);
+                    }}
+                    min={0}
+                    max={100}
+                    step={5}
+                  />
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label>Background Color</Label>
+                  <Input
+                    type="color"
+                    value={config.navBarColor}
+                    onChange={async (e) => {
+                      const updatedConfig = {
+                        ...config,
+                        navBarColor: e.target.value,
+                      };
+                      await saveConfig(updatedConfig);
+                    }}
+                    className="w-full h-10"
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Header Style</CardTitle>
+              <CardDescription>Customize the header background</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Select
+                value={config.headerStyle}
+                onValueChange={async (value: 'solid' | 'translucent') => {
+                  const updatedConfig = {
+                    ...config,
+                    headerStyle: value,
+                  };
+                  await saveConfig(updatedConfig);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="solid">Solid</SelectItem>
+                  <SelectItem value="translucent">Translucent</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {config.headerStyle === 'translucent' ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label>Opacity</Label>
+                    <span className="text-sm text-muted-foreground">{config.headerOpacity}%</span>
+                  </div>
+                  <Slider
+                    value={[config.headerOpacity]}
+                    onValueChange={async ([value]) => {
+                      const updatedConfig = {
+                        ...config,
+                        headerOpacity: value,
+                      };
+                      await saveConfig(updatedConfig);
+                    }}
+                    min={0}
+                    max={100}
+                    step={5}
+                  />
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label>Background Color</Label>
+                  <Input
+                    type="color"
+                    value={config.headerColor}
+                    onChange={async (e) => {
+                      const updatedConfig = {
+                        ...config,
+                        headerColor: e.target.value,
+                      };
+                      await saveConfig(updatedConfig);
+                    }}
+                    className="w-full h-10"
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Header Title</CardTitle>
+              <CardDescription>Customize the header title appearance</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Font</Label>
+                  <Select
+                    value={config.headerTitleFont}
+                    onValueChange={async (value: 'system' | 'Outfit' | 'Merriweather') => {
+                      const updatedConfig = {
+                        ...config,
+                        headerTitleFont: value,
+                      };
+                      await saveConfig(updatedConfig);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="system">System</SelectItem>
+                      <SelectItem value="Outfit">Outfit</SelectItem>
+                      <SelectItem value="Merriweather">Merriweather</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Weight</Label>
+                  <Select
+                    value={config.headerTitleWeight}
+                    onValueChange={async (value: 'normal' | 'medium' | 'semibold' | 'bold') => {
+                      const updatedConfig = {
+                        ...config,
+                        headerTitleWeight: value,
+                      };
+                      await saveConfig(updatedConfig);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="semibold">Semibold</SelectItem>
+                      <SelectItem value="bold">Bold</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Size</Label>
+                <Select
+                  value={config.headerTitleSize}
+                  onValueChange={async (value: 'text-lg' | 'text-xl' | 'text-2xl' | 'text-3xl') => {
+                    const updatedConfig = {
+                      ...config,
+                      headerTitleSize: value,
+                    };
+                    await saveConfig(updatedConfig);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="text-lg">Large (18px)</SelectItem>
+                    <SelectItem value="text-xl">X-Large (20px)</SelectItem>
+                    <SelectItem value="text-2xl">2X-Large (24px)</SelectItem>
+                    <SelectItem value="text-3xl">3X-Large (30px)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Text Color</Label>
+                <Input
+                  type="color"
+                  value={config.headerTitleColor}
+                  onChange={async (e) => {
+                    const updatedConfig = {
+                      ...config,
+                      headerTitleColor: e.target.value,
+                    };
+                    await saveConfig(updatedConfig);
+                  }}
+                  className="w-full h-10"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Header Subtitle</CardTitle>
+              <CardDescription>Customize the header subtitle appearance</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Font</Label>
+                  <Select
+                    value={config.headerSubtitleFont}
+                    onValueChange={async (value: 'system' | 'Outfit' | 'Merriweather') => {
+                      const updatedConfig = {
+                        ...config,
+                        headerSubtitleFont: value,
+                      };
+                      await saveConfig(updatedConfig);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="system">System</SelectItem>
+                      <SelectItem value="Outfit">Outfit</SelectItem>
+                      <SelectItem value="Merriweather">Merriweather</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Weight</Label>
+                  <Select
+                    value={config.headerSubtitleWeight}
+                    onValueChange={async (value: 'normal' | 'medium' | 'semibold') => {
+                      const updatedConfig = {
+                        ...config,
+                        headerSubtitleWeight: value,
+                      };
+                      await saveConfig(updatedConfig);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="semibold">Semibold</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Size</Label>
+                <Select
+                  value={config.headerSubtitleSize}
+                  onValueChange={async (value: 'text-xs' | 'text-sm' | 'text-base') => {
+                    const updatedConfig = {
+                      ...config,
+                      headerSubtitleSize: value,
+                    };
+                    await saveConfig(updatedConfig);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="text-xs">X-Small (12px)</SelectItem>
+                    <SelectItem value="text-sm">Small (14px)</SelectItem>
+                    <SelectItem value="text-base">Base (16px)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Text Color</Label>
+                <Input
+                  type="color"
+                  value={config.headerSubtitleColor}
+                  onChange={async (e) => {
+                    const updatedConfig = {
+                      ...config,
+                      headerSubtitleColor: e.target.value,
+                    };
+                    await saveConfig(updatedConfig);
+                  }}
+                  className="w-full h-10"
+                />
+              </div>
             </CardContent>
           </Card>
     </div>
