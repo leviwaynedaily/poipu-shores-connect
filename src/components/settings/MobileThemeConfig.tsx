@@ -91,344 +91,21 @@ interface MobileThemeConfig {
   navBarStyle: 'solid' | 'translucent';
 }
 
+// Legacy export - kept for backwards compatibility but not recommended
 export function MobileThemeConfig() {
-  const { toast } = useToast();
-  const [config, setConfig] = useState<MobileThemeConfig | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [generating, setGenerating] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState('');
-  const [availableImages, setAvailableImages] = useState<Array<{ name: string; url: string }>>([]);
+  return <MobileDisplaySettings />;
+}
 
-  useEffect(() => {
-    fetchConfig();
-    fetchAvailableImages();
-  }, []);
-
-  const fetchConfig = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('app_settings')
-        .select('setting_value')
-        .eq('setting_key', 'mobile_theme_config')
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (data?.setting_value) {
-        setConfig(data.setting_value as any as MobileThemeConfig);
-      }
-    } catch (error: any) {
-      console.error('Error fetching mobile theme config:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load mobile theme configuration",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchAvailableImages = async () => {
-    try {
-      const { data, error } = await supabase.storage
-        .from('avatars')
-        .list('', { limit: 100 });
-
-      if (error) throw error;
-
-      const imageFiles = (data || [])
-        .filter(file => file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i))
-        .map(file => ({
-          name: file.name,
-          url: supabase.storage.from('avatars').getPublicUrl(file.name).data.publicUrl,
-        }));
-
-      setAvailableImages(imageFiles);
-    } catch (error: any) {
-      console.error('Error fetching available images:', error);
-    }
-  };
-
-  const handleSelectExistingImage = async (imageUrl: string, target: 'app' | 'home') => {
-    if (!config) return;
-
-    const updatedConfig = { ...config };
-    if (target === 'app') {
-      updatedConfig.appBackground = {
-        ...updatedConfig.appBackground,
-        type: 'uploaded',
-        url: imageUrl,
-      };
-    } else {
-      updatedConfig.homeBackground = {
-        ...updatedConfig.homeBackground,
-        type: 'uploaded',
-        url: imageUrl,
-      };
-    }
-
-    await saveConfig(updatedConfig);
-  };
-
-  const saveConfig = async (updatedConfig: MobileThemeConfig) => {
-    setSaving(true);
-    try {
-      const { error } = await supabase
-        .from('app_settings')
-        .upsert([{
-          setting_key: 'mobile_theme_config',
-          setting_value: updatedConfig as any,
-        }], {
-          onConflict: 'setting_key',
-        });
-
-      if (error) throw error;
-
-      setConfig(updatedConfig);
-      toast({
-        title: "Success",
-        description: "Mobile theme configuration saved",
-      });
-    } catch (error: any) {
-      console.error('Error saving mobile theme config:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save mobile theme configuration",
-        variant: "destructive",
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleBackgroundUpload = async (event: React.ChangeEvent<HTMLInputElement>, target: 'app' | 'home') => {
-    const file = event.target.files?.[0];
-    if (!file || !config) return;
-
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: "Invalid file type",
-        description: "Please upload an image file",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setUploading(true);
-    try {
-      // Use fixed paths for stable URLs
-      const filePath = target === 'app' 
-        ? 'mobile-app-background.png' 
-        : 'mobile-login-background.png';
-
-      // Delete existing file first (ignore errors if doesn't exist)
-      await supabase.storage.from('avatars').remove([filePath]);
-
-      // Upload new file to the same path
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      // Refresh available images list
-      fetchAvailableImages();
-
-      // Get stable URL (always the same)
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      const updatedConfig = { ...config };
-      if (target === 'app') {
-        updatedConfig.appBackground = {
-          ...updatedConfig.appBackground,
-          type: 'uploaded',
-          url: publicUrl, // Store clean stable URL
-        };
-      } else {
-        updatedConfig.homeBackground = {
-          ...updatedConfig.homeBackground,
-          type: 'uploaded',
-          url: publicUrl, // Store clean stable URL
-        };
-      }
-
-      await saveConfig(updatedConfig);
-    } catch (error: any) {
-      console.error('Error uploading background:', error);
-      toast({
-        title: "Upload failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleGenerateBackground = async (target: 'app' | 'home') => {
-    if (!aiPrompt.trim() || !config) {
-      toast({
-        title: "Error",
-        description: "Please enter a description for the background",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setGenerating(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-background', {
-        body: { prompt: aiPrompt },
-      });
-
-      if (error) throw error;
-
-      // Download the generated image
-      const response = await fetch(data.imageUrl);
-      const blob = await response.blob();
-
-      // Use fixed path for stable URL
-      const filePath = target === 'app' 
-        ? 'mobile-app-background.png' 
-        : 'mobile-login-background.png';
-
-      // Delete existing file first
-      await supabase.storage.from('avatars').remove([filePath]);
-
-      // Upload to stable path
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, blob, { upsert: true, contentType: 'image/png' });
-
-      if (uploadError) throw uploadError;
-
-      // Refresh available images list
-      fetchAvailableImages();
-
-      // Get stable URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      const updatedConfig = { ...config };
-      if (target === 'app') {
-        updatedConfig.appBackground = {
-          ...updatedConfig.appBackground,
-          type: 'uploaded',
-          url: publicUrl,
-        };
-      } else {
-        updatedConfig.homeBackground = {
-          ...updatedConfig.homeBackground,
-          type: 'uploaded',
-          url: publicUrl,
-        };
-      }
-
-      await saveConfig(updatedConfig);
-      setAiPrompt('');
-    } catch (error: any) {
-      console.error('Error generating background:', error);
-      toast({
-        title: "Generation failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setGenerating(false);
-    }
-  };
-
-  const handleColorBackground = async (color: string, target: 'app' | 'home') => {
-    if (!config) return;
-
-    const updatedConfig = { ...config };
-    if (target === 'app') {
-      updatedConfig.appBackground = {
-        ...updatedConfig.appBackground,
-        type: 'color',
-        url: null,
-        color,
-      };
-    } else {
-      updatedConfig.homeBackground = {
-        ...updatedConfig.homeBackground,
-        type: 'color',
-        url: null,
-        color,
-      };
-    }
-
-    await saveConfig(updatedConfig);
-  };
-
-  const handleGradientBackground = async (start: string, end: string, target: 'app' | 'home') => {
-    if (!config) return;
-
-    const updatedConfig = { ...config };
-    if (target === 'app') {
-      updatedConfig.appBackground = {
-        ...updatedConfig.appBackground,
-        type: 'gradient',
-        url: null,
-        gradientStart: start,
-        gradientEnd: end,
-        gradientDirection: '135deg',
-      };
-    } else {
-      updatedConfig.homeBackground = {
-        ...updatedConfig.homeBackground,
-        type: 'gradient',
-        url: null,
-        gradientStart: start,
-        gradientEnd: end,
-        gradientDirection: '135deg',
-      };
-    }
-
-    await saveConfig(updatedConfig);
-  };
-
-  const handleResetBackground = async (target: 'app' | 'home') => {
-    if (!config) return;
-
-    const updatedConfig = { ...config };
-    if (target === 'app') {
-      updatedConfig.appBackground = {
-        type: 'default',
-        url: null,
-        opacity: 100,
-      };
-    } else {
-      updatedConfig.homeBackground = {
-        type: 'default',
-        url: null,
-        opacity: 100,
-      };
-    }
-
-    await saveConfig(updatedConfig);
-  };
-
-  if (loading || !config) {
-    return <div className="text-center py-8 text-muted-foreground">Loading mobile theme configuration...</div>;
+// Display Settings Component
+export function MobileDisplaySettings() {
+  const { config, saveConfig } = useMobileThemeConfig();
+  
+  if (!config) {
+    return <div className="text-center py-8 text-muted-foreground">Loading display settings...</div>;
   }
 
   return (
-    <div className="space-y-6">
-      <Tabs defaultValue="display" className="w-full">
-        <TabsList className="w-full h-auto flex-wrap justify-start gap-1 p-1 md:grid md:grid-cols-3">
-          <TabsTrigger value="display" className="flex-1 min-w-[100px]">Display</TabsTrigger>
-          <TabsTrigger value="backgrounds" className="flex-1 min-w-[100px]">Backgrounds</TabsTrigger>
-          <TabsTrigger value="advanced" className="flex-1 min-w-[100px]">Advanced</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="display" className="space-y-4 pt-4">
+    <div className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Glass Effect</CardTitle>
@@ -536,10 +213,21 @@ export function MobileThemeConfig() {
               </Select>
             </CardContent>
           </Card>
-        </TabsContent>
+    </div>
+  );
+}
 
-        <TabsContent value="backgrounds" className="space-y-4 pt-4">
-          <Tabs defaultValue="app" className="w-full">
+// Background Settings Component
+export function MobileBackgroundSettings() {
+  const { config, uploading, generating, aiPrompt, setAiPrompt, availableImages, saveConfig, handleBackgroundUpload, handleGenerateBackground, handleColorBackground, handleGradientBackground, handleResetBackground, handleSelectExistingImage } = useMobileThemeConfig();
+  
+  if (!config) {
+    return <div className="text-center py-8 text-muted-foreground">Loading background settings...</div>;
+  }
+
+  return (
+    <div className="space-y-4">
+      <Tabs defaultValue="app" className="w-full">
             <TabsList className="w-full h-auto flex-wrap justify-start gap-1 p-1 md:grid md:grid-cols-2">
               <TabsTrigger value="app" className="flex-1 min-w-[140px]">App Background</TabsTrigger>
               <TabsTrigger value="home" className="flex-1 min-w-[140px]">Login Background</TabsTrigger>
@@ -740,9 +428,34 @@ export function MobileThemeConfig() {
               </TabsContent>
             ))}
           </Tabs>
-        </TabsContent>
+    </div>
+  );
+}
 
-        <TabsContent value="advanced" className="space-y-4 pt-4">
+// Color Settings Component
+export function MobileColorSettings() {
+  const { config: globalConfig, saving, saveConfig } = useMobileThemeConfig();
+  const [config, setConfig] = useState(globalConfig);
+
+  // Update local state when global config changes
+  useEffect(() => {
+    if (globalConfig) {
+      setConfig(globalConfig);
+    }
+  }, [globalConfig]);
+  
+  if (!config) {
+    return <div className="text-center py-8 text-muted-foreground">Loading color settings...</div>;
+  }
+
+  const handleSave = async () => {
+    if (config) {
+      await saveConfig(config);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Primary Color</CardTitle>
@@ -810,7 +523,7 @@ export function MobileThemeConfig() {
               </div>
 
               <Button
-                onClick={() => saveConfig(config)}
+                onClick={handleSave}
                 disabled={saving}
                 className="w-full"
               >
@@ -818,8 +531,323 @@ export function MobileThemeConfig() {
               </Button>
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
     </div>
   );
+}
+
+// Custom hook to share state across components
+function useMobileThemeConfig() {
+  const { toast } = useToast();
+  const [config, setConfig] = useState<MobileThemeConfig | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [availableImages, setAvailableImages] = useState<Array<{ name: string; url: string }>>([]);
+
+  useEffect(() => {
+    fetchConfig();
+    fetchAvailableImages();
+  }, []);
+
+  const fetchConfig = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('app_settings')
+        .select('setting_value')
+        .eq('setting_key', 'mobile_theme_config')
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data?.setting_value) {
+        setConfig(data.setting_value as any as MobileThemeConfig);
+      }
+    } catch (error: any) {
+      console.error('Error fetching mobile theme config:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load mobile theme configuration",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAvailableImages = async () => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('avatars')
+        .list('', { limit: 100 });
+
+      if (error) throw error;
+
+      const imageFiles = (data || [])
+        .filter(file => file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i))
+        .map(file => ({
+          name: file.name,
+          url: supabase.storage.from('avatars').getPublicUrl(file.name).data.publicUrl,
+        }));
+
+      setAvailableImages(imageFiles);
+    } catch (error: any) {
+      console.error('Error fetching available images:', error);
+    }
+  };
+
+  const handleSelectExistingImage = async (imageUrl: string, target: 'app' | 'home') => {
+    if (!config) return;
+
+    const updatedConfig = { ...config };
+    if (target === 'app') {
+      updatedConfig.appBackground = {
+        ...updatedConfig.appBackground,
+        type: 'uploaded',
+        url: imageUrl,
+      };
+    } else {
+      updatedConfig.homeBackground = {
+        ...updatedConfig.homeBackground,
+        type: 'uploaded',
+        url: imageUrl,
+      };
+    }
+
+    await saveConfig(updatedConfig);
+  };
+
+  const saveConfig = async (updatedConfig: MobileThemeConfig) => {
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('app_settings')
+        .upsert([{
+          setting_key: 'mobile_theme_config',
+          setting_value: updatedConfig as any,
+        }], {
+          onConflict: 'setting_key',
+        });
+
+      if (error) throw error;
+
+      setConfig(updatedConfig);
+      toast({
+        title: "Success",
+        description: "Mobile theme configuration saved",
+      });
+    } catch (error: any) {
+      console.error('Error saving mobile theme config:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save mobile theme configuration",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleBackgroundUpload = async (event: React.ChangeEvent<HTMLInputElement>, target: 'app' | 'home') => {
+    const file = event.target.files?.[0];
+    if (!file || !config) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const filePath = target === 'app' 
+        ? 'mobile-app-background.png' 
+        : 'mobile-login-background.png';
+
+      await supabase.storage.from('avatars').remove([filePath]);
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      fetchAvailableImages();
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      const updatedConfig = { ...config };
+      if (target === 'app') {
+        updatedConfig.appBackground = {
+          ...updatedConfig.appBackground,
+          type: 'uploaded',
+          url: publicUrl,
+        };
+      } else {
+        updatedConfig.homeBackground = {
+          ...updatedConfig.homeBackground,
+          type: 'uploaded',
+          url: publicUrl,
+        };
+      }
+
+      await saveConfig(updatedConfig);
+    } catch (error: any) {
+      console.error('Error uploading background:', error);
+      toast({
+        title: "Upload failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleGenerateBackground = async (target: 'app' | 'home') => {
+    if (!aiPrompt.trim() || !config) {
+      toast({
+        title: "Error",
+        description: "Please enter a description for the background",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-background', {
+        body: { prompt: aiPrompt },
+      });
+
+      if (error) throw error;
+
+      const response = await fetch(data.imageUrl);
+      const blob = await response.blob();
+
+      const filePath = target === 'app' 
+        ? 'mobile-app-background.png' 
+        : 'mobile-login-background.png';
+
+      await supabase.storage.from('avatars').remove([filePath]);
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, blob, { upsert: true, contentType: 'image/png' });
+
+      if (uploadError) throw uploadError;
+
+      fetchAvailableImages();
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      const updatedConfig = { ...config };
+      if (target === 'app') {
+        updatedConfig.appBackground = {
+          ...updatedConfig.appBackground,
+          type: 'uploaded',
+          url: publicUrl,
+        };
+      } else {
+        updatedConfig.homeBackground = {
+          ...updatedConfig.homeBackground,
+          type: 'uploaded',
+          url: publicUrl,
+        };
+      }
+
+      await saveConfig(updatedConfig);
+      setAiPrompt('');
+    } catch (error: any) {
+      console.error('Error generating background:', error);
+      toast({
+        title: "Generation failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleColorBackground = async (color: string, target: 'app' | 'home') => {
+    if (!config) return;
+
+    const updatedConfig = { ...config };
+    if (target === 'app') {
+      updatedConfig.appBackground = {
+        ...updatedConfig.appBackground,
+        type: 'color',
+        url: null,
+        color,
+      };
+    } else {
+      updatedConfig.homeBackground = {
+        ...updatedConfig.homeBackground,
+        type: 'color',
+        url: null,
+        color,
+      };
+    }
+
+    await saveConfig(updatedConfig);
+  };
+
+  const handleGradientBackground = async (start: string, end: string, target: 'app' | 'home') => {
+    if (!config) return;
+
+    const updatedConfig = { ...config };
+    if (target === 'app') {
+      updatedConfig.appBackground = {
+        ...updatedConfig.appBackground,
+        type: 'gradient',
+        url: null,
+        gradientStart: start,
+        gradientEnd: end,
+        gradientDirection: '135deg',
+      };
+    } else {
+      updatedConfig.homeBackground = {
+        ...updatedConfig.homeBackground,
+        type: 'gradient',
+        url: null,
+        gradientStart: start,
+        gradientEnd: end,
+        gradientDirection: '135deg',
+      };
+    }
+
+    await saveConfig(updatedConfig);
+  };
+
+  const handleResetBackground = async (target: 'app' | 'home') => {
+    if (!config) return;
+
+    const updatedConfig = { ...config };
+    if (target === 'app') {
+      updatedConfig.appBackground = {
+        type: 'default',
+        url: null,
+        opacity: 100,
+      };
+    } else {
+      updatedConfig.homeBackground = {
+        type: 'default',
+        url: null,
+        opacity: 100,
+      };
+    }
+
+    await saveConfig(updatedConfig);
+  };
+
+  return { config, saving, uploading, generating, aiPrompt, setAiPrompt, availableImages, saveConfig, handleBackgroundUpload, handleGenerateBackground, handleColorBackground, handleGradientBackground, handleResetBackground, handleSelectExistingImage };
 }
