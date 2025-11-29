@@ -115,11 +115,15 @@ export function MobileDisplaySettings() {
   const { config, saveConfig } = useMobileThemeConfig();
   const [localTitleColor, setLocalTitleColor] = useState("");
   const [localSubtitleColor, setLocalSubtitleColor] = useState("");
+  const [localNavBarColor, setLocalNavBarColor] = useState("");
+  const [localHeaderColor, setLocalHeaderColor] = useState("");
   
   useEffect(() => {
     if (config) {
       setLocalTitleColor(config.headerTitleColor);
       setLocalSubtitleColor(config.headerSubtitleColor);
+      setLocalNavBarColor(config.navBarColor);
+      setLocalHeaderColor(config.headerColor);
     }
   }, [config]);
   
@@ -258,18 +262,38 @@ export function MobileDisplaySettings() {
               ) : (
                 <div className="space-y-2">
                   <Label>Background Color</Label>
-                  <Input
-                    type="color"
-                    value={config.navBarColor}
-                    onChange={async (e) => {
-                      const updatedConfig = {
-                        ...config,
-                        navBarColor: e.target.value,
-                      };
-                      await saveConfig(updatedConfig);
-                    }}
-                    className="w-full h-10"
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      type="color"
+                      value={localNavBarColor}
+                      onChange={async (e) => {
+                        const updatedConfig = {
+                          ...config,
+                          navBarColor: e.target.value,
+                        };
+                        setLocalNavBarColor(e.target.value);
+                        await saveConfig(updatedConfig);
+                      }}
+                      className="w-16 h-10 p-1 cursor-pointer"
+                    />
+                    <Input
+                      type="text"
+                      value={localNavBarColor}
+                      onChange={(e) => {
+                        setLocalNavBarColor(e.target.value);
+                      }}
+                      onBlur={async (e) => {
+                        const value = e.target.value.trim();
+                        if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
+                          await saveConfig({ ...config, navBarColor: value });
+                        } else {
+                          setLocalNavBarColor(config.navBarColor);
+                        }
+                      }}
+                      placeholder="#ffffff"
+                      className="flex-1 font-mono"
+                    />
+                  </div>
                 </div>
               )}
             </CardContent>
@@ -323,18 +347,38 @@ export function MobileDisplaySettings() {
               ) : (
                 <div className="space-y-2">
                   <Label>Background Color</Label>
-                  <Input
-                    type="color"
-                    value={config.headerColor}
-                    onChange={async (e) => {
-                      const updatedConfig = {
-                        ...config,
-                        headerColor: e.target.value,
-                      };
-                      await saveConfig(updatedConfig);
-                    }}
-                    className="w-full h-10"
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      type="color"
+                      value={localHeaderColor}
+                      onChange={async (e) => {
+                        const updatedConfig = {
+                          ...config,
+                          headerColor: e.target.value,
+                        };
+                        setLocalHeaderColor(e.target.value);
+                        await saveConfig(updatedConfig);
+                      }}
+                      className="w-16 h-10 p-1 cursor-pointer"
+                    />
+                    <Input
+                      type="text"
+                      value={localHeaderColor}
+                      onChange={(e) => {
+                        setLocalHeaderColor(e.target.value);
+                      }}
+                      onBlur={async (e) => {
+                        const value = e.target.value.trim();
+                        if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
+                          await saveConfig({ ...config, headerColor: value });
+                        } else {
+                          setLocalHeaderColor(config.headerColor);
+                        }
+                      }}
+                      placeholder="#ffffff"
+                      className="flex-1 font-mono"
+                    />
+                  </div>
                 </div>
               )}
             </CardContent>
