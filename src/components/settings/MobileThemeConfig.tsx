@@ -125,7 +125,7 @@ export function MobileDisplaySettings() {
       setLocalNavBarColor(config.navBarColor);
       setLocalHeaderColor(config.headerColor);
     }
-  }, [config]);
+  }, [config?.headerTitleColor, config?.headerSubtitleColor, config?.navBarColor, config?.headerColor]);
   
   if (!config) {
     return <div className="text-center py-8 text-muted-foreground">Loading display settings...</div>;
@@ -268,14 +268,12 @@ export function MobileDisplaySettings() {
                     <div className="flex gap-2">
                       <Input
                         type="color"
-                        value={localNavBarColor}
-                        onChange={async (e) => {
-                          const updatedConfig = {
-                            ...config,
-                            navBarColor: e.target.value,
-                          };
+                        value={localNavBarColor || config.navBarColor}
+                        onChange={(e) => {
                           setLocalNavBarColor(e.target.value);
-                          await saveConfig(updatedConfig);
+                        }}
+                        onBlur={async (e) => {
+                          await saveConfig({ ...config, navBarColor: e.target.value });
                         }}
                         className="w-16 h-10 p-1 cursor-pointer"
                       />
@@ -377,14 +375,12 @@ export function MobileDisplaySettings() {
                     <div className="flex gap-2">
                       <Input
                         type="color"
-                        value={localHeaderColor}
-                        onChange={async (e) => {
-                          const updatedConfig = {
-                            ...config,
-                            headerColor: e.target.value,
-                          };
+                        value={localHeaderColor || config.headerColor}
+                        onChange={(e) => {
                           setLocalHeaderColor(e.target.value);
-                          await saveConfig(updatedConfig);
+                        }}
+                        onBlur={async (e) => {
+                          await saveConfig({ ...config, headerColor: e.target.value });
                         }}
                         className="w-16 h-10 p-1 cursor-pointer"
                       />
@@ -516,14 +512,12 @@ export function MobileDisplaySettings() {
                 <div className="flex gap-2">
                   <Input
                     type="color"
-                    value={config.headerTitleColor}
-                    onChange={async (e) => {
-                      const updatedConfig = {
-                        ...config,
-                        headerTitleColor: e.target.value,
-                      };
+                    value={localTitleColor || config.headerTitleColor}
+                    onChange={(e) => {
                       setLocalTitleColor(e.target.value);
-                      await saveConfig(updatedConfig);
+                    }}
+                    onBlur={async (e) => {
+                      await saveConfig({ ...config, headerTitleColor: e.target.value });
                     }}
                     className="w-16 h-10 p-1 cursor-pointer"
                   />
@@ -631,14 +625,12 @@ export function MobileDisplaySettings() {
                 <div className="flex gap-2">
                   <Input
                     type="color"
-                    value={config.headerSubtitleColor}
-                    onChange={async (e) => {
-                      const updatedConfig = {
-                        ...config,
-                        headerSubtitleColor: e.target.value,
-                      };
+                    value={localSubtitleColor || config.headerSubtitleColor}
+                    onChange={(e) => {
                       setLocalSubtitleColor(e.target.value);
-                      await saveConfig(updatedConfig);
+                    }}
+                    onBlur={async (e) => {
+                      await saveConfig({ ...config, headerSubtitleColor: e.target.value });
                     }}
                     className="w-16 h-10 p-1 cursor-pointer"
                   />
