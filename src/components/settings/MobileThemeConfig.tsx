@@ -412,18 +412,36 @@ export function MobileDisplaySettings() {
 
               <div className="space-y-2">
                 <Label>Text Color</Label>
-                <Input
-                  type="color"
-                  value={config.headerTitleColor}
-                  onBlur={async (e) => {
-                    const updatedConfig = {
-                      ...config,
-                      headerTitleColor: e.target.value,
-                    };
-                    await saveConfig(updatedConfig);
-                  }}
-                  className="w-full h-10"
-                />
+                <div className="flex gap-2">
+                  <Input
+                    type="color"
+                    value={config.headerTitleColor}
+                    onChange={async (e) => {
+                      const updatedConfig = {
+                        ...config,
+                        headerTitleColor: e.target.value,
+                      };
+                      await saveConfig(updatedConfig);
+                    }}
+                    className="w-16 h-10 p-1 cursor-pointer"
+                  />
+                  <Input
+                    type="text"
+                    value={config.headerTitleColor}
+                    onChange={async (e) => {
+                      const value = e.target.value;
+                      if (value.match(/^#[0-9A-Fa-f]{6}$/)) {
+                        const updatedConfig = {
+                          ...config,
+                          headerTitleColor: value,
+                        };
+                        await saveConfig(updatedConfig);
+                      }
+                    }}
+                    placeholder="#000000"
+                    className="flex-1 h-10 font-mono"
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -507,18 +525,36 @@ export function MobileDisplaySettings() {
 
               <div className="space-y-2">
                 <Label>Text Color</Label>
-                <Input
-                  type="color"
-                  value={config.headerSubtitleColor}
-                  onBlur={async (e) => {
-                    const updatedConfig = {
-                      ...config,
-                      headerSubtitleColor: e.target.value,
-                    };
-                    await saveConfig(updatedConfig);
-                  }}
-                  className="w-full h-10"
-                />
+                <div className="flex gap-2">
+                  <Input
+                    type="color"
+                    value={config.headerSubtitleColor}
+                    onChange={async (e) => {
+                      const updatedConfig = {
+                        ...config,
+                        headerSubtitleColor: e.target.value,
+                      };
+                      await saveConfig(updatedConfig);
+                    }}
+                    className="w-16 h-10 p-1 cursor-pointer"
+                  />
+                  <Input
+                    type="text"
+                    value={config.headerSubtitleColor}
+                    onChange={async (e) => {
+                      const value = e.target.value;
+                      if (value.match(/^#[0-9A-Fa-f]{6}$/)) {
+                        const updatedConfig = {
+                          ...config,
+                          headerSubtitleColor: value,
+                        };
+                        await saveConfig(updatedConfig);
+                      }
+                    }}
+                    placeholder="#4B5563"
+                    className="flex-1 h-10 font-mono"
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
