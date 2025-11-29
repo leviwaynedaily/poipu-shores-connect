@@ -415,7 +415,7 @@ export function MobileDisplaySettings() {
                 <Input
                   type="color"
                   value={config.headerTitleColor}
-                  onChange={async (e) => {
+                  onBlur={async (e) => {
                     const updatedConfig = {
                       ...config,
                       headerTitleColor: e.target.value,
@@ -510,7 +510,7 @@ export function MobileDisplaySettings() {
                 <Input
                   type="color"
                   value={config.headerSubtitleColor}
-                  onChange={async (e) => {
+                  onBlur={async (e) => {
                     const updatedConfig = {
                       ...config,
                       headerSubtitleColor: e.target.value,
