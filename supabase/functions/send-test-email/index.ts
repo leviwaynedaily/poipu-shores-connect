@@ -19,9 +19,10 @@ interface TestEmailRequest {
 const emailTemplates = {
   "community-update": {
     subject: "Poipu Shores Community Update",
-    getHtml: (message: string) => `
+    getHtml: (message: string, logoUrl?: string) => `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+          ${logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height: 80px; margin-bottom: 15px;" />` : ''}
           <h1 style="color: white; margin: 0;">Poipu Shores Community</h1>
         </div>
         <div style="padding: 30px; background: #f9fafb;">
@@ -37,9 +38,10 @@ const emailTemplates = {
   },
   "weather-advisory": {
     subject: "Poipu Shores Weather Advisory",
-    getHtml: (message: string) => `
+    getHtml: (message: string, logoUrl?: string) => `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: #dc2626; padding: 30px; text-align: center;">
+          ${logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height: 80px; margin-bottom: 15px;" />` : ''}
           <h1 style="color: white; margin: 0;">⚠️ Weather Advisory</h1>
         </div>
         <div style="padding: 30px; background: #fef2f2;">
@@ -53,9 +55,10 @@ const emailTemplates = {
   },
   "photo-highlights": {
     subject: "Poipu Shores Photo Highlights",
-    getHtml: (message: string) => `
+    getHtml: (message: string, logoUrl?: string) => `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); padding: 30px; text-align: center;">
+          ${logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height: 80px; margin-bottom: 15px;" />` : ''}
           <h1 style="color: white; margin: 0;">📸 Photo Highlights</h1>
         </div>
         <div style="padding: 30px; background: #f9fafb;">
@@ -86,6 +89,15 @@ const handler = async (req: Request): Promise<Response> => {
         },
       }
     );
+
+    // Fetch auth logo URL from app settings
+    const { data: logoData } = await supabaseClient
+      .from("app_settings")
+      .select("setting_value")
+      .eq("setting_key", "auth_logo_url")
+      .single();
+    
+    const logoUrl = logoData?.setting_value as string || "";
 
     // Get the authorization header
     const authHeader = req.headers.get("Authorization");
@@ -123,10 +135,11 @@ const handler = async (req: Request): Promise<Response> => {
     const selectedTemplate = template && emailTemplates[template as keyof typeof emailTemplates];
     const emailSubject = selectedTemplate ? selectedTemplate.subject : subject || "Poipu Shores Test Email";
     const emailHtml = selectedTemplate 
-      ? selectedTemplate.getHtml(message)
+      ? selectedTemplate.getHtml(message, logoUrl)
       : `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+            ${logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height: 80px; margin-bottom: 15px;" />` : ''}
             <h1 style="color: white; margin: 0;">Poipu Shores</h1>
           </div>
           <div style="padding: 30px; background: #f9fafb;">
