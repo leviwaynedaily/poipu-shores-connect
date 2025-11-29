@@ -624,6 +624,30 @@ export function MobileBackgroundSettings() {
   const { config, uploading, generating, aiPrompt, setAiPrompt, availableImages, saveConfig, handleBackgroundUpload, handleGenerateBackground, handleColorBackground, handleGradientBackground, handleResetBackground, handleSelectExistingImage } = useMobileThemeConfig();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentTarget, setCurrentTarget] = useState<'app' | 'home'>('app');
+  const [localSolidColor, setLocalSolidColor] = useState("");
+  const [localGradientStart, setLocalGradientStart] = useState("");
+  const [localGradientEnd, setLocalGradientEnd] = useState("");
+  
+  useEffect(() => {
+    if (config) {
+      const target = currentTarget;
+      setLocalSolidColor(
+        target === 'app' 
+          ? (config.appBackground.color || '#0066cc')
+          : (config.homeBackground.color || '#0066cc')
+      );
+      setLocalGradientStart(
+        target === 'app'
+          ? (config.appBackground.gradientStart || '#0066cc')
+          : (config.homeBackground.gradientStart || '#0066cc')
+      );
+      setLocalGradientEnd(
+        target === 'app'
+          ? (config.appBackground.gradientEnd || '#00ccff')
+          : (config.homeBackground.gradientEnd || '#00ccff')
+      );
+    }
+  }, [config, currentTarget]);
   
   if (!config) {
     return <div className="text-center py-8 text-muted-foreground">Loading background settings...</div>;
@@ -763,13 +787,31 @@ export function MobileBackgroundSettings() {
                     <div className="flex gap-2">
                       <Input
                         type="color"
-                        defaultValue={
-                          target === 'app' 
-                            ? (config.appBackground.color || '#0066cc')
-                            : (config.homeBackground.color || '#0066cc')
-                        }
-                        onChange={(e) => handleColorBackground(e.target.value, target)}
-                        className="w-16 h-9"
+                        value={localSolidColor}
+                        onChange={(e) => {
+                          setLocalSolidColor(e.target.value);
+                          handleColorBackground(e.target.value, target);
+                        }}
+                        className="w-16 h-9 p-1 cursor-pointer"
+                      />
+                      <Input
+                        type="text"
+                        value={localSolidColor}
+                        onChange={(e) => setLocalSolidColor(e.target.value)}
+                        onBlur={(e) => {
+                          const value = e.target.value.trim();
+                          if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
+                            handleColorBackground(value, target);
+                          } else {
+                            setLocalSolidColor(
+                              target === 'app' 
+                                ? (config.appBackground.color || '#0066cc')
+                                : (config.homeBackground.color || '#0066cc')
+                            );
+                          }
+                        }}
+                        placeholder="#0066cc"
+                        className="flex-1 font-mono"
                       />
                     </div>
                   </CardContent>
@@ -780,37 +822,61 @@ export function MobileBackgroundSettings() {
                     <CardTitle className="text-base">Gradient</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex gap-2">
-                      <Input
-                        type="color"
-                        defaultValue={
-                          target === 'app'
-                            ? (config.appBackground.gradientStart || '#0066cc')
-                            : (config.homeBackground.gradientStart || '#0066cc')
-                        }
-                        onBlur={(e) => {
-                          const end = target === 'app'
-                            ? (config.appBackground.gradientEnd || '#00ccff')
-                            : (config.homeBackground.gradientEnd || '#00ccff');
-                          handleGradientBackground(e.target.value, end, target);
-                        }}
-                        className="w-16 h-9"
-                      />
-                      <Input
-                        type="color"
-                        defaultValue={
-                          target === 'app'
-                            ? (config.appBackground.gradientEnd || '#00ccff')
-                            : (config.homeBackground.gradientEnd || '#00ccff')
-                        }
-                        onBlur={(e) => {
-                          const start = target === 'app'
-                            ? (config.appBackground.gradientStart || '#0066cc')
-                            : (config.homeBackground.gradientStart || '#0066cc');
-                          handleGradientBackground(start, e.target.value, target);
-                        }}
-                        className="w-16 h-9"
-                      />
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <Input
+                          type="color"
+                          value={localGradientStart}
+                          onChange={(e) => setLocalGradientStart(e.target.value)}
+                          className="w-16 h-9 p-1 cursor-pointer"
+                        />
+                        <Input
+                          type="text"
+                          value={localGradientStart}
+                          onChange={(e) => setLocalGradientStart(e.target.value)}
+                          onBlur={(e) => {
+                            const value = e.target.value.trim();
+                            if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
+                              handleGradientBackground(value, localGradientEnd, target);
+                            } else {
+                              setLocalGradientStart(
+                                target === 'app'
+                                  ? (config.appBackground.gradientStart || '#0066cc')
+                                  : (config.homeBackground.gradientStart || '#0066cc')
+                              );
+                            }
+                          }}
+                          placeholder="#0066cc"
+                          className="flex-1 font-mono text-sm"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Input
+                          type="color"
+                          value={localGradientEnd}
+                          onChange={(e) => setLocalGradientEnd(e.target.value)}
+                          className="w-16 h-9 p-1 cursor-pointer"
+                        />
+                        <Input
+                          type="text"
+                          value={localGradientEnd}
+                          onChange={(e) => setLocalGradientEnd(e.target.value)}
+                          onBlur={(e) => {
+                            const value = e.target.value.trim();
+                            if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
+                              handleGradientBackground(localGradientStart, value, target);
+                            } else {
+                              setLocalGradientEnd(
+                                target === 'app'
+                                  ? (config.appBackground.gradientEnd || '#00ccff')
+                                  : (config.homeBackground.gradientEnd || '#00ccff')
+                              );
+                            }
+                          }}
+                          placeholder="#00ccff"
+                          className="flex-1 font-mono text-sm"
+                        />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -864,7 +930,7 @@ export function MobileColorSettings() {
               <div className="space-y-4">
                 <div className="space-y-3">
                   <Label className="text-sm font-medium">Light Mode Primary</Label>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     <Input
                       type="color"
                       value={`#${hslToHex(config.colors.light.primary)}`}
@@ -882,17 +948,37 @@ export function MobileColorSettings() {
                         };
                         setConfig(updatedConfig);
                       }}
-                      className="w-20 h-10"
+                      className="w-16 h-10 p-1 cursor-pointer"
                     />
-                    <code className="flex-1 text-xs bg-muted px-3 py-2 rounded">
-                      {config.colors.light.primary}
-                    </code>
+                    <Input
+                      type="text"
+                      value={`#${hslToHex(config.colors.light.primary)}`}
+                      onChange={(e) => {
+                        const value = e.target.value.trim();
+                        if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
+                          const hsl = hexToHsl(value);
+                          const updatedConfig = {
+                            ...config,
+                            colors: {
+                              ...config.colors,
+                              light: {
+                                ...config.colors.light,
+                                primary: hsl,
+                              },
+                            },
+                          };
+                          setConfig(updatedConfig);
+                        }
+                      }}
+                      placeholder="#000000"
+                      className="flex-1 font-mono text-xs"
+                    />
                   </div>
                 </div>
 
                 <div className="space-y-3">
                   <Label className="text-sm font-medium">Dark Mode Primary</Label>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     <Input
                       type="color"
                       value={`#${hslToHex(config.colors.dark.primary)}`}
@@ -910,11 +996,31 @@ export function MobileColorSettings() {
                         };
                         setConfig(updatedConfig);
                       }}
-                      className="w-20 h-10"
+                      className="w-16 h-10 p-1 cursor-pointer"
                     />
-                    <code className="flex-1 text-xs bg-muted px-3 py-2 rounded">
-                      {config.colors.dark.primary}
-                    </code>
+                    <Input
+                      type="text"
+                      value={`#${hslToHex(config.colors.dark.primary)}`}
+                      onChange={(e) => {
+                        const value = e.target.value.trim();
+                        if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
+                          const hsl = hexToHsl(value);
+                          const updatedConfig = {
+                            ...config,
+                            colors: {
+                              ...config.colors,
+                              dark: {
+                                ...config.colors.dark,
+                                primary: hsl,
+                              },
+                            },
+                          };
+                          setConfig(updatedConfig);
+                        }
+                      }}
+                      placeholder="#ffffff"
+                      className="flex-1 font-mono text-xs"
+                    />
                   </div>
                 </div>
               </div>
