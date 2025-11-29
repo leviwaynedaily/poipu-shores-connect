@@ -264,7 +264,7 @@ export function MobileBackgroundSettings() {
                 </Card>
 
                 {availableImages.length > 0 && (
-                  <Card>
+                  <Card className="bg-card">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-base">
                         <ImageIcon className="h-4 w-4" />
@@ -273,7 +273,7 @@ export function MobileBackgroundSettings() {
                       <CardDescription>Select from existing backgrounds</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {availableImages.map((image) => {
                           const isActive = (target === 'app' && config.appBackground.url === image.url) ||
                                          (target === 'home' && config.homeBackground.url === image.url);
@@ -281,18 +281,23 @@ export function MobileBackgroundSettings() {
                             <button
                               key={image.name}
                               onClick={() => handleSelectExistingImage(image.url, target)}
-                              className={`relative rounded-md overflow-hidden border-2 transition-all hover:scale-105 ${
-                                isActive ? 'border-primary ring-2 ring-primary' : 'border-border'
+                              className={`relative rounded-lg overflow-hidden border-2 transition-all hover:scale-105 bg-muted ${
+                                isActive ? 'border-primary ring-2 ring-primary ring-offset-2' : 'border-border hover:border-primary/50'
                               }`}
                             >
-                              <img
-                                src={image.url}
-                                alt={image.name}
-                                className="w-full h-20 object-cover"
-                              />
+                              <div className="aspect-video bg-background">
+                                <img
+                                  src={image.url}
+                                  alt={image.name}
+                                  className="w-full h-full object-cover"
+                                  loading="lazy"
+                                />
+                              </div>
                               {isActive && (
-                                <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
-                                  <span className="text-xs font-medium text-primary-foreground bg-primary px-2 py-1 rounded">Active</span>
+                                <div className="absolute inset-0 bg-primary/20 flex items-center justify-center backdrop-blur-[2px]">
+                                  <span className="text-xs font-semibold text-primary-foreground bg-primary px-3 py-1.5 rounded-full shadow-lg">
+                                    Active
+                                  </span>
                                 </div>
                               )}
                             </button>
