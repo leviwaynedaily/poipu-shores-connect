@@ -2,6 +2,8 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Plus } from "lucide-react";
 import { ConversationList } from "./ConversationList";
+import { useTheme } from "@/contexts/ThemeContext";
+import { cn } from "@/lib/utils";
 
 interface ConversationSidebarProps {
   activeConversationId: string | null;
@@ -14,13 +16,28 @@ export const ConversationSidebar = ({
   onSelectConversation,
   onNewChat,
 }: ConversationSidebarProps) => {
+  const { isGlassTheme, glassIntensity } = useTheme();
+  
+  // Calculate opacity based on intensity (matching Card component)
+  const opacity = isGlassTheme ? 5 + (glassIntensity * 0.95) : 100;
+  const borderOpacity = isGlassTheme ? 15 + (glassIntensity * 0.85) : 100;
+
   return (
-    <div className="flex flex-col h-full border-r bg-muted/30">
-      <div className="p-4 border-b flex-shrink-0">
+    <div 
+      className={cn(
+        "flex flex-col h-full rounded-lg shadow-sm",
+        isGlassTheme ? "backdrop-blur-sm" : "bg-card border border-border"
+      )}
+      style={isGlassTheme ? {
+        backgroundColor: `hsl(var(--card) / ${opacity}%)`,
+        borderColor: `hsl(var(--border) / ${borderOpacity}%)`
+      } : undefined}
+    >
+      <div className="p-4 border-b border-border/50 flex-shrink-0">
         <Button
           onClick={onNewChat}
           className="w-full justify-start gap-2"
-          variant="default"
+          variant="outline"
         >
           <Plus className="h-4 w-4" />
           New Chat

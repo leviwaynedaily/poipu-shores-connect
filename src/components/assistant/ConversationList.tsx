@@ -130,7 +130,7 @@ export const ConversationList = ({
     <Button
       key={conv.id}
       variant={activeConversationId === conv.id ? "secondary" : "ghost"}
-      className="w-full justify-start mb-1 h-auto py-3 px-3"
+      className="w-full justify-start mb-1 h-auto py-3 px-3 rounded-lg"
       onClick={() => onSelectConversation(conv.id)}
     >
       <div className="flex items-start justify-between w-full gap-2">
