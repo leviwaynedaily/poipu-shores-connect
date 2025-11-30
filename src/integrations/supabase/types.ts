@@ -213,9 +213,34 @@ export type Database = {
           },
         ]
       }
+      community_assistant_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       community_assistant_messages: {
         Row: {
           content: string
+          conversation_id: string
           created_at: string
           id: string
           role: string
@@ -223,6 +248,7 @@ export type Database = {
         }
         Insert: {
           content: string
+          conversation_id: string
           created_at?: string
           id?: string
           role: string
@@ -230,12 +256,21 @@ export type Database = {
         }
         Update: {
           content?: string
+          conversation_id?: string
           created_at?: string
           id?: string
           role?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "community_assistant_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "community_assistant_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       community_photos: {
         Row: {

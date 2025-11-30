@@ -4,12 +4,15 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Send, Loader2, Trash2, X } from "lucide-react";
+import { Send, Loader2, Menu, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { TypingIndicator } from "@/components/TypingIndicator";
 import { useNavigate } from "react-router-dom";
 import { usePageConfig } from "@/hooks/use-page-config";
+import { ConversationSidebar } from "@/components/assistant/ConversationSidebar";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/use-mobile";
 import defaultChickenIcon from "@/assets/chicken-assistant.jpeg";
 
 interface Message {
@@ -17,39 +20,50 @@ interface Message {
   content: string;
 }
 
-const DISPLAY_THRESHOLD = 50; // Buffer before displaying to avoid showing partial words
+const DISPLAY_THRESHOLD = 50;
 
 const Assistant = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { pageConfig } = usePageConfig();
+  const isMobile = useIsMobile();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [chickenIcon, setChickenIcon] = useState<string>(defaultChickenIcon);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    loadChatHistory();
     fetchChickenLogo();
   }, []);
+
+  useEffect(() => {
+    if (activeConversationId) {
+      loadChatHistory(activeConversationId);
+    } else {
+      setMessages([]);
+    }
+  }, [activeConversationId]);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages, isLoadingHistory]);
+  }, [messages]);
 
-  const loadChatHistory = async () => {
+  const loadChatHistory = async (conversationId: string) => {
+    setIsLoadingHistory(true);
     try {
       if (!user) return;
 
       const { data, error } = await supabase
         .from("community_assistant_messages")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("conversation_id", conversationId)
         .order("created_at", { ascending: true });
 
       if (error) throw error;
@@ -81,13 +95,44 @@ const Assistant = () => {
     }
   };
 
-  const saveMessage = async (role: "user" | "assistant", content: string) => {
+  const createConversation = async (firstMessage: string): Promise<string | null> => {
+    try {
+      if (!user) return null;
+
+      const title = firstMessage.length > 50 
+        ? firstMessage.substring(0, 47) + "..." 
+        : firstMessage;
+
+      const { data, error } = await supabase
+        .from("community_assistant_conversations")
+        .insert({
+          user_id: user.id,
+          title,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return data.id;
+    } catch (error: any) {
+      console.error("Error creating conversation:", error);
+      return null;
+    }
+  };
+
+  const saveMessage = async (
+    conversationId: string,
+    role: "user" | "assistant",
+    content: string
+  ) => {
     try {
       if (!user) return;
 
       const { error } = await supabase
         .from("community_assistant_messages")
         .insert({
+          conversation_id: conversationId,
           user_id: user.id,
           role,
           content,
@@ -103,11 +148,27 @@ const Assistant = () => {
     if (!input.trim() || isLoading) return;
 
     const userMessage: Message = { role: "user", content: input };
-    setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
 
-    await saveMessage("user", userMessage.content);
+    // Create new conversation if needed
+    let conversationId = activeConversationId;
+    if (!conversationId) {
+      conversationId = await createConversation(userMessage.content);
+      if (!conversationId) {
+        toast({
+          title: "Error",
+          description: "Failed to create conversation",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+      setActiveConversationId(conversationId);
+    }
+
+    setMessages((prev) => [...prev, userMessage]);
+    await saveMessage(conversationId, "user", userMessage.content);
 
     try {
       const { data, error } = await supabase.functions.invoke("community-assistant", {
@@ -127,7 +188,7 @@ const Assistant = () => {
       const decoder = new TextDecoder();
       let assistantContent = "";
       let textBuffer = "";
-      let messageRevealed = false; // Track if we've shown the message yet
+      let messageRevealed = false;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -152,13 +213,11 @@ const Assistant = () => {
             const content = parsed.choices?.[0]?.delta?.content;
             if (content) {
               assistantContent += content;
-              
-              // Only reveal the message once we have enough content
+
               if (!messageRevealed && assistantContent.length >= DISPLAY_THRESHOLD) {
                 messageRevealed = true;
                 setMessages((prev) => [...prev, { role: "assistant", content: assistantContent }]);
               } else if (messageRevealed) {
-                // After revealed, update normally for real-time streaming
                 setMessages((prev) => {
                   const newMessages = [...prev];
                   newMessages[newMessages.length - 1] = {
@@ -176,13 +235,12 @@ const Assistant = () => {
         }
       }
 
-      // If stream ends before threshold, show what we have
       if (!messageRevealed && assistantContent) {
         setMessages((prev) => [...prev, { role: "assistant", content: assistantContent }]);
       }
 
       if (assistantContent) {
-        await saveMessage("assistant", assistantContent);
+        await saveMessage(conversationId, "assistant", assistantContent);
       }
     } catch (error: any) {
       console.error("Chat error:", error);
@@ -197,130 +255,134 @@ const Assistant = () => {
     }
   };
 
-  const clearHistory = async () => {
-    try {
-      if (!user) return;
-
-      const { error } = await supabase
-        .from("community_assistant_messages")
-        .delete()
-        .eq("user_id", user.id);
-
-      if (error) throw error;
-
-      setMessages([]);
-      toast({
-        title: "Success",
-        description: "Chat history cleared",
-      });
-    } catch (error: any) {
-      console.error("Error clearing history:", error);
-      toast({
-        title: "Error",
-        description: "Failed to clear history",
-        variant: "destructive",
-      });
-    }
+  const handleNewChat = () => {
+    setActiveConversationId(null);
+    setMessages([]);
+    setIsSidebarOpen(false);
   };
 
-  if (isLoadingHistory) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
+  const handleSelectConversation = (id: string) => {
+    setActiveConversationId(id);
+    setIsSidebarOpen(false);
+  };
+
+  const sidebarContent = (
+    <ConversationSidebar
+      activeConversationId={activeConversationId}
+      onSelectConversation={handleSelectConversation}
+      onNewChat={handleNewChat}
+    />
+  );
 
   return (
-    <Card className="h-[calc(100vh-8rem)] flex flex-col">
-      <CardHeader className="border-b flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img
-              src={pageConfig?.headerLogoUrl || chickenIcon}
-              alt="Community Assistant"
-              className="h-12 w-12 rounded-full object-cover ring-2 ring-primary/20"
-            />
-            <div>
-              <CardTitle className="text-2xl">Ask the Chicken</CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">
-                Your AI assistant for documents, announcements, emergency info, and more!
-              </p>
+    <div className="flex h-[calc(100vh-8rem)] gap-4">
+      {/* Desktop Sidebar */}
+      {!isMobile && (
+        <div className="w-80 flex-shrink-0">
+          {sidebarContent}
+        </div>
+      )}
+
+      {/* Main Chat Area */}
+      <Card className="flex-1 flex flex-col min-w-0">
+        <CardHeader className="border-b flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {isMobile && (
+                <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
+                  <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <Menu className="h-5 w-5" />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="p-0 w-80">
+                    {sidebarContent}
+                  </SheetContent>
+                </Sheet>
+              )}
+              <img
+                src={pageConfig?.headerLogoUrl || chickenIcon}
+                alt="Community Assistant"
+                className="h-12 w-12 rounded-full object-cover ring-2 ring-primary/20"
+              />
+              <div>
+                <CardTitle className="text-2xl">Ask the Chicken</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Your AI assistant for documents, announcements, emergency info, and more!
+                </p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {messages.length > 0 && (
-              <Button variant="ghost" size="sm" onClick={clearHistory}>
-                <Trash2 className="h-4 w-4 mr-2" />
-                Clear History
-              </Button>
-            )}
             <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
               <X className="h-5 w-5" />
             </Button>
           </div>
-        </div>
-      </CardHeader>
+        </CardHeader>
 
-      <CardContent className="flex-1 flex flex-col p-0 min-h-0">
-        <ScrollArea className="flex-1 px-6">
-          <div className="space-y-4 py-6">
-            {messages.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-xl font-medium mb-3">Aloha! 🌺</p>
-                <p className="text-base text-muted-foreground max-w-md mx-auto">
-                  I'm your community assistant. Ask me about documents, announcements,
-                  emergency contacts, photos, or anything else about Poipu Shores!
-                </p>
-              </div>
-            )}
-            {messages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-3 text-base whitespace-pre-wrap ${
-                    msg.role === "user"
-                      ? "bg-primary text-primary-foreground rounded-br-sm"
-                      : "bg-muted rounded-tl-sm"
-                  }`}
-                >
-                  {msg.content}
+        <CardContent className="flex-1 flex flex-col p-0 min-h-0">
+          <ScrollArea className="flex-1 px-6">
+            <div className="space-y-4 py-6">
+              {messages.length === 0 && !isLoadingHistory && (
+                <div className="text-center py-12">
+                  <p className="text-xl font-medium mb-3">Aloha! 🌺</p>
+                  <p className="text-base text-muted-foreground max-w-md mx-auto">
+                    I'm your community assistant. Ask me about documents, announcements,
+                    emergency contacts, photos, or anything else about Poipu Shores!
+                  </p>
                 </div>
-              </div>
-            ))}
-            {isLoading && <TypingIndicator />}
-            <div ref={scrollRef} />
-          </div>
-        </ScrollArea>
-
-        <div className="border-t p-6 flex-shrink-0">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSend();
-            }}
-            className="flex gap-3"
-          >
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask me anything..."
-              disabled={isLoading}
-              className="text-base h-12"
-            />
-            <Button type="submit" size="lg" disabled={isLoading} className="h-12 px-6">
-              {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <Send className="h-5 w-5" />
               )}
-            </Button>
-          </form>
-        </div>
-      </CardContent>
-    </Card>
+              {isLoadingHistory && (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              )}
+              {messages.map((msg, idx) => (
+                <div
+                  key={idx}
+                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  <div
+                    className={`max-w-[80%] rounded-2xl px-4 py-3 text-base whitespace-pre-wrap ${
+                      msg.role === "user"
+                        ? "bg-primary text-primary-foreground rounded-br-sm"
+                        : "bg-muted rounded-tl-sm"
+                    }`}
+                  >
+                    {msg.content}
+                  </div>
+                </div>
+              ))}
+              {isLoading && <TypingIndicator />}
+              <div ref={scrollRef} />
+            </div>
+          </ScrollArea>
+
+          <div className="border-t p-6 flex-shrink-0">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSend();
+              }}
+              className="flex gap-3"
+            >
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask me anything..."
+                disabled={isLoading}
+                className="text-base h-12"
+              />
+              <Button type="submit" size="lg" disabled={isLoading} className="h-12 px-6">
+                {isLoading ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Send className="h-5 w-5" />
+                )}
+              </Button>
+            </form>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
