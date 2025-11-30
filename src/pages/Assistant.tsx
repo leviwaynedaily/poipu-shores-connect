@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Send, Loader2, Menu, X } from "lucide-react";
+import { Send, Loader2, Menu, X, PanelLeftClose, PanelLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { TypingIndicator } from "@/components/TypingIndicator";
@@ -14,6 +14,7 @@ import { ConversationSidebar } from "@/components/assistant/ConversationSidebar"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import defaultChickenIcon from "@/assets/chicken-assistant.jpeg";
+import { cn } from "@/lib/utils";
 
 interface Message {
   role: "user" | "assistant";
@@ -35,6 +36,7 @@ const Assistant = () => {
   const [chickenIcon, setChickenIcon] = useState<string>(defaultChickenIcon);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isHistoryCollapsed, setIsHistoryCollapsed] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -278,8 +280,18 @@ const Assistant = () => {
     <div className="flex h-[calc(100vh-8rem)] gap-4">
       {/* Desktop Sidebar */}
       {!isMobile && (
-        <div className="w-80 flex-shrink-0">
-          {sidebarContent}
+        <div 
+          className={cn(
+            "flex-shrink-0 transition-all duration-300",
+            isHistoryCollapsed ? "w-0" : "w-80"
+          )}
+        >
+          <div className={cn(
+            "h-full transition-opacity duration-300",
+            isHistoryCollapsed ? "opacity-0 invisible" : "opacity-100 visible"
+          )}>
+            {sidebarContent}
+          </div>
         </div>
       )}
 
@@ -288,7 +300,7 @@ const Assistant = () => {
         <CardHeader className="border-b flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {isMobile && (
+              {isMobile ? (
                 <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
                   <SheetTrigger asChild>
                     <Button variant="ghost" size="icon">
@@ -299,6 +311,18 @@ const Assistant = () => {
                     {sidebarContent}
                   </SheetContent>
                 </Sheet>
+              ) : (
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => setIsHistoryCollapsed(!isHistoryCollapsed)}
+                >
+                  {isHistoryCollapsed ? (
+                    <PanelLeft className="h-5 w-5" />
+                  ) : (
+                    <PanelLeftClose className="h-5 w-5" />
+                  )}
+                </Button>
               )}
               <img
                 src={pageConfig?.headerLogoUrl || chickenIcon}
