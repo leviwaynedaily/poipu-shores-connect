@@ -3,6 +3,9 @@ project_id = "rvqqnfsgovlxocjjugww"
 [functions.get-page-config]
 verify_jwt = false
 
+[functions.mobile-conversations]
+verify_jwt = true
+
 [functions.community-assistant-mobile]
 verify_jwt = false
 
