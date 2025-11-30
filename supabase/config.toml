@@ -9,6 +9,9 @@ verify_jwt = true
 [functions.mobile-user-profile]
 verify_jwt = true
 
+[functions.mobile-users]
+verify_jwt = true
+
 [functions.community-assistant-mobile]
 verify_jwt = false
 
