@@ -6,6 +6,9 @@ verify_jwt = false
 [functions.mobile-conversations]
 verify_jwt = true
 
+[functions.mobile-user-profile]
+verify_jwt = true
+
 [functions.community-assistant-mobile]
 verify_jwt = false
 
