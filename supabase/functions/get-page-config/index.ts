@@ -171,6 +171,9 @@ Deno.serve(async (req) => {
         defaultThemeConfig.headerSubtitleSize = 'text-sm';
         defaultThemeConfig.headerSubtitleWeight = 'normal';
         defaultThemeConfig.headerSubtitleColor = '#4B5563';
+        
+        // Page header logos (enabled by default)
+        defaultThemeConfig.usePageHeaderLogos = true;
       }
 
       // Web-specific defaults
