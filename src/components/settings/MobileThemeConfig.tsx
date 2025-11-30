@@ -103,6 +103,7 @@ interface MobileThemeConfig {
   headerSubtitleSize: 'text-xs' | 'text-sm' | 'text-base';
   headerSubtitleWeight: 'normal' | 'medium' | 'semibold';
   headerSubtitleColor: string;
+  usePageHeaderLogos?: boolean;
 }
 
 // Legacy export - kept for backwards compatibility but not recommended
@@ -425,6 +426,31 @@ export function MobileDisplaySettings() {
                   </div>
                 </>
               )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Page Header Logos</CardTitle>
+              <CardDescription>Show page-specific header logos in the app header</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="use-page-logos">Use Page Header Logos</Label>
+                <Button
+                  variant={(config.usePageHeaderLogos ?? true) ? "default" : "outline"}
+                  size="sm"
+                  onClick={async () => {
+                    const updatedConfig = {
+                      ...config,
+                      usePageHeaderLogos: !(config.usePageHeaderLogos ?? true),
+                    };
+                    await saveConfig(updatedConfig);
+                  }}
+                >
+                  {(config.usePageHeaderLogos ?? true) ? "Enabled" : "Disabled"}
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
@@ -1105,7 +1131,12 @@ function useMobileThemeConfig() {
       if (error) throw error;
 
       if (data?.setting_value) {
-        setConfig(data.setting_value as any as MobileThemeConfig);
+        const loadedConfig = data.setting_value as any as MobileThemeConfig;
+        // Ensure usePageHeaderLogos defaults to true if not set
+        if (loadedConfig.usePageHeaderLogos === undefined) {
+          loadedConfig.usePageHeaderLogos = true;
+        }
+        setConfig(loadedConfig);
       }
     } catch (error: any) {
       console.error('Error fetching mobile theme config:', error);
