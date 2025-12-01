@@ -584,6 +584,45 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          announcements_enabled: boolean | null
+          chat_enabled: boolean | null
+          created_at: string | null
+          documents_enabled: boolean | null
+          id: string
+          photos_enabled: boolean | null
+          sound_enabled: boolean | null
+          updated_at: string | null
+          user_id: string
+          vibration_enabled: boolean | null
+        }
+        Insert: {
+          announcements_enabled?: boolean | null
+          chat_enabled?: boolean | null
+          created_at?: string | null
+          documents_enabled?: boolean | null
+          id?: string
+          photos_enabled?: boolean | null
+          sound_enabled?: boolean | null
+          updated_at?: string | null
+          user_id: string
+          vibration_enabled?: boolean | null
+        }
+        Update: {
+          announcements_enabled?: boolean | null
+          chat_enabled?: boolean | null
+          created_at?: string | null
+          documents_enabled?: boolean | null
+          id?: string
+          photos_enabled?: boolean | null
+          sound_enabled?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+          vibration_enabled?: boolean | null
+        }
+        Relationships: []
+      }
       pending_invites: {
         Row: {
           created_at: string | null
@@ -735,6 +774,33 @@ export type Database = {
           show_contact_info?: boolean
           sidebar_opacity?: number | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      push_tokens: {
+        Row: {
+          created_at: string | null
+          device_type: string | null
+          id: string
+          token: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          device_type?: string | null
+          id?: string
+          token: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          device_type?: string | null
+          id?: string
+          token?: string
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
