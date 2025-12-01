@@ -162,9 +162,9 @@ export function AppSidebar() {
                           activeClassName="bg-accent text-accent-foreground font-semibold"
                         >
                           {item.iconUrl ? (
-                            <img src={item.iconUrl} alt={item.title} className="h-7 w-7 object-contain" />
+                            <img src={item.iconUrl} alt={item.title} className="h-9 w-9 object-contain" />
                           ) : (
-                            <item.icon className="h-7 w-7" />
+                            <item.icon className="h-9 w-9" />
                           )}
                         </NavLink>
                         </SidebarMenuButton>
