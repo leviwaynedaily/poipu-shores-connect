@@ -6,7 +6,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Footer } from "@/components/Footer";
 import { z } from "zod";
@@ -21,6 +21,13 @@ const loginSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
+// Detect if input is email or phone
+const detectInputType = (value: string): 'email' | 'phone' | null => {
+  if (value.includes('@')) return 'email';
+  const digitsOnly = value.replace(/\D/g, '');
+  if (digitsOnly.length >= 10) return 'phone';
+  return null;
+};
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -29,6 +36,8 @@ const Auth = () => {
   const { isGlassTheme, authPageOpacity } = useTheme();
   const { toast } = useToast();
   
+  const [identifier, setIdentifier] = useState(""); // Can be email or phone
+  const [identifierType, setIdentifierType] = useState<'email' | 'phone' | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -58,7 +67,6 @@ const Auth = () => {
       
       if (data?.setting_value) {
         let logoUrl = data.setting_value as string;
-        // Handle double-encoded JSON strings
         if (logoUrl.startsWith('"') && logoUrl.endsWith('"')) {
           logoUrl = logoUrl.slice(1, -1);
         }
@@ -69,25 +77,105 @@ const Auth = () => {
     fetchAuthLogo();
   }, []);
 
-  const handleEmailSubmit = async (e: React.FormEvent) => {
+  // Handle identifier input change with formatting
+  const handleIdentifierChange = (value: string) => {
+    const inputType = detectInputType(value);
+    
+    // If it looks like a phone number, format it
+    if (inputType === 'phone' || (!value.includes('@') && value.replace(/\D/g, '').length > 0)) {
+      setIdentifier(formatPhoneInput(value));
+    } else {
+      setIdentifier(value);
+    }
+  };
+
+  const handleIdentifierSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const inputType = detectInputType(identifier);
+    
+    if (!inputType) {
+      toast({
+        title: "Invalid Input",
+        description: "Please enter a valid email address or phone number",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setLoading(true);
+    
     try {
-      z.string().email().parse(email);
-      setLoading(true);
-      
-      // Check if user has a phone number registered
-      const { data, error } = await supabase
-        .rpc('check_user_has_phone', { user_email: email });
-      
-      if (data && data.length > 0) {
-        const userData = data[0];
-        setUserHasPhone(userData.has_phone);
-        setUserPhone(userData.phone_number || '');
+      if (inputType === 'phone') {
+        // Phone flow: lookup user by phone, then auto-send SMS OTP
+        const { data, error } = await supabase.rpc('check_user_by_phone', { 
+          user_phone: identifier 
+        });
+        
+        if (error) {
+          toast({
+            title: "Error",
+            description: "Unable to verify phone number",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+        
+        if (data && data.length > 0 && data[0].user_exists) {
+          // User found - store info and auto-send SMS OTP
+          setEmail(data[0].user_email);
+          setUserPhone(identifier);
+          setIdentifierType('phone');
+          setOtpMethod('phone');
+          setShowOtpLogin(true);
+          
+          // Automatically send SMS OTP
+          const e164Phone = data[0].e164_phone;
+          const { error: otpError } = await supabase.auth.signInWithOtp({
+            phone: e164Phone,
+            options: {
+              shouldCreateUser: false,
+            },
+          });
+          
+          if (otpError) {
+            toast({
+              title: "Error",
+              description: otpError.message,
+              variant: "destructive",
+            });
+          } else {
+            setOtpSent(true);
+            toast({
+              title: "Code Sent!",
+              description: `Check your phone for the 6-digit code`,
+            });
+          }
+        } else {
+          toast({
+            title: "Account Not Found",
+            description: "No account found with this phone number",
+            variant: "destructive",
+          });
+        }
+      } else {
+        // Email flow: validate, check for phone, show password screen
+        z.string().email().parse(identifier);
+        setEmail(identifier);
+        setIdentifierType('email');
+        
+        // Check if user has a phone number registered
+        const { data } = await supabase.rpc('check_user_has_phone', { user_email: identifier });
+        
+        if (data && data.length > 0) {
+          const userData = data[0];
+          setUserHasPhone(userData.has_phone);
+          setUserPhone(userData.phone_number || '');
+        }
+        
+        setEmailVerified(true);
       }
-      
-      setEmailVerified(true);
-      setLoading(false);
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast({
@@ -96,6 +184,7 @@ const Auth = () => {
           variant: "destructive",
         });
       }
+    } finally {
       setLoading(false);
     }
   };
@@ -137,11 +226,9 @@ const Auth = () => {
       setLoading(true);
       const { error } = await signIn(email, password);
       if (!error) {
-        // Track login after successful authentication
         trackLogin();
         navigate("/dashboard");
       } else {
-        // Reset to email entry if user not found
         if (error.message.includes('Invalid login credentials') || error.message.includes('not found')) {
           toast({
             title: "Account Not Found",
@@ -149,6 +236,7 @@ const Auth = () => {
             variant: "destructive",
           });
           setEmailVerified(false);
+          setIdentifier("");
           setPassword("");
         }
       }
@@ -169,14 +257,12 @@ const Auth = () => {
     try {
       const userAgent = navigator.userAgent;
       
-      // Parse browser info
       let browser = 'Unknown';
       if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) browser = 'Chrome';
       else if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) browser = 'Safari';
       else if (userAgent.includes('Firefox')) browser = 'Firefox';
       else if (userAgent.includes('Edg')) browser = 'Edge';
       
-      // Parse device type
       let deviceType = 'Desktop';
       if (/Mobi|Android/i.test(userAgent)) deviceType = 'Mobile';
       else if (/Tablet|iPad/i.test(userAgent)) deviceType = 'Tablet';
@@ -205,6 +291,7 @@ const Auth = () => {
       await resetPassword(email);
       setShowResetPassword(false);
       setEmail("");
+      setIdentifier("");
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast({
@@ -219,13 +306,10 @@ const Auth = () => {
   };
 
   const handleRequestOtp = async () => {
-    // Check if user has phone, and show appropriate options
     if (userHasPhone) {
-      // Show choice between email and phone
       setShowOtpLogin(true);
-      setOtpMethod(null); // Show selection screen
+      setOtpMethod(null);
     } else {
-      // Only email available
       setShowOtpLogin(true);
       setOtpMethod('email');
     }
@@ -243,7 +327,7 @@ const Auth = () => {
         const { error } = await supabase.auth.signInWithOtp({
           email,
           options: {
-            shouldCreateUser: false, // Don't create new users via OTP
+            shouldCreateUser: false,
           },
         });
         
@@ -261,7 +345,6 @@ const Auth = () => {
           });
         }
       } else if (otpMethod === 'phone') {
-        // Use the phone from user's profile
         if (!userPhone || userPhone.replace(/\D/g, '').length !== 10) {
           toast({
             title: "Error",
@@ -272,13 +355,12 @@ const Auth = () => {
           return;
         }
         
-        // Convert to E.164 format
         const e164Phone = `+1${userPhone.replace(/\D/g, '')}`;
         
         const { error } = await supabase.auth.signInWithOtp({
           phone: e164Phone,
           options: {
-            shouldCreateUser: false, // Prevent creating new users
+            shouldCreateUser: false,
           },
         });
         
@@ -360,7 +442,6 @@ const Auth = () => {
         title: "Success!",
         description: "Signed in successfully",
       });
-      // Track login after successful OTP verification
       trackLogin();
       navigate("/dashboard");
     }
@@ -368,10 +449,41 @@ const Auth = () => {
 
   const handleResendOtp = async () => {
     setOtpCode("");
-    await handleSendOtp(new Event('submit') as any);
+    
+    if (otpMethod === 'phone') {
+      // For phone OTP resend
+      setLoading(true);
+      const e164Phone = `+1${userPhone.replace(/\D/g, '')}`;
+      const { error } = await supabase.auth.signInWithOtp({
+        phone: e164Phone,
+        options: { shouldCreateUser: false },
+      });
+      setLoading(false);
+      
+      if (error) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Code Sent!", description: "Check your phone for the 6-digit code" });
+      }
+    } else {
+      await handleSendOtp(new Event('submit') as any);
+    }
   };
 
-  // Show a simple loading state while background is loading
+  const resetToStart = () => {
+    setIdentifier("");
+    setIdentifierType(null);
+    setEmail("");
+    setPassword("");
+    setEmailVerified(false);
+    setShowOtpLogin(false);
+    setOtpSent(false);
+    setOtpMethod(null);
+    setOtpCode("");
+    setUserHasPhone(false);
+    setUserPhone("");
+  };
+
   if (backgroundLoading) {
     return <div className="min-h-screen bg-background" />;
   }
@@ -445,8 +557,7 @@ const Auth = () => {
                   type="button"
                   onClick={() => {
                     setShowResetPassword(false);
-                    setEmailVerified(false);
-                    setEmail("");
+                    resetToStart();
                   }}
                   className="text-sm text-primary hover:text-primary/80 transition-colors"
                 >
@@ -558,13 +669,7 @@ const Auth = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowOtpLogin(false);
-                    setOtpSent(false);
-                    setOtpMethod(null);
-                    setOtpCode("");
-                    setEmailVerified(false);
-                  }}
+                  onClick={resetToStart}
                   className="text-sm text-primary hover:text-primary/80 transition-colors block w-full"
                 >
                   Back to sign in
@@ -572,21 +677,21 @@ const Auth = () => {
               </div>
             </form>
           ) : !emailVerified ? (
-            <form onSubmit={handleEmailSubmit} className="space-y-5">
+            <form onSubmit={handleIdentifierSubmit} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-lg">Email Address</Label>
+                <Label htmlFor="identifier" className="text-lg">Email or Phone Number</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="identifier"
+                  type="text"
+                  value={identifier}
+                  onChange={(e) => handleIdentifierChange(e.target.value)}
                   required
                   className="text-lg p-6"
-                  placeholder="Enter your email"
-                  autoComplete="email"
+                  placeholder="Enter email or phone number"
+                  autoComplete="username"
                 />
                 <p className="text-sm text-muted-foreground">
-                  Enter the email associated with your account
+                  Enter the email or phone number associated with your account
                 </p>
               </div>
               
@@ -610,11 +715,7 @@ const Auth = () => {
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => {
-                      setEmailVerified(false);
-                      setPassword("");
-                      setShowOtpLogin(false);
-                    }}
+                    onClick={resetToStart}
                     className="text-sm"
                   >
                     Change
