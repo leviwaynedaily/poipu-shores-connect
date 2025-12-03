@@ -3,19 +3,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Search, Phone } from "lucide-react";
+import { Search, Phone, Mail } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
 import { usePageConfig } from "@/hooks/use-page-config";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { formatPhoneNumber } from "@/lib/phoneUtils";
 
 // Interface for member
 interface Member {
   id: string;
   full_name: string;
   phone: string | null;
+  email: string | null;
   show_contact_info: boolean;
   avatar_url: string | null;
   unit_number: string | null;
@@ -43,23 +45,17 @@ const Members = () => {
     try {
       setLoading(true);
       
-      // Fetch all profiles with their unit information (if assigned)
-      const { data: membersData, error } = await supabase
-        .from("profiles")
-        .select(`
-          id,
-          full_name,
-          phone,
-          show_contact_info,
-          avatar_url,
-          unit_owners (
-            unit_number,
-            relationship_type,
-            is_primary_contact
-          )
-        `)
-        .eq("is_active", true)
-        .order("full_name");
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast.error("Please log in to view members");
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('get-members', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
 
       if (error) {
         console.error("Error fetching members:", error);
@@ -67,34 +63,8 @@ const Members = () => {
         return;
       }
 
-      // Transform data to flat member list
-      const membersList: Member[] = membersData?.map((profile: any) => {
-        const unitOwner = profile.unit_owners?.[0]; // Take first unit if multiple
-        
-        return {
-          id: profile.id,
-          full_name: profile.full_name,
-          phone: profile.phone,
-          show_contact_info: profile.show_contact_info,
-          avatar_url: profile.avatar_url,
-          unit_number: unitOwner?.unit_number || null,
-          relationship_type: unitOwner?.relationship_type || null,
-          is_primary_contact: unitOwner?.is_primary_contact || null,
-        };
-      }) || [];
-
-      // Sort: members with units first (by unit number), then others (alphabetically)
-      membersList.sort((a, b) => {
-        if (a.unit_number && !b.unit_number) return -1;
-        if (!a.unit_number && b.unit_number) return 1;
-        if (a.unit_number && b.unit_number) {
-          return a.unit_number.localeCompare(b.unit_number, undefined, { numeric: true });
-        }
-        return a.full_name.localeCompare(b.full_name);
-      });
-      
-      setMembers(membersList);
-      setFilteredMembers(membersList);
+      setMembers(data.members || []);
+      setFilteredMembers(data.members || []);
     } catch (error) {
       console.error("Error in fetchMembers:", error);
       toast.error("An error occurred while loading members");
@@ -112,7 +82,8 @@ const Members = () => {
     const searchLower = searchTerm.toLowerCase();
     const filtered = members.filter(member =>
       member.full_name.toLowerCase().includes(searchLower) ||
-      (member.unit_number && member.unit_number.toLowerCase().includes(searchLower))
+      (member.unit_number && member.unit_number.toLowerCase().includes(searchLower)) ||
+      (member.email && member.email.toLowerCase().includes(searchLower))
     );
 
     setFilteredMembers(filtered);
@@ -138,14 +109,14 @@ const Members = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search by name or unit number..."
+              placeholder="Search by name, unit, or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
             />
           </div>
 
-{isMobile ? (
+          {isMobile ? (
             // Mobile card view
             <div className="space-y-4">
               {loading ? (
@@ -192,14 +163,30 @@ const Members = () => {
                             </div>
                           )}
                           
-                          {member.show_contact_info && member.phone ? (
-                            <a
-                              href={`tel:${member.phone}`}
-                              className="flex items-center gap-2 text-primary hover:underline text-sm"
-                            >
-                              <Phone className="h-4 w-4" />
-                              {member.phone}
-                            </a>
+                          {member.show_contact_info ? (
+                            <div className="space-y-1">
+                              {member.phone && (
+                                <a
+                                  href={`tel:${member.phone}`}
+                                  className="flex items-center gap-2 text-primary hover:underline text-sm"
+                                >
+                                  <Phone className="h-4 w-4" />
+                                  {formatPhoneNumber(member.phone)}
+                                </a>
+                              )}
+                              {member.email && (
+                                <a
+                                  href={`mailto:${member.email}`}
+                                  className="flex items-center gap-2 text-primary hover:underline text-sm"
+                                >
+                                  <Mail className="h-4 w-4" />
+                                  {member.email}
+                                </a>
+                              )}
+                              {!member.phone && !member.email && (
+                                <p className="text-sm text-muted-foreground">No contact info</p>
+                              )}
+                            </div>
                           ) : (
                             <p className="text-sm text-muted-foreground">Contact not shared</p>
                           )}
@@ -218,8 +205,8 @@ const Members = () => {
                   <TableRow>
                     <TableHead>Member</TableHead>
                     <TableHead>Unit</TableHead>
-                    <TableHead>Relationship</TableHead>
-                    <TableHead>Contact</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Email</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -250,6 +237,11 @@ const Members = () => {
                             </Avatar>
                             <div>
                               <div className="font-medium">{member.full_name}</div>
+                              {member.is_primary_contact && (
+                                <Badge variant="secondary" className="text-xs mt-1">
+                                  Primary Contact
+                                </Badge>
+                              )}
                             </div>
                           </div>
                         </TableCell>
@@ -263,31 +255,29 @@ const Members = () => {
                           )}
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-2">
-                            {member.relationship_type && member.relationship_type !== 'primary' && (
-                              <span className="capitalize">{member.relationship_type}</span>
-                            )}
-                            {member.is_primary_contact && (
-                              <Badge variant="secondary" className="text-xs">
-                                Primary Contact
-                              </Badge>
-                            )}
-                            {!member.relationship_type && !member.is_primary_contact && (
-                              <span className="text-muted-foreground">—</span>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
                           {member.show_contact_info && member.phone ? (
                             <a
                               href={`tel:${member.phone}`}
                               className="flex items-center gap-2 text-primary hover:underline"
                             >
                               <Phone className="h-4 w-4" />
-                              {member.phone}
+                              {formatPhoneNumber(member.phone)}
                             </a>
                           ) : (
-                            <span className="text-muted-foreground text-sm">Not shared</span>
+                            <span className="text-muted-foreground text-sm">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {member.show_contact_info && member.email ? (
+                            <a
+                              href={`mailto:${member.email}`}
+                              className="flex items-center gap-2 text-primary hover:underline"
+                            >
+                              <Mail className="h-4 w-4" />
+                              {member.email}
+                            </a>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">—</span>
                           )}
                         </TableCell>
                       </TableRow>
