@@ -3,9 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Search, Phone, Mail } from "lucide-react";
+import { Search, Phone, Mail, User, Home } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
 import { usePageConfig } from "@/hooks/use-page-config";
@@ -32,6 +33,8 @@ const Members = () => {
   const [filteredMembers, setFilteredMembers] = useState<Member[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchMembers();
@@ -82,11 +85,15 @@ const Members = () => {
     const searchLower = searchTerm.toLowerCase();
     const filtered = members.filter(member =>
       member.full_name.toLowerCase().includes(searchLower) ||
-      (member.unit_number && member.unit_number.toLowerCase().includes(searchLower)) ||
-      (member.email && member.email.toLowerCase().includes(searchLower))
+      (member.unit_number && member.unit_number.toLowerCase().includes(searchLower))
     );
 
     setFilteredMembers(filtered);
+  };
+
+  const handleMemberClick = (member: Member) => {
+    setSelectedMember(member);
+    setProfileDialogOpen(true);
   };
 
   return (
@@ -101,7 +108,7 @@ const Members = () => {
         <CardHeader>
           <CardTitle>Member Directory</CardTitle>
           <CardDescription>
-            Search and browse Poipu Shores members
+            Search and browse Poipu Shores members. Click on a member to view their profile.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -109,7 +116,7 @@ const Members = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search by name, unit, or email..."
+              placeholder="Search by name or unit number..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -129,66 +136,30 @@ const Members = () => {
                 </div>
               ) : (
                 filteredMembers.map((member) => (
-                  <Card key={member.id}>
+                  <Card 
+                    key={member.id} 
+                    className="cursor-pointer hover:bg-accent/50 transition-colors"
+                    onClick={() => handleMemberClick(member)}
+                  >
                     <CardContent className="pt-6">
-                      <div className="flex items-start gap-4">
+                      <div className="flex items-center gap-4">
                         <Avatar className="h-14 w-14">
                           <AvatarImage src={member.avatar_url || undefined} />
                           <AvatarFallback>
                             {member.full_name.split(' ').map(n => n[0]).join('')}
                           </AvatarFallback>
                         </Avatar>
-                        <div className="flex-1 space-y-3">
-                          <div>
-                            <h3 className="font-semibold text-base">{member.full_name}</h3>
-                            {member.unit_number && (
-                              <p className="text-sm font-medium text-primary">
-                                Unit {member.unit_number}
-                              </p>
-                            )}
-                          </div>
-                          
-                          {(member.relationship_type || member.is_primary_contact) && (
-                            <div className="flex items-center gap-2 flex-wrap">
-                              {member.relationship_type && member.relationship_type !== 'primary' && (
-                                <Badge variant="outline" className="text-xs capitalize">
-                                  {member.relationship_type}
-                                </Badge>
-                              )}
-                              {member.is_primary_contact && (
-                                <Badge variant="secondary" className="text-xs">
-                                  Primary Contact
-                                </Badge>
-                              )}
-                            </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-base">{member.full_name}</h3>
+                          {member.unit_number && (
+                            <p className="text-sm text-muted-foreground">
+                              Unit {member.unit_number}
+                            </p>
                           )}
-                          
-                          {member.show_contact_info ? (
-                            <div className="space-y-1">
-                              {member.phone && (
-                                <a
-                                  href={`tel:${member.phone}`}
-                                  className="flex items-center gap-2 text-primary hover:underline text-sm"
-                                >
-                                  <Phone className="h-4 w-4" />
-                                  {formatPhoneNumber(member.phone)}
-                                </a>
-                              )}
-                              {member.email && (
-                                <a
-                                  href={`mailto:${member.email}`}
-                                  className="flex items-center gap-2 text-primary hover:underline text-sm"
-                                >
-                                  <Mail className="h-4 w-4" />
-                                  {member.email}
-                                </a>
-                              )}
-                              {!member.phone && !member.email && (
-                                <p className="text-sm text-muted-foreground">No contact info</p>
-                              )}
-                            </div>
-                          ) : (
-                            <p className="text-sm text-muted-foreground">Contact not shared</p>
+                          {member.is_primary_contact && (
+                            <Badge variant="secondary" className="text-xs mt-1">
+                              Primary Contact
+                            </Badge>
                           )}
                         </div>
                       </div>
@@ -206,7 +177,7 @@ const Members = () => {
                     <TableHead>Member</TableHead>
                     <TableHead>Unit</TableHead>
                     <TableHead>Phone</TableHead>
-                    <TableHead>Email</TableHead>
+                    <TableHead>Role</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -226,7 +197,11 @@ const Members = () => {
                     </TableRow>
                   ) : (
                     filteredMembers.map((member) => (
-                      <TableRow key={member.id}>
+                      <TableRow 
+                        key={member.id} 
+                        className="cursor-pointer hover:bg-accent/50"
+                        onClick={() => handleMemberClick(member)}
+                      >
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="h-10 w-10">
@@ -235,14 +210,7 @@ const Members = () => {
                                 {member.full_name.split(' ').map(n => n[0]).join('')}
                               </AvatarFallback>
                             </Avatar>
-                            <div>
-                              <div className="font-medium">{member.full_name}</div>
-                              {member.is_primary_contact && (
-                                <Badge variant="secondary" className="text-xs mt-1">
-                                  Primary Contact
-                                </Badge>
-                              )}
-                            </div>
+                            <div className="font-medium">{member.full_name}</div>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -256,28 +224,26 @@ const Members = () => {
                         </TableCell>
                         <TableCell>
                           {member.show_contact_info && member.phone ? (
-                            <a
-                              href={`tel:${member.phone}`}
-                              className="flex items-center gap-2 text-primary hover:underline"
-                            >
-                              <Phone className="h-4 w-4" />
+                            <span className="text-muted-foreground">
                               {formatPhoneNumber(member.phone)}
-                            </a>
+                            </span>
                           ) : (
-                            <span className="text-muted-foreground text-sm">—</span>
+                            <span className="text-muted-foreground">—</span>
                           )}
                         </TableCell>
                         <TableCell>
-                          {member.show_contact_info && member.email ? (
-                            <a
-                              href={`mailto:${member.email}`}
-                              className="flex items-center gap-2 text-primary hover:underline"
-                            >
-                              <Mail className="h-4 w-4" />
-                              {member.email}
-                            </a>
-                          ) : (
-                            <span className="text-muted-foreground text-sm">—</span>
+                          {member.is_primary_contact && (
+                            <Badge variant="secondary" className="text-xs">
+                              Primary Contact
+                            </Badge>
+                          )}
+                          {member.relationship_type && member.relationship_type !== 'primary' && (
+                            <Badge variant="outline" className="text-xs capitalize">
+                              {member.relationship_type}
+                            </Badge>
+                          )}
+                          {!member.is_primary_contact && (!member.relationship_type || member.relationship_type === 'primary') && (
+                            <span className="text-muted-foreground">—</span>
                           )}
                         </TableCell>
                       </TableRow>
@@ -297,6 +263,99 @@ const Members = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Member Profile Dialog */}
+      <Dialog open={profileDialogOpen} onOpenChange={setProfileDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Member Profile</DialogTitle>
+          </DialogHeader>
+          {selectedMember && (
+            <div className="space-y-6">
+              {/* Avatar and Name */}
+              <div className="flex flex-col items-center text-center">
+                <Avatar className="h-24 w-24 mb-4">
+                  <AvatarImage src={selectedMember.avatar_url || undefined} />
+                  <AvatarFallback className="text-2xl">
+                    {selectedMember.full_name.split(' ').map(n => n[0]).join('')}
+                  </AvatarFallback>
+                </Avatar>
+                <h2 className="text-xl font-semibold">{selectedMember.full_name}</h2>
+                {selectedMember.unit_number && (
+                  <p className="text-muted-foreground">Unit {selectedMember.unit_number}</p>
+                )}
+                <div className="flex gap-2 mt-2">
+                  {selectedMember.is_primary_contact && (
+                    <Badge variant="secondary">Primary Contact</Badge>
+                  )}
+                  {selectedMember.relationship_type && selectedMember.relationship_type !== 'primary' && (
+                    <Badge variant="outline" className="capitalize">
+                      {selectedMember.relationship_type}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              {/* Contact Information */}
+              {selectedMember.show_contact_info ? (
+                <div className="space-y-3 border-t pt-4">
+                  <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                    Contact Information
+                  </h3>
+                  
+                  {selectedMember.unit_number && (
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/50">
+                      <Home className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Unit</p>
+                        <p className="font-medium">{selectedMember.unit_number}</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {selectedMember.phone && (
+                    <a 
+                      href={`tel:${selectedMember.phone}`}
+                      className="flex items-center gap-3 p-3 rounded-lg bg-accent/50 hover:bg-accent transition-colors"
+                    >
+                      <Phone className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Phone</p>
+                        <p className="font-medium">{formatPhoneNumber(selectedMember.phone)}</p>
+                      </div>
+                    </a>
+                  )}
+                  
+                  {selectedMember.email && (
+                    <a 
+                      href={`mailto:${selectedMember.email}`}
+                      className="flex items-center gap-3 p-3 rounded-lg bg-accent/50 hover:bg-accent transition-colors"
+                    >
+                      <Mail className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Email</p>
+                        <p className="font-medium">{selectedMember.email}</p>
+                      </div>
+                    </a>
+                  )}
+                  
+                  {!selectedMember.phone && !selectedMember.email && (
+                    <p className="text-muted-foreground text-center py-4">
+                      No contact information available
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="border-t pt-4 text-center">
+                  <p className="text-muted-foreground">
+                    This member has chosen not to share their contact information
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
