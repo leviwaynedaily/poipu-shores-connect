@@ -76,11 +76,20 @@ serve(async (req) => {
     // Generate temporary password
     const tempPassword = generateTempPassword();
 
+    // Format phone to E.164 if provided
+    let e164Phone: string | undefined;
+    if (phone) {
+      const digitsOnly = phone.replace(/\D/g, '');
+      e164Phone = digitsOnly.length === 10 ? `+1${digitsOnly}` : (digitsOnly.length === 11 && digitsOnly.startsWith('1') ? `+${digitsOnly}` : phone);
+    }
+
     // Create user with temp password and force password change on first login
     const { data: newUser, error: createError } = await supabaseClient.auth.admin.createUser({
       email,
       password: tempPassword,
       email_confirm: true,
+      phone: e164Phone,
+      phone_confirm: true, // Mark phone as confirmed since admin is adding it
       user_metadata: {
         full_name,
         phone,
