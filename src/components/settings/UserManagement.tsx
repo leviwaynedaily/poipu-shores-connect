@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { formatPhoneNumber, formatPhoneInput } from "@/lib/phoneUtils";
 
 interface Profile {
   id: string;
@@ -536,7 +537,23 @@ export function UserManagement() {
     setEditEmail("");
     setEditFullName(user.full_name);
     setEditUnitNumber(user.units[0] || "");
-    setEditPhone(user.phone || "");
+    setEditPhone(formatPhoneNumber(user.phone));
+    
+    // Fetch user's email from auth.users via edge function
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data: emailData } = await supabase.functions.invoke('get-user-email', {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+          body: { userId: user.id },
+        });
+        if (emailData?.email) {
+          setEditEmail(emailData.email);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch user email:', error);
+    }
     
     // Fetch unit ownership details if user has a unit
     if (user.units[0]) {
@@ -1395,7 +1412,7 @@ export function UserManagement() {
                 id="editPhone"
                 type="tel"
                 value={editPhone}
-                onChange={(e) => setEditPhone(e.target.value)}
+                onChange={(e) => setEditPhone(formatPhoneInput(e.target.value))}
                 placeholder="(808) 555-1234"
               />
             </div>
