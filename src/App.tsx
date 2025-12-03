@@ -38,8 +38,7 @@ const AppContent = () => {
       <ThemeSettingsDialog open={showThemeDialog} onOpenChange={setShowThemeDialog} />
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-          <Routes>
+      <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/accept-invite" element={<AcceptInvite />} />
@@ -148,22 +147,23 @@ const AppContent = () => {
             />
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </BrowserRouter>
     </>
   );
 };
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <ThemeProvider>
-        <BackgroundProvider>
-          <TooltipProvider>
-            <AppContent />
-          </TooltipProvider>
-        </BackgroundProvider>
-      </ThemeProvider>
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <ThemeProvider>
+          <BackgroundProvider>
+            <TooltipProvider>
+              <AppContent />
+            </TooltipProvider>
+          </BackgroundProvider>
+        </ThemeProvider>
+      </AuthProvider>
+    </BrowserRouter>
   </QueryClientProvider>
 );
 
