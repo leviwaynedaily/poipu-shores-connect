@@ -901,6 +901,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_user_by_phone: {
+        Args: { user_phone: string }
+        Returns: {
+          e164_phone: string
+          user_email: string
+          user_exists: boolean
+        }[]
+      }
       check_user_has_phone: {
         Args: { user_email: string }
         Returns: {
