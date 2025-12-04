@@ -68,7 +68,9 @@ interface MobileThemeConfig {
     type: 'default' | 'uploaded' | 'generated' | 'color' | 'gradient';
     url: string | null;
     opacity: number;
-    color?: string;
+    color?: string; // Legacy single value
+    colorLight?: string;
+    colorDark?: string;
     gradientStart?: string;
     gradientEnd?: string;
     gradientDirection?: string;
@@ -77,7 +79,9 @@ interface MobileThemeConfig {
     type: 'default' | 'uploaded' | 'generated' | 'color' | 'gradient';
     url: string | null;
     opacity: number;
-    color?: string;
+    color?: string; // Legacy single value
+    colorLight?: string;
+    colorDark?: string;
     gradientStart?: string;
     gradientEnd?: string;
     gradientDirection?: string;
@@ -748,18 +752,21 @@ export function MobileBackgroundSettings() {
   const { config, uploading, generating, aiPrompt, setAiPrompt, availableImages, saveConfig, handleBackgroundUpload, handleGenerateBackground, handleColorBackground, handleGradientBackground, handleResetBackground, handleSelectExistingImage } = useMobileThemeConfig();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentTarget, setCurrentTarget] = useState<'app' | 'home'>('app');
-  const [localSolidColor, setLocalSolidColor] = useState("");
   const [localGradientStart, setLocalGradientStart] = useState("");
   const [localGradientEnd, setLocalGradientEnd] = useState("");
+  
+  // Helper to get solid colors for a target
+  const getSolidColors = (target: 'app' | 'home') => {
+    const bg = target === 'app' ? config?.appBackground : config?.homeBackground;
+    return {
+      light: bg?.colorLight || bg?.color || '#0066cc',
+      dark: bg?.colorDark || bg?.color || '#003366',
+    };
+  };
   
   useEffect(() => {
     if (config) {
       const target = currentTarget;
-      setLocalSolidColor(
-        target === 'app' 
-          ? (config.appBackground.color || '#0066cc')
-          : (config.homeBackground.color || '#0066cc')
-      );
       setLocalGradientStart(
         target === 'app'
           ? (config.appBackground.gradientStart || '#0066cc')
@@ -906,38 +913,16 @@ export function MobileBackgroundSettings() {
                       <Palette className="h-4 w-4" />
                       Solid Color
                     </CardTitle>
+                    <CardDescription>Choose different colors for light and dark mode</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex gap-2">
-                      <Input
-                        type="color"
-                        value={localSolidColor}
-                        onChange={(e) => {
-                          setLocalSolidColor(e.target.value);
-                          handleColorBackground(e.target.value, target);
-                        }}
-                        className="w-16 h-9 p-1 cursor-pointer"
-                      />
-                      <Input
-                        type="text"
-                        value={localSolidColor}
-                        onChange={(e) => setLocalSolidColor(e.target.value)}
-                        onBlur={(e) => {
-                          const value = e.target.value.trim();
-                          if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
-                            handleColorBackground(value, target);
-                          } else {
-                            setLocalSolidColor(
-                              target === 'app' 
-                                ? (config.appBackground.color || '#0066cc')
-                                : (config.homeBackground.color || '#0066cc')
-                            );
-                          }
-                        }}
-                        placeholder="#0066cc"
-                        className="flex-1 font-mono"
-                      />
-                    </div>
+                    <LightDarkColorPicker
+                      label="Background Color"
+                      lightValue={getSolidColors(target).light}
+                      darkValue={getSolidColors(target).dark}
+                      onLightChange={(value) => handleColorBackground(value, target, 'light')}
+                      onDarkChange={(value) => handleColorBackground(value, target, 'dark')}
+                    />
                   </CardContent>
                 </Card>
 
@@ -1715,24 +1700,29 @@ function useMobileThemeConfig() {
     }
   };
 
-  const handleColorBackground = async (color: string, target: 'app' | 'home') => {
+  const handleColorBackground = async (color: string, target: 'app' | 'home', mode: 'light' | 'dark') => {
     if (!config) return;
 
     const updatedConfig = { ...config };
+    const currentBg = target === 'app' ? config.appBackground : config.homeBackground;
+    
+    // Get current colors, preserving existing values
+    const currentLight = currentBg.colorLight || currentBg.color || '#0066cc';
+    const currentDark = currentBg.colorDark || currentBg.color || '#003366';
+    
+    const newBackground = {
+      ...currentBg,
+      type: 'color' as const,
+      url: null,
+      colorLight: mode === 'light' ? color : currentLight,
+      colorDark: mode === 'dark' ? color : currentDark,
+      color: mode === 'light' ? color : currentLight, // Legacy: keep light as default
+    };
+    
     if (target === 'app') {
-      updatedConfig.appBackground = {
-        ...updatedConfig.appBackground,
-        type: 'color',
-        url: null,
-        color,
-      };
+      updatedConfig.appBackground = newBackground;
     } else {
-      updatedConfig.homeBackground = {
-        ...updatedConfig.homeBackground,
-        type: 'color',
-        url: null,
-        color,
-      };
+      updatedConfig.homeBackground = newBackground;
     }
 
     await saveConfig(updatedConfig);
