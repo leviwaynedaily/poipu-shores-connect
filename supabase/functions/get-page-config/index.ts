@@ -52,7 +52,32 @@ Deno.serve(async (req) => {
     }
 
     const config = data.setting_value as any;
-    const pages = config?.pages || [];
+    let pages = config?.pages || [];
+
+    // Default mobile pages to merge with stored config
+    if (platform === 'mobile') {
+      const defaultMobilePages = [
+        { id: "home", tabName: "Home", route: "/", fallbackIcon: "Home", title: "Home", subtitle: "Welcome home", order: 1, isVisible: true, isFloating: false },
+        { id: "chat", tabName: "Chat", route: "/chat", fallbackIcon: "MessageSquare", title: "Chat", subtitle: "Community chat", order: 2, isVisible: true, isFloating: false },
+        { id: "assistant", tabName: "Assistant", route: "/assistant", fallbackIcon: "Bird", title: "Assistant", subtitle: "AI Assistant", order: 3, isVisible: true, isFloating: true },
+        { id: "photos", tabName: "Photos", route: "/photos", fallbackIcon: "Camera", title: "Photos", subtitle: "Community photos", order: 4, isVisible: true, isFloating: false },
+        { id: "documents", tabName: "Documents", route: "/documents", fallbackIcon: "FileText", title: "Documents", subtitle: "Important documents", order: 5, isVisible: true, isFloating: false },
+        { id: "announcements", tabName: "News", route: "/announcements", fallbackIcon: "Megaphone", title: "Announcements", subtitle: "Community news", order: 6, isVisible: true, isFloating: false },
+        { id: "members", tabName: "Members", route: "/members", fallbackIcon: "Users", title: "Members", subtitle: "Community members", order: 7, isVisible: true, isFloating: false },
+        { id: "profile", tabName: "Profile", route: "/profile", fallbackIcon: "User", title: "Profile", subtitle: "Your profile", order: 8, isVisible: true, isFloating: false },
+        { id: "settings", tabName: "Settings", route: "/settings", fallbackIcon: "Settings", title: "Settings", subtitle: "App settings", order: 9, isVisible: true, isFloating: false },
+        { id: "more", tabName: "More", route: "/more", fallbackIcon: "MoreHorizontal", title: "More", subtitle: "Additional options", order: 10, isVisible: true, isFloating: false },
+        { id: "admin-settings", tabName: "Admin", route: "/admin-settings", fallbackIcon: "Shield", title: "Admin Settings", subtitle: "Administrative controls", order: 11, isVisible: true, isFloating: false },
+      ];
+
+      // Merge: add any default pages that don't exist in stored config
+      const existingIds = new Set(pages.map((p: any) => p.id));
+      for (const defaultPage of defaultMobilePages) {
+        if (!existingIds.has(defaultPage.id)) {
+          pages.push(defaultPage);
+        }
+      }
+    }
 
     // Sort by order and filter visible pages
     const visiblePages = pages
