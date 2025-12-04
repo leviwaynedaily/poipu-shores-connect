@@ -6,9 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Wand2, Palette, Smartphone, Image as ImageIcon } from "lucide-react";
+import { Upload, Wand2, Palette, Smartphone, Image as ImageIcon, RotateCcw, Sun, Moon } from "lucide-react";
 import { BackgroundImageDialog } from "./BackgroundImageDialog";
 
 // Helper functions for color conversion
@@ -962,144 +963,438 @@ export function MobileBackgroundSettings() {
 }
 
 // Color Settings Component
+// Default colors from the edge function for reset functionality
+const DEFAULT_COLORS = {
+  light: {
+    background: '0 0% 100%',
+    foreground: '265 4% 12.9%',
+    card: '0 0% 100%',
+    cardForeground: '265 4% 12.9%',
+    primary: '266 4% 20.8%',
+    primaryForeground: '248 0.3% 98.4%',
+    secondary: '248 0.7% 96.8%',
+    secondaryForeground: '266 4% 20.8%',
+    muted: '248 0.7% 96.8%',
+    mutedForeground: '257 4.6% 55.4%',
+    accent: '248 0.7% 96.8%',
+    accentForeground: '266 4% 20.8%',
+    destructive: '27 24.5% 57.7%',
+    destructiveForeground: '0 0% 100%',
+    border: '256 1.3% 92.9%',
+    input: '256 1.3% 92.9%',
+    ring: '257 4% 70.4%',
+  },
+  dark: {
+    background: '0 0% 15%',
+    foreground: '248 0.3% 98.4%',
+    card: '266 4% 20.8%',
+    cardForeground: '248 0.3% 98.4%',
+    primary: '256 1.3% 92.9%',
+    primaryForeground: '266 4% 20.8%',
+    secondary: '260 4.1% 27.9%',
+    secondaryForeground: '248 0.3% 98.4%',
+    muted: '260 4.1% 27.9%',
+    mutedForeground: '257 4% 70.4%',
+    accent: '260 4.1% 27.9%',
+    accentForeground: '248 0.3% 98.4%',
+    destructive: '22 19.1% 70.4%',
+    destructiveForeground: '248 0.3% 98.4%',
+    border: '0 0% 100% / 10%',
+    input: '0 0% 100% / 15%',
+    ring: '264 2.7% 55.1%',
+  }
+};
+
+// Color groups for organized display
+const COLOR_GROUPS = [
+  {
+    id: 'base',
+    name: 'Base Colors',
+    description: 'Main background and text colors',
+    colors: [
+      { key: 'background', label: 'Background' },
+      { key: 'foreground', label: 'Foreground (Text)' },
+    ],
+  },
+  {
+    id: 'card',
+    name: 'Card Colors',
+    description: 'Card backgrounds and text',
+    colors: [
+      { key: 'card', label: 'Card Background' },
+      { key: 'cardForeground', label: 'Card Text' },
+    ],
+  },
+  {
+    id: 'primary',
+    name: 'Primary Colors',
+    description: 'Buttons and interactive elements',
+    colors: [
+      { key: 'primary', label: 'Primary' },
+      { key: 'primaryForeground', label: 'Primary Text' },
+    ],
+  },
+  {
+    id: 'secondary',
+    name: 'Secondary Colors',
+    description: 'Secondary buttons and elements',
+    colors: [
+      { key: 'secondary', label: 'Secondary' },
+      { key: 'secondaryForeground', label: 'Secondary Text' },
+    ],
+  },
+  {
+    id: 'muted',
+    name: 'Muted Colors',
+    description: 'Subtle backgrounds and helper text',
+    colors: [
+      { key: 'muted', label: 'Muted Background' },
+      { key: 'mutedForeground', label: 'Muted Text' },
+    ],
+  },
+  {
+    id: 'accent',
+    name: 'Accent Colors',
+    description: 'Highlights and accents',
+    colors: [
+      { key: 'accent', label: 'Accent' },
+      { key: 'accentForeground', label: 'Accent Text' },
+    ],
+  },
+  {
+    id: 'destructive',
+    name: 'Destructive Colors',
+    description: 'Error states and delete actions',
+    colors: [
+      { key: 'destructive', label: 'Destructive' },
+      { key: 'destructiveForeground', label: 'Destructive Text' },
+    ],
+  },
+  {
+    id: 'ui',
+    name: 'UI Elements',
+    description: 'Borders, inputs, and focus rings',
+    colors: [
+      { key: 'border', label: 'Border' },
+      { key: 'input', label: 'Input Border' },
+      { key: 'ring', label: 'Focus Ring' },
+    ],
+  },
+];
+
+interface ColorPickerRowProps {
+  label: string;
+  lightValue: string;
+  darkValue: string;
+  onLightChange: (hsl: string) => void;
+  onDarkChange: (hsl: string) => void;
+}
+
+function ColorPickerRow({ label, lightValue, darkValue, onLightChange, onDarkChange }: ColorPickerRowProps) {
+  const [localLightHex, setLocalLightHex] = useState(`#${hslToHex(lightValue)}`);
+  const [localDarkHex, setLocalDarkHex] = useState(`#${hslToHex(darkValue)}`);
+
+  useEffect(() => {
+    setLocalLightHex(`#${hslToHex(lightValue)}`);
+  }, [lightValue]);
+
+  useEffect(() => {
+    setLocalDarkHex(`#${hslToHex(darkValue)}`);
+  }, [darkValue]);
+
+  return (
+    <div className="space-y-2">
+      <Label className="text-sm">{label}</Label>
+      <div className="grid grid-cols-2 gap-4">
+        {/* Light Mode */}
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+            <Sun className="h-3 w-3" />
+            Light
+          </div>
+          <div className="flex items-center gap-2">
+            <Input
+              type="color"
+              value={localLightHex}
+              onChange={(e) => {
+                setLocalLightHex(e.target.value);
+                const hsl = hexToHsl(e.target.value);
+                onLightChange(hsl);
+              }}
+              className="w-10 h-8 p-0.5 cursor-pointer"
+            />
+            <Input
+              type="text"
+              value={localLightHex}
+              onChange={(e) => {
+                setLocalLightHex(e.target.value);
+                const value = e.target.value.trim();
+                if (value.match(/^#[0-9A-Fa-f]{6}$/)) {
+                  const hsl = hexToHsl(value);
+                  onLightChange(hsl);
+                }
+              }}
+              placeholder="#000000"
+              className="flex-1 font-mono text-xs h-8"
+            />
+          </div>
+        </div>
+        {/* Dark Mode */}
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+            <Moon className="h-3 w-3" />
+            Dark
+          </div>
+          <div className="flex items-center gap-2">
+            <Input
+              type="color"
+              value={localDarkHex}
+              onChange={(e) => {
+                setLocalDarkHex(e.target.value);
+                const hsl = hexToHsl(e.target.value);
+                onDarkChange(hsl);
+              }}
+              className="w-10 h-8 p-0.5 cursor-pointer"
+            />
+            <Input
+              type="text"
+              value={localDarkHex}
+              onChange={(e) => {
+                setLocalDarkHex(e.target.value);
+                const value = e.target.value.trim();
+                if (value.match(/^#[0-9A-Fa-f]{6}$/)) {
+                  const hsl = hexToHsl(value);
+                  onDarkChange(hsl);
+                }
+              }}
+              placeholder="#ffffff"
+              className="flex-1 font-mono text-xs h-8"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function MobileColorSettings() {
   const { config: globalConfig, saving, saveConfig } = useMobileThemeConfig();
   const [config, setConfig] = useState(globalConfig);
+  const [hasChanges, setHasChanges] = useState(false);
 
-  // Update local state when global config changes
   useEffect(() => {
     if (globalConfig) {
       setConfig(globalConfig);
+      setHasChanges(false);
     }
   }, [globalConfig]);
-  
+
   if (!config) {
     return <div className="text-center py-8 text-muted-foreground">Loading color settings...</div>;
   }
 
+  const handleColorChange = (mode: 'light' | 'dark', key: string, hsl: string) => {
+    const updatedConfig = {
+      ...config,
+      colors: {
+        ...config.colors,
+        [mode]: {
+          ...config.colors[mode],
+          [key]: hsl,
+        },
+      },
+    };
+    setConfig(updatedConfig);
+    setHasChanges(true);
+  };
+
+  const handleResetGroup = (groupId: string) => {
+    const group = COLOR_GROUPS.find(g => g.id === groupId);
+    if (!group) return;
+
+    const updatedConfig = { ...config };
+    group.colors.forEach(({ key }) => {
+      updatedConfig.colors.light[key] = DEFAULT_COLORS.light[key as keyof typeof DEFAULT_COLORS.light];
+      updatedConfig.colors.dark[key] = DEFAULT_COLORS.dark[key as keyof typeof DEFAULT_COLORS.dark];
+    });
+    setConfig(updatedConfig);
+    setHasChanges(true);
+  };
+
+  const handleResetAll = () => {
+    const updatedConfig = {
+      ...config,
+      colors: {
+        light: { ...DEFAULT_COLORS.light },
+        dark: { ...DEFAULT_COLORS.dark },
+      },
+    };
+    setConfig(updatedConfig);
+    setHasChanges(true);
+  };
+
   const handleSave = async () => {
     if (config) {
       await saveConfig(config);
+      setHasChanges(false);
     }
   };
 
   return (
     <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Primary Color</CardTitle>
-              <CardDescription>
-                Customize the primary color for light and dark modes
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium">Light Mode Primary</Label>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="color"
-                      value={`#${hslToHex(config.colors.light.primary)}`}
-                      onChange={(e) => {
-                        const hsl = hexToHsl(e.target.value);
-                        const updatedConfig = {
-                          ...config,
-                          colors: {
-                            ...config.colors,
-                            light: {
-                              ...config.colors.light,
-                              primary: hsl,
-                            },
-                          },
-                        };
-                        setConfig(updatedConfig);
-                      }}
-                      className="w-16 h-10 p-1 cursor-pointer"
-                    />
-                    <Input
-                      type="text"
-                      value={`#${hslToHex(config.colors.light.primary)}`}
-                      onChange={(e) => {
-                        const value = e.target.value.trim();
-                        if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
-                          const hsl = hexToHsl(value);
-                          const updatedConfig = {
-                            ...config,
-                            colors: {
-                              ...config.colors,
-                              light: {
-                                ...config.colors.light,
-                                primary: hsl,
-                              },
-                            },
-                          };
-                          setConfig(updatedConfig);
-                        }
-                      }}
-                      placeholder="#000000"
-                      className="flex-1 font-mono text-xs"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium">Dark Mode Primary</Label>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="color"
-                      value={`#${hslToHex(config.colors.dark.primary)}`}
-                      onChange={(e) => {
-                        const hsl = hexToHsl(e.target.value);
-                        const updatedConfig = {
-                          ...config,
-                          colors: {
-                            ...config.colors,
-                            dark: {
-                              ...config.colors.dark,
-                              primary: hsl,
-                            },
-                          },
-                        };
-                        setConfig(updatedConfig);
-                      }}
-                      className="w-16 h-10 p-1 cursor-pointer"
-                    />
-                    <Input
-                      type="text"
-                      value={`#${hslToHex(config.colors.dark.primary)}`}
-                      onChange={(e) => {
-                        const value = e.target.value.trim();
-                        if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
-                          const hsl = hexToHsl(value);
-                          const updatedConfig = {
-                            ...config,
-                            colors: {
-                              ...config.colors,
-                              dark: {
-                                ...config.colors.dark,
-                                primary: hsl,
-                              },
-                            },
-                          };
-                          setConfig(updatedConfig);
-                        }
-                      }}
-                      placeholder="#ffffff"
-                      className="flex-1 font-mono text-xs"
-                    />
-                  </div>
-                </div>
+      {/* Preview Card */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Color Preview</CardTitle>
+          <CardDescription>Side-by-side preview of light and dark modes</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
+            {/* Light Preview */}
+            <div 
+              className="rounded-lg p-4 border"
+              style={{ 
+                backgroundColor: `hsl(${config.colors.light.background})`,
+                borderColor: `hsl(${config.colors.light.border})`,
+              }}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Sun className="h-4 w-4" style={{ color: `hsl(${config.colors.light.foreground})` }} />
+                <span className="text-xs font-medium" style={{ color: `hsl(${config.colors.light.foreground})` }}>Light</span>
               </div>
-
-              <Button
-                onClick={handleSave}
-                disabled={saving}
-                className="w-full"
+              <div 
+                className="rounded-md p-3 mb-2"
+                style={{ 
+                  backgroundColor: `hsl(${config.colors.light.card})`,
+                  borderColor: `hsl(${config.colors.light.border})`,
+                  borderWidth: '1px',
+                }}
               >
-                {saving ? "Saving..." : "Save Color Changes"}
-              </Button>
-            </CardContent>
-          </Card>
+                <p className="text-xs" style={{ color: `hsl(${config.colors.light.cardForeground})` }}>Card content</p>
+              </div>
+              <button 
+                className="w-full rounded-md py-1.5 text-xs font-medium"
+                style={{ 
+                  backgroundColor: `hsl(${config.colors.light.primary})`,
+                  color: `hsl(${config.colors.light.primaryForeground})`,
+                }}
+              >
+                Primary Button
+              </button>
+            </div>
+            {/* Dark Preview */}
+            <div 
+              className="rounded-lg p-4 border"
+              style={{ 
+                backgroundColor: `hsl(${config.colors.dark.background})`,
+                borderColor: `hsl(${config.colors.dark.border})`,
+              }}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Moon className="h-4 w-4" style={{ color: `hsl(${config.colors.dark.foreground})` }} />
+                <span className="text-xs font-medium" style={{ color: `hsl(${config.colors.dark.foreground})` }}>Dark</span>
+              </div>
+              <div 
+                className="rounded-md p-3 mb-2"
+                style={{ 
+                  backgroundColor: `hsl(${config.colors.dark.card})`,
+                  borderColor: `hsl(${config.colors.dark.border})`,
+                  borderWidth: '1px',
+                }}
+              >
+                <p className="text-xs" style={{ color: `hsl(${config.colors.dark.cardForeground})` }}>Card content</p>
+              </div>
+              <button 
+                className="w-full rounded-md py-1.5 text-xs font-medium"
+                style={{ 
+                  backgroundColor: `hsl(${config.colors.dark.primary})`,
+                  color: `hsl(${config.colors.dark.primaryForeground})`,
+                }}
+              >
+                Primary Button
+              </button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Color Groups */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base">Color Palette</CardTitle>
+              <CardDescription>Customize all semantic colors for light and dark modes</CardDescription>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleResetAll}
+              className="gap-1"
+            >
+              <RotateCcw className="h-3 w-3" />
+              Reset All
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <Accordion type="multiple" defaultValue={['base', 'primary']} className="w-full">
+            {COLOR_GROUPS.map((group) => (
+              <AccordionItem key={group.id} value={group.id}>
+                <AccordionTrigger className="hover:no-underline">
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                      {group.colors.slice(0, 2).map(({ key }) => (
+                        <div
+                          key={key}
+                          className="w-4 h-4 rounded border"
+                          style={{ backgroundColor: `hsl(${config.colors.light[key]})` }}
+                        />
+                      ))}
+                    </div>
+                    <span className="font-medium">{group.name}</span>
+                    <span className="text-xs text-muted-foreground ml-2">{group.description}</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pt-2 pb-4">
+                  <div className="flex justify-end mb-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleResetGroup(group.id)}
+                      className="h-7 text-xs gap-1"
+                    >
+                      <RotateCcw className="h-3 w-3" />
+                      Reset Group
+                    </Button>
+                  </div>
+                  <div className="space-y-4">
+                    {group.colors.map(({ key, label }) => (
+                      <ColorPickerRow
+                        key={key}
+                        label={label}
+                        lightValue={config.colors.light[key] || DEFAULT_COLORS.light[key as keyof typeof DEFAULT_COLORS.light]}
+                        darkValue={config.colors.dark[key] || DEFAULT_COLORS.dark[key as keyof typeof DEFAULT_COLORS.dark]}
+                        onLightChange={(hsl) => handleColorChange('light', key, hsl)}
+                        onDarkChange={(hsl) => handleColorChange('dark', key, hsl)}
+                      />
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </CardContent>
+      </Card>
+
+      {/* Save Button */}
+      <Button
+        onClick={handleSave}
+        disabled={saving || !hasChanges}
+        className="w-full"
+      >
+        {saving ? "Saving..." : hasChanges ? "Save Color Changes" : "No Changes"}
+      </Button>
     </div>
   );
 }
