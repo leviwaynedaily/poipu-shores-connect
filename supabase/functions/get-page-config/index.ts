@@ -175,27 +175,45 @@ Deno.serve(async (req) => {
       if (platform === 'mobile') {
         defaultThemeConfig.cardRadius = 12;
         
-        // Navigation Bar (enhanced)
+        // Navigation Bar with light/dark variants
         defaultThemeConfig.navBarStyle = 'solid';
         defaultThemeConfig.navBarOpacity = 80;
+        defaultThemeConfig.navBar = {
+          light: { color: '#FFFFFF' },
+          dark: { color: '#000000' }
+        };
+        // Keep legacy single value for backward compatibility
         defaultThemeConfig.navBarColor = '#000000';
         
-        // Header Background
+        // Header Background with light/dark variants
         defaultThemeConfig.headerStyle = 'solid';
         defaultThemeConfig.headerOpacity = 80;
+        defaultThemeConfig.header = {
+          light: { 
+            color: '#FFFFFF',
+            titleColor: '#1F2937',
+            subtitleColor: '#4B5563'
+          },
+          dark: { 
+            color: '#1F2937',
+            titleColor: '#F9FAFB',
+            subtitleColor: '#9CA3AF'
+          }
+        };
+        // Keep legacy single values for backward compatibility
         defaultThemeConfig.headerColor = '#FFFFFF';
+        defaultThemeConfig.headerTitleColor = '#1F2937';
+        defaultThemeConfig.headerSubtitleColor = '#4B5563';
         
-        // Header Title (matching current app: text-xl, font-bold, text-gray-800)
+        // Header Title typography
         defaultThemeConfig.headerTitleFont = 'system';
         defaultThemeConfig.headerTitleSize = 'text-xl';
         defaultThemeConfig.headerTitleWeight = 'bold';
-        defaultThemeConfig.headerTitleColor = '#1F2937';
         
-        // Header Subtitle (matching current app: text-sm, regular, text-gray-600)
+        // Header Subtitle typography
         defaultThemeConfig.headerSubtitleFont = 'system';
         defaultThemeConfig.headerSubtitleSize = 'text-sm';
         defaultThemeConfig.headerSubtitleWeight = 'normal';
-        defaultThemeConfig.headerSubtitleColor = '#4B5563';
         
         // Page header logos (enabled by default)
         defaultThemeConfig.usePageHeaderLogos = true;

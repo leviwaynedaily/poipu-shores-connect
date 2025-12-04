@@ -92,18 +92,26 @@ interface MobileThemeConfig {
   cardRadius: number;
   navBarStyle: 'solid' | 'translucent';
   navBarOpacity: number;
-  navBarColor: string;
+  navBarColor: string; // Legacy single value
+  navBar?: {
+    light: { color: string };
+    dark: { color: string };
+  };
   headerStyle: 'solid' | 'translucent';
   headerOpacity: number;
-  headerColor: string;
+  headerColor: string; // Legacy single value
+  header?: {
+    light: { color: string; titleColor: string; subtitleColor: string };
+    dark: { color: string; titleColor: string; subtitleColor: string };
+  };
   headerTitleFont: 'system' | 'Outfit' | 'Merriweather';
   headerTitleSize: 'text-lg' | 'text-xl' | 'text-2xl' | 'text-3xl';
   headerTitleWeight: 'normal' | 'medium' | 'semibold' | 'bold';
-  headerTitleColor: string;
+  headerTitleColor: string; // Legacy single value
   headerSubtitleFont: 'system' | 'Outfit' | 'Merriweather';
   headerSubtitleSize: 'text-xs' | 'text-sm' | 'text-base';
   headerSubtitleWeight: 'normal' | 'medium' | 'semibold';
-  headerSubtitleColor: string;
+  headerSubtitleColor: string; // Legacy single value
   usePageHeaderLogos?: boolean;
 }
 
@@ -112,26 +120,197 @@ export function MobileThemeConfig() {
   return <MobileDisplaySettings />;
 }
 
+// Helper component for light/dark color picker pair
+function LightDarkColorPicker({
+  label,
+  lightValue,
+  darkValue,
+  onLightChange,
+  onDarkChange,
+}: {
+  label: string;
+  lightValue: string;
+  darkValue: string;
+  onLightChange: (value: string) => Promise<void>;
+  onDarkChange: (value: string) => Promise<void>;
+}) {
+  const [localLightValue, setLocalLightValue] = useState(lightValue);
+  const [localDarkValue, setLocalDarkValue] = useState(darkValue);
+
+  useEffect(() => {
+    setLocalLightValue(lightValue);
+    setLocalDarkValue(darkValue);
+  }, [lightValue, darkValue]);
+
+  return (
+    <div className="space-y-3">
+      <Label>{label}</Label>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Sun className="h-4 w-4" />
+            <span>Light Mode</span>
+          </div>
+          <div className="flex gap-2">
+            <Input
+              type="color"
+              value={localLightValue}
+              onChange={(e) => setLocalLightValue(e.target.value)}
+              onBlur={async (e) => {
+                await onLightChange(e.target.value);
+              }}
+              className="w-12 h-10 p-1 cursor-pointer"
+            />
+            <Input
+              type="text"
+              value={localLightValue}
+              onChange={(e) => setLocalLightValue(e.target.value)}
+              onBlur={async (e) => {
+                const value = e.target.value.trim();
+                if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
+                  await onLightChange(value);
+                } else {
+                  setLocalLightValue(lightValue);
+                }
+              }}
+              placeholder="#ffffff"
+              className="flex-1 font-mono text-sm"
+            />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Moon className="h-4 w-4" />
+            <span>Dark Mode</span>
+          </div>
+          <div className="flex gap-2">
+            <Input
+              type="color"
+              value={localDarkValue}
+              onChange={(e) => setLocalDarkValue(e.target.value)}
+              onBlur={async (e) => {
+                await onDarkChange(e.target.value);
+              }}
+              className="w-12 h-10 p-1 cursor-pointer"
+            />
+            <Input
+              type="text"
+              value={localDarkValue}
+              onChange={(e) => setLocalDarkValue(e.target.value)}
+              onBlur={async (e) => {
+                const value = e.target.value.trim();
+                if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
+                  await onDarkChange(value);
+                } else {
+                  setLocalDarkValue(darkValue);
+                }
+              }}
+              placeholder="#000000"
+              className="flex-1 font-mono text-sm"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Display Settings Component
 export function MobileDisplaySettings() {
   const { config, saveConfig } = useMobileThemeConfig();
-  const [localTitleColor, setLocalTitleColor] = useState("");
-  const [localSubtitleColor, setLocalSubtitleColor] = useState("");
-  const [localNavBarColor, setLocalNavBarColor] = useState("");
-  const [localHeaderColor, setLocalHeaderColor] = useState("");
   
-  useEffect(() => {
-    if (config) {
-      setLocalTitleColor(config.headerTitleColor);
-      setLocalSubtitleColor(config.headerSubtitleColor);
-      setLocalNavBarColor(config.navBarColor);
-      setLocalHeaderColor(config.headerColor);
-    }
-  }, [config?.headerTitleColor, config?.headerSubtitleColor, config?.navBarColor, config?.headerColor]);
+  // Initialize light/dark values from config
+  const getNavBarColors = () => ({
+    light: config?.navBar?.light?.color || '#FFFFFF',
+    dark: config?.navBar?.dark?.color || config?.navBarColor || '#000000',
+  });
+  
+  const getHeaderColors = () => ({
+    light: config?.header?.light?.color || config?.headerColor || '#FFFFFF',
+    dark: config?.header?.dark?.color || '#1F2937',
+  });
+  
+  const getTitleColors = () => ({
+    light: config?.header?.light?.titleColor || config?.headerTitleColor || '#1F2937',
+    dark: config?.header?.dark?.titleColor || '#F9FAFB',
+  });
+  
+  const getSubtitleColors = () => ({
+    light: config?.header?.light?.subtitleColor || config?.headerSubtitleColor || '#4B5563',
+    dark: config?.header?.dark?.subtitleColor || '#9CA3AF',
+  });
   
   if (!config) {
     return <div className="text-center py-8 text-muted-foreground">Loading display settings...</div>;
   }
+
+  const updateNavBarColor = async (mode: 'light' | 'dark', value: string) => {
+    const navBar = {
+      light: { color: mode === 'light' ? value : getNavBarColors().light },
+      dark: { color: mode === 'dark' ? value : getNavBarColors().dark },
+    };
+    await saveConfig({ ...config, navBar, navBarColor: navBar.dark.color });
+  };
+
+  const updateHeaderColor = async (mode: 'light' | 'dark', value: string) => {
+    const current = {
+      light: { 
+        color: config?.header?.light?.color || '#FFFFFF',
+        titleColor: config?.header?.light?.titleColor || config?.headerTitleColor || '#1F2937',
+        subtitleColor: config?.header?.light?.subtitleColor || config?.headerSubtitleColor || '#4B5563',
+      },
+      dark: { 
+        color: config?.header?.dark?.color || '#1F2937',
+        titleColor: config?.header?.dark?.titleColor || '#F9FAFB',
+        subtitleColor: config?.header?.dark?.subtitleColor || '#9CA3AF',
+      },
+    };
+    const header = {
+      light: { ...current.light, color: mode === 'light' ? value : current.light.color },
+      dark: { ...current.dark, color: mode === 'dark' ? value : current.dark.color },
+    };
+    await saveConfig({ ...config, header, headerColor: header.light.color });
+  };
+
+  const updateTitleColor = async (mode: 'light' | 'dark', value: string) => {
+    const current = {
+      light: { 
+        color: config?.header?.light?.color || config?.headerColor || '#FFFFFF',
+        titleColor: config?.header?.light?.titleColor || config?.headerTitleColor || '#1F2937',
+        subtitleColor: config?.header?.light?.subtitleColor || config?.headerSubtitleColor || '#4B5563',
+      },
+      dark: { 
+        color: config?.header?.dark?.color || '#1F2937',
+        titleColor: config?.header?.dark?.titleColor || '#F9FAFB',
+        subtitleColor: config?.header?.dark?.subtitleColor || '#9CA3AF',
+      },
+    };
+    const header = {
+      light: { ...current.light, titleColor: mode === 'light' ? value : current.light.titleColor },
+      dark: { ...current.dark, titleColor: mode === 'dark' ? value : current.dark.titleColor },
+    };
+    await saveConfig({ ...config, header, headerTitleColor: header.light.titleColor });
+  };
+
+  const updateSubtitleColor = async (mode: 'light' | 'dark', value: string) => {
+    const current = {
+      light: { 
+        color: config?.header?.light?.color || config?.headerColor || '#FFFFFF',
+        titleColor: config?.header?.light?.titleColor || config?.headerTitleColor || '#1F2937',
+        subtitleColor: config?.header?.light?.subtitleColor || config?.headerSubtitleColor || '#4B5563',
+      },
+      dark: { 
+        color: config?.header?.dark?.color || '#1F2937',
+        titleColor: config?.header?.dark?.titleColor || '#F9FAFB',
+        subtitleColor: config?.header?.dark?.subtitleColor || '#9CA3AF',
+      },
+    };
+    const header = {
+      light: { ...current.light, subtitleColor: mode === 'light' ? value : current.light.subtitleColor },
+      dark: { ...current.dark, subtitleColor: mode === 'dark' ? value : current.dark.subtitleColor },
+    };
+    await saveConfig({ ...config, header, headerSubtitleColor: header.light.subtitleColor });
+  };
 
   return (
     <div className="space-y-4">
@@ -265,39 +444,13 @@ export function MobileDisplaySettings() {
 
               {config.navBarStyle === 'solid' && (
                 <>
-                  <div className="space-y-2">
-                    <Label>Background Color</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        type="color"
-                        value={localNavBarColor || config.navBarColor}
-                        onChange={(e) => {
-                          setLocalNavBarColor(e.target.value);
-                        }}
-                        onBlur={async (e) => {
-                          await saveConfig({ ...config, navBarColor: e.target.value });
-                        }}
-                        className="w-16 h-10 p-1 cursor-pointer"
-                      />
-                      <Input
-                        type="text"
-                        value={localNavBarColor}
-                        onChange={(e) => {
-                          setLocalNavBarColor(e.target.value);
-                        }}
-                        onBlur={async (e) => {
-                          const value = e.target.value.trim();
-                          if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
-                            await saveConfig({ ...config, navBarColor: value });
-                          } else {
-                            setLocalNavBarColor(config.navBarColor);
-                          }
-                        }}
-                        placeholder="#ffffff"
-                        className="flex-1 font-mono"
-                      />
-                    </div>
-                  </div>
+                  <LightDarkColorPicker
+                    label="Background Color"
+                    lightValue={getNavBarColors().light}
+                    darkValue={getNavBarColors().dark}
+                    onLightChange={(value) => updateNavBarColor('light', value)}
+                    onDarkChange={(value) => updateNavBarColor('dark', value)}
+                  />
                   
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
@@ -372,39 +525,13 @@ export function MobileDisplaySettings() {
 
               {config.headerStyle === 'solid' && (
                 <>
-                  <div className="space-y-2">
-                    <Label>Background Color</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        type="color"
-                        value={localHeaderColor || config.headerColor}
-                        onChange={(e) => {
-                          setLocalHeaderColor(e.target.value);
-                        }}
-                        onBlur={async (e) => {
-                          await saveConfig({ ...config, headerColor: e.target.value });
-                        }}
-                        className="w-16 h-10 p-1 cursor-pointer"
-                      />
-                      <Input
-                        type="text"
-                        value={localHeaderColor}
-                        onChange={(e) => {
-                          setLocalHeaderColor(e.target.value);
-                        }}
-                        onBlur={async (e) => {
-                          const value = e.target.value.trim();
-                          if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
-                            await saveConfig({ ...config, headerColor: value });
-                          } else {
-                            setLocalHeaderColor(config.headerColor);
-                          }
-                        }}
-                        placeholder="#ffffff"
-                        className="flex-1 font-mono"
-                      />
-                    </div>
-                  </div>
+                  <LightDarkColorPicker
+                    label="Background Color"
+                    lightValue={getHeaderColors().light}
+                    darkValue={getHeaderColors().dark}
+                    onLightChange={(value) => updateHeaderColor('light', value)}
+                    onDarkChange={(value) => updateHeaderColor('dark', value)}
+                  />
                   
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
@@ -534,39 +661,13 @@ export function MobileDisplaySettings() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label>Text Color</Label>
-                <div className="flex gap-2">
-                  <Input
-                    type="color"
-                    value={localTitleColor || config.headerTitleColor}
-                    onChange={(e) => {
-                      setLocalTitleColor(e.target.value);
-                    }}
-                    onBlur={async (e) => {
-                      await saveConfig({ ...config, headerTitleColor: e.target.value });
-                    }}
-                    className="w-16 h-10 p-1 cursor-pointer"
-                  />
-                  <Input
-                    type="text"
-                    value={localTitleColor}
-                    onChange={(e) => {
-                      setLocalTitleColor(e.target.value);
-                    }}
-                    onBlur={async (e) => {
-                      const value = e.target.value.trim();
-                      if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
-                        await saveConfig({ ...config, headerTitleColor: value });
-                      } else {
-                        setLocalTitleColor(config.headerTitleColor);
-                      }
-                    }}
-                    placeholder="#000000"
-                    className="flex-1 h-10 font-mono"
-                  />
-                </div>
-              </div>
+              <LightDarkColorPicker
+                label="Text Color"
+                lightValue={getTitleColors().light}
+                darkValue={getTitleColors().dark}
+                onLightChange={(value) => updateTitleColor('light', value)}
+                onDarkChange={(value) => updateTitleColor('dark', value)}
+              />
             </CardContent>
           </Card>
 
@@ -647,39 +748,13 @@ export function MobileDisplaySettings() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label>Text Color</Label>
-                <div className="flex gap-2">
-                  <Input
-                    type="color"
-                    value={localSubtitleColor || config.headerSubtitleColor}
-                    onChange={(e) => {
-                      setLocalSubtitleColor(e.target.value);
-                    }}
-                    onBlur={async (e) => {
-                      await saveConfig({ ...config, headerSubtitleColor: e.target.value });
-                    }}
-                    className="w-16 h-10 p-1 cursor-pointer"
-                  />
-                  <Input
-                    type="text"
-                    value={localSubtitleColor}
-                    onChange={(e) => {
-                      setLocalSubtitleColor(e.target.value);
-                    }}
-                    onBlur={async (e) => {
-                      const value = e.target.value.trim();
-                      if (value && value.match(/^#[0-9A-Fa-f]{3,6}$/)) {
-                        await saveConfig({ ...config, headerSubtitleColor: value });
-                      } else {
-                        setLocalSubtitleColor(config.headerSubtitleColor);
-                      }
-                    }}
-                    placeholder="#4B5563"
-                    className="flex-1 h-10 font-mono"
-                  />
-                </div>
-              </div>
+              <LightDarkColorPicker
+                label="Text Color"
+                lightValue={getSubtitleColors().light}
+                darkValue={getSubtitleColors().dark}
+                onLightChange={(value) => updateSubtitleColor('light', value)}
+                onDarkChange={(value) => updateSubtitleColor('dark', value)}
+              />
             </CardContent>
           </Card>
     </div>
