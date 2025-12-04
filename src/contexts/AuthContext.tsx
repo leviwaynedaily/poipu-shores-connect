@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface AuthContextType {
   user: User | null;
@@ -24,7 +24,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
-  const { toast } = useToast();
 
   useEffect(() => {
     // Set up auth state listener
@@ -77,11 +76,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     if (error) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Error", { description: error.message });
     } else {
       // Update last sign-in timestamp
       if (data.user) {
@@ -91,10 +86,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           .eq("id", data.user.id);
       }
       
-      toast({
-        title: "Welcome back!",
-        description: "You've successfully signed in.",
-      });
+      toast.success("Welcome back!");
     }
 
     return { error };
@@ -116,16 +108,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     if (error) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Error", { description: error.message });
     } else {
-      toast({
-        title: "Account created!",
-        description: "Please check your email to verify your account.",
-      });
+      toast.success("Account created!", { description: "Please check your email to verify your account." });
     }
 
     return { error };
@@ -135,10 +120,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await supabase.auth.signOut();
     setIsAdmin(false);
     setIsOwner(false);
-    toast({
-      title: "Signed out",
-      description: "You've been successfully signed out.",
-    });
+    toast.success("Signed out");
   };
 
   const resetPassword = async (email: string) => {
@@ -149,16 +131,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     if (error) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Error", { description: error.message });
     } else {
-      toast({
-        title: "Password reset email sent",
-        description: "Check your email for the password reset link.",
-      });
+      toast.success("Password reset email sent", { description: "Check your email for the password reset link." });
     }
 
     return { error };
@@ -170,16 +145,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     if (error) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Error", { description: error.message });
     } else {
-      toast({
-        title: "Password updated",
-        description: "Your password has been successfully changed.",
-      });
+      toast.success("Password updated");
     }
 
     return { error };
