@@ -8,8 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Footer } from "@/components/Footer";
-import { z } from "zod";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import beachImage from "@/assets/condo-oceanfront.jpeg";
 import logo from "@/assets/logo.png";
@@ -21,7 +20,6 @@ const AcceptInvite = () => {
   const { signIn } = useAuth();
   const { homeBackground } = useBackground();
   const { isGlassTheme, authPageOpacity } = useTheme();
-  const { toast } = useToast();
 
   const [token] = useState(searchParams.get("token") || "");
   const [loading, setLoading] = useState(true);
@@ -56,11 +54,7 @@ const AcceptInvite = () => {
   useEffect(() => {
     const verifyToken = async () => {
       if (!token) {
-        toast({
-          title: "Invalid Link",
-          description: "This invitation link is invalid",
-          variant: "destructive",
-        });
+        toast.error("Invalid Link", { description: "This invitation link is invalid" });
         setValidating(false);
         setLoading(false);
         return;
@@ -77,19 +71,11 @@ const AcceptInvite = () => {
           setInviteValid(true);
           setInviteData(data);
         } else {
-          toast({
-            title: "Invalid Invitation",
-            description: data.error || "This invitation is invalid or has expired",
-            variant: "destructive",
-          });
+          toast.error("Invalid Invitation", { description: data.error || "This invitation is invalid or has expired" });
         }
       } catch (error) {
         console.error("Error verifying token:", error);
-        toast({
-          title: "Error",
-          description: "Failed to verify invitation",
-          variant: "destructive",
-        });
+        toast.error("Error", { description: "Failed to verify invitation" });
       } finally {
         setValidating(false);
         setLoading(false);
@@ -97,7 +83,7 @@ const AcceptInvite = () => {
     };
 
     verifyToken();
-  }, [token, toast]);
+  }, [token]);
 
   const getBackgroundStyle = () => {
     switch (homeBackground.type) {
@@ -132,20 +118,12 @@ const AcceptInvite = () => {
     e.preventDefault();
 
     if (password.length < 6) {
-      toast({
-        title: "Password Too Short",
-        description: "Password must be at least 6 characters",
-        variant: "destructive",
-      });
+      toast.error("Password Too Short", { description: "Password must be at least 6 characters" });
       return;
     }
 
     if (password !== confirmPassword) {
-      toast({
-        title: "Passwords Don't Match",
-        description: "Please make sure your passwords match",
-        variant: "destructive",
-      });
+      toast.error("Passwords Don't Match", { description: "Please make sure your passwords match" });
       return;
     }
 
@@ -159,20 +137,13 @@ const AcceptInvite = () => {
       if (error) throw error;
 
       if (data.success) {
-        toast({
-          title: "Success!",
-          description: "Your password has been set. Signing you in...",
-        });
+        toast.success("Success!", { description: "Your password has been set. Signing you in..." });
 
         // Sign in the user
         const { error: signInError } = await signIn(inviteData!.email, password);
         
         if (signInError) {
-          toast({
-            title: "Sign In Error",
-            description: "Password set but sign in failed. Please try signing in manually.",
-            variant: "destructive",
-          });
+          toast.error("Sign In Error", { description: "Password set but sign in failed. Please try signing in manually." });
           navigate("/auth");
         } else {
           navigate("/dashboard");
@@ -180,11 +151,7 @@ const AcceptInvite = () => {
       }
     } catch (error) {
       console.error("Error completing invite:", error);
-      toast({
-        title: "Error",
-        description: "Failed to set password. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("Error", { description: "Failed to set password. Please try again." });
     } finally {
       setLoading(false);
     }
