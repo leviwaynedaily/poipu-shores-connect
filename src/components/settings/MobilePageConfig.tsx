@@ -10,7 +10,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Copy, Home, MessageSquare, Camera, FileText, User, Bird, Users, Settings, ChevronDown, GripVertical, MoreHorizontal, Megaphone } from "lucide-react";
+import { Upload, Copy, Home, MessageSquare, Camera, FileText, User, Bird, Users, Settings, ChevronDown, GripVertical, MoreHorizontal, Megaphone, Shield } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -185,6 +185,20 @@ const defaultPages: MobilePage[] = [
     isVisible: true,
     isFloating: false,
   },
+  {
+    id: "admin-settings",
+    tabName: "Admin",
+    route: "/admin-settings",
+    iconUrl: null,
+    floatingIconUrl: null,
+    headerLogoUrl: null,
+    fallbackIcon: "Shield",
+    title: "Admin Settings",
+    subtitle: "Administrative controls",
+    order: 11,
+    isVisible: true,
+    isFloating: false,
+  },
 ];
 
 const iconOptions = [
@@ -198,6 +212,7 @@ const iconOptions = [
   { value: "Settings", label: "Settings", Icon: Settings },
   { value: "MoreHorizontal", label: "More", Icon: MoreHorizontal },
   { value: "Megaphone", label: "Megaphone", Icon: Megaphone },
+  { value: "Shield", label: "Shield", Icon: Shield },
 ];
 
 export function MobilePageConfig() {
