@@ -22,6 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePageConfig } from "@/hooks/use-page-config";
+import { StickyActionBar } from "@/components/ui/sticky-action-bar";
 
 export default function AdminSettings() {
   const { isGlassTheme, toggleGlassTheme, glassIntensity, setGlassIntensity, sidebarOpacity, setSidebarOpacity, authPageOpacity, setAuthPageOpacity } = useTheme();
@@ -43,6 +44,34 @@ export default function AdminSettings() {
   const [currentChickenLogo, setCurrentChickenLogo] = useState<string | null>(null);
   const [uploadingChicken, setUploadingChicken] = useState(false);
   const { toast } = useToast();
+
+  // Sync local intensity states with context values
+  useEffect(() => {
+    setLocalIntensity(glassIntensity);
+  }, [glassIntensity]);
+
+  useEffect(() => {
+    setLocalSidebarOpacity(sidebarOpacity);
+  }, [sidebarOpacity]);
+
+  useEffect(() => {
+    setLocalAuthPageOpacity(authPageOpacity);
+  }, [authPageOpacity]);
+
+  // Check if glass intensity sliders have unsaved changes
+  const hasGlassChanges = () => {
+    return (
+      localIntensity !== glassIntensity ||
+      localSidebarOpacity !== sidebarOpacity ||
+      localAuthPageOpacity !== authPageOpacity
+    );
+  };
+
+  const discardGlassChanges = () => {
+    setLocalIntensity(glassIntensity);
+    setLocalSidebarOpacity(sidebarOpacity);
+    setLocalAuthPageOpacity(authPageOpacity);
+  };
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -767,10 +796,6 @@ export default function AdminSettings() {
                         className="w-full"
                       />
                     </div>
-
-                    <Button onClick={handleSaveIntensity} className="w-full" size="sm">
-                      Apply Changes
-                    </Button>
                   </CardContent>
                 </Card>
               )}
@@ -1020,6 +1045,14 @@ export default function AdminSettings() {
           </Tabs>
         </TabsContent>
       </Tabs>
+
+      <StickyActionBar
+        hasChanges={hasGlassChanges()}
+        onSave={handleSaveIntensity}
+        onDiscard={discardGlassChanges}
+        message="Glass intensity changes unsaved"
+        autoDismissOnSuccess
+      />
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Wand2, Palette, Smartphone, Image as ImageIcon, RotateCcw, Sun, Moon } from "lucide-react";
 import { BackgroundImageDialog } from "./BackgroundImageDialog";
+import { StickyActionBar } from "@/components/ui/sticky-action-bar";
 
 // Helper functions for color conversion
 const hslToHex = (hsl: string): string => {
@@ -219,6 +220,22 @@ function LightDarkColorPicker({
 export function MobileDisplaySettings() {
   const { config, saveConfig } = useMobileThemeConfig();
   
+  // Local state for sliders (to avoid saving on every drag)
+  const [localGlassIntensity, setLocalGlassIntensity] = useState<number | null>(null);
+  const [localCardRadius, setLocalCardRadius] = useState<number | null>(null);
+  const [localNavBarOpacity, setLocalNavBarOpacity] = useState<number | null>(null);
+  const [localHeaderOpacity, setLocalHeaderOpacity] = useState<number | null>(null);
+
+  // Sync local state with config when config loads
+  useEffect(() => {
+    if (config) {
+      setLocalGlassIntensity(config.glassEffect.defaultIntensity);
+      setLocalCardRadius(config.cardRadius);
+      setLocalNavBarOpacity(config.navBarOpacity);
+      setLocalHeaderOpacity(config.headerOpacity);
+    }
+  }, [config]);
+  
   // Initialize light/dark values from config
   const getNavBarColors = () => ({
     light: config?.navBar?.light?.color || '#FFFFFF',
@@ -243,6 +260,37 @@ export function MobileDisplaySettings() {
   if (!config) {
     return <div className="text-center py-8 text-muted-foreground">Loading display settings...</div>;
   }
+
+  // Check if sliders have unsaved changes
+  const hasSliderChanges = () => {
+    return (
+      localGlassIntensity !== config.glassEffect.defaultIntensity ||
+      localCardRadius !== config.cardRadius ||
+      localNavBarOpacity !== config.navBarOpacity ||
+      localHeaderOpacity !== config.headerOpacity
+    );
+  };
+
+  const saveSliderChanges = async () => {
+    const updatedConfig = {
+      ...config,
+      glassEffect: {
+        ...config.glassEffect,
+        defaultIntensity: localGlassIntensity ?? config.glassEffect.defaultIntensity,
+      },
+      cardRadius: localCardRadius ?? config.cardRadius,
+      navBarOpacity: localNavBarOpacity ?? config.navBarOpacity,
+      headerOpacity: localHeaderOpacity ?? config.headerOpacity,
+    };
+    await saveConfig(updatedConfig);
+  };
+
+  const discardSliderChanges = () => {
+    setLocalGlassIntensity(config.glassEffect.defaultIntensity);
+    setLocalCardRadius(config.cardRadius);
+    setLocalNavBarOpacity(config.navBarOpacity);
+    setLocalHeaderOpacity(config.headerOpacity);
+  };
 
   const updateNavBarColor = async (mode: 'light' | 'dark', value: string) => {
     const navBar = {
@@ -313,7 +361,8 @@ export function MobileDisplaySettings() {
   };
 
   return (
-    <div className="space-y-4">
+    <>
+      <div className="space-y-4 pb-20">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Glass Effect</CardTitle>
@@ -344,20 +393,11 @@ export function MobileDisplaySettings() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label>Default Intensity</Label>
-                    <span className="text-sm text-muted-foreground">{config.glassEffect.defaultIntensity}%</span>
+                    <span className="text-sm text-muted-foreground">{localGlassIntensity ?? config.glassEffect.defaultIntensity}%</span>
                   </div>
                   <Slider
-                    value={[config.glassEffect.defaultIntensity]}
-                    onValueChange={async ([value]) => {
-                      const updatedConfig = {
-                        ...config,
-                        glassEffect: {
-                          ...config.glassEffect,
-                          defaultIntensity: value,
-                        },
-                      };
-                      await saveConfig(updatedConfig);
-                    }}
+                    value={[localGlassIntensity ?? config.glassEffect.defaultIntensity]}
+                    onValueChange={([value]) => setLocalGlassIntensity(value)}
                     min={0}
                     max={100}
                     step={5}
@@ -376,17 +416,11 @@ export function MobileDisplaySettings() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label>Card Radius</Label>
-                  <span className="text-sm text-muted-foreground">{config.cardRadius}px</span>
+                  <span className="text-sm text-muted-foreground">{localCardRadius ?? config.cardRadius}px</span>
                 </div>
                 <Slider
-                  value={[config.cardRadius]}
-                  onValueChange={async ([value]) => {
-                    const updatedConfig = {
-                      ...config,
-                      cardRadius: value,
-                    };
-                    await saveConfig(updatedConfig);
-                  }}
+                  value={[localCardRadius ?? config.cardRadius]}
+                  onValueChange={([value]) => setLocalCardRadius(value)}
                   min={0}
                   max={24}
                   step={2}
@@ -420,58 +454,28 @@ export function MobileDisplaySettings() {
                 </SelectContent>
               </Select>
 
-              {config.navBarStyle === 'translucent' && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label>Opacity</Label>
-                    <span className="text-sm text-muted-foreground">{config.navBarOpacity}%</span>
-                  </div>
-                  <Slider
-                    value={[config.navBarOpacity]}
-                    onValueChange={async ([value]) => {
-                      const updatedConfig = {
-                        ...config,
-                        navBarOpacity: value,
-                      };
-                      await saveConfig(updatedConfig);
-                    }}
-                    min={0}
-                    max={100}
-                    step={5}
-                  />
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Opacity</Label>
+                  <span className="text-sm text-muted-foreground">{localNavBarOpacity ?? config.navBarOpacity}%</span>
                 </div>
-              )}
+                <Slider
+                  value={[localNavBarOpacity ?? config.navBarOpacity]}
+                  onValueChange={([value]) => setLocalNavBarOpacity(value)}
+                  min={0}
+                  max={100}
+                  step={5}
+                />
+              </div>
 
               {config.navBarStyle === 'solid' && (
-                <>
-                  <LightDarkColorPicker
-                    label="Background Color"
-                    lightValue={getNavBarColors().light}
-                    darkValue={getNavBarColors().dark}
-                    onLightChange={(value) => updateNavBarColor('light', value)}
-                    onDarkChange={(value) => updateNavBarColor('dark', value)}
-                  />
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label>Opacity</Label>
-                      <span className="text-sm text-muted-foreground">{config.navBarOpacity}%</span>
-                    </div>
-                    <Slider
-                      value={[config.navBarOpacity]}
-                      onValueChange={async ([value]) => {
-                        const updatedConfig = {
-                          ...config,
-                          navBarOpacity: value,
-                        };
-                        await saveConfig(updatedConfig);
-                      }}
-                      min={0}
-                      max={100}
-                      step={5}
-                    />
-                  </div>
-                </>
+                <LightDarkColorPicker
+                  label="Background Color"
+                  lightValue={getNavBarColors().light}
+                  darkValue={getNavBarColors().dark}
+                  onLightChange={(value) => updateNavBarColor('light', value)}
+                  onDarkChange={(value) => updateNavBarColor('dark', value)}
+                />
               )}
             </CardContent>
           </Card>
@@ -501,58 +505,28 @@ export function MobileDisplaySettings() {
                 </SelectContent>
               </Select>
 
-              {config.headerStyle === 'translucent' && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label>Opacity</Label>
-                    <span className="text-sm text-muted-foreground">{config.headerOpacity}%</span>
-                  </div>
-                  <Slider
-                    value={[config.headerOpacity]}
-                    onValueChange={async ([value]) => {
-                      const updatedConfig = {
-                        ...config,
-                        headerOpacity: value,
-                      };
-                      await saveConfig(updatedConfig);
-                    }}
-                    min={0}
-                    max={100}
-                    step={5}
-                  />
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Opacity</Label>
+                  <span className="text-sm text-muted-foreground">{localHeaderOpacity ?? config.headerOpacity}%</span>
                 </div>
-              )}
+                <Slider
+                  value={[localHeaderOpacity ?? config.headerOpacity]}
+                  onValueChange={([value]) => setLocalHeaderOpacity(value)}
+                  min={0}
+                  max={100}
+                  step={5}
+                />
+              </div>
 
               {config.headerStyle === 'solid' && (
-                <>
-                  <LightDarkColorPicker
-                    label="Background Color"
-                    lightValue={getHeaderColors().light}
-                    darkValue={getHeaderColors().dark}
-                    onLightChange={(value) => updateHeaderColor('light', value)}
-                    onDarkChange={(value) => updateHeaderColor('dark', value)}
-                  />
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label>Opacity</Label>
-                      <span className="text-sm text-muted-foreground">{config.headerOpacity}%</span>
-                    </div>
-                    <Slider
-                      value={[config.headerOpacity]}
-                      onValueChange={async ([value]) => {
-                        const updatedConfig = {
-                          ...config,
-                          headerOpacity: value,
-                        };
-                        await saveConfig(updatedConfig);
-                      }}
-                      min={0}
-                      max={100}
-                      step={5}
-                    />
-                  </div>
-                </>
+                <LightDarkColorPicker
+                  label="Background Color"
+                  lightValue={getHeaderColors().light}
+                  darkValue={getHeaderColors().dark}
+                  onLightChange={(value) => updateHeaderColor('light', value)}
+                  onDarkChange={(value) => updateHeaderColor('dark', value)}
+                />
               )}
             </CardContent>
           </Card>
@@ -757,7 +731,15 @@ export function MobileDisplaySettings() {
               />
             </CardContent>
           </Card>
-    </div>
+      </div>
+
+      <StickyActionBar
+        hasChanges={hasSliderChanges()}
+        onSave={saveSliderChanges}
+        onDiscard={discardSliderChanges}
+        autoDismissOnSuccess
+      />
+    </>
   );
 }
 
