@@ -54,6 +54,7 @@ export interface Conversation {
     id: string;
     full_name: string;
     avatar_url: string | null;
+    last_sign_in_at?: string;
   };
   member_count: number;
 }

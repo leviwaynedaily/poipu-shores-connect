@@ -1,12 +1,19 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Image, X, Loader2 } from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Send, Image, X, Loader2, Smile } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ChatMessage } from '@/hooks/use-chat';
 import { cn } from '@/lib/utils';
+
+const EMOJI_PICKER = ['😀', '😂', '😍', '🥰', '😎', '🤔', '👍', '👋', '❤️', '🎉', '🔥', '✨', '💯', '🙏', '👏', '😢'];
 
 interface ChatMessageInputProps {
   onSendMessage: (content: string, imageUrl?: string, replyToId?: string) => Promise<any>;
@@ -30,14 +37,16 @@ export function ChatMessageInput({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-resize textarea
+  // Auto-resize textarea with animation
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+      const newHeight = Math.min(textareaRef.current.scrollHeight, 120);
+      textareaRef.current.style.height = `${newHeight}px`;
     }
   }, [message]);
 
@@ -142,6 +151,10 @@ export function ChatMessageInput({
       e.preventDefault();
       handleSubmit();
     }
+    // Cancel reply on Escape
+    if (e.key === 'Escape' && replyingTo) {
+      onCancelReply();
+    }
   };
 
   const clearImage = () => {
@@ -152,11 +165,20 @@ export function ChatMessageInput({
     }
   };
 
+  const insertEmoji = (emoji: string) => {
+    setMessage(prev => prev + emoji);
+    setShowEmojiPicker(false);
+    textareaRef.current?.focus();
+  };
+
   return (
-    <div className="border-t border-border bg-background p-3">
+    <div className="border-t border-border bg-card/50 backdrop-blur-sm p-3">
       {/* Reply preview */}
       {replyingTo && (
-        <div className="flex items-center gap-2 mb-2 px-3 py-2 bg-muted rounded-lg">
+        <div className={cn(
+          'flex items-center gap-2 mb-2 px-3 py-2 bg-muted/80 rounded-lg border-l-2 border-primary',
+          'animate-in slide-in-from-bottom-2 duration-200'
+        )}>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-medium text-primary">
               Replying to {replyingTo.profiles.full_name}
@@ -168,7 +190,7 @@ export function ChatMessageInput({
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 shrink-0"
+            className="h-6 w-6 shrink-0 rounded-full hover:bg-background"
             onClick={onCancelReply}
           >
             <X className="h-4 w-4" />
@@ -178,16 +200,16 @@ export function ChatMessageInput({
 
       {/* Image preview */}
       {imagePreview && (
-        <div className="relative inline-block mb-2">
+        <div className="relative inline-block mb-2 animate-in fade-in zoom-in-95 duration-200">
           <img
             src={imagePreview}
             alt="Preview"
-            className="h-20 rounded-lg object-cover"
+            className="h-20 rounded-lg object-cover shadow-md"
           />
           <Button
             variant="destructive"
             size="icon"
-            className="absolute -top-2 -right-2 h-6 w-6"
+            className="absolute -top-2 -right-2 h-6 w-6 rounded-full shadow-md"
             onClick={clearImage}
           >
             <X className="h-3 w-3" />
@@ -205,44 +227,87 @@ export function ChatMessageInput({
           className="hidden"
         />
 
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="shrink-0"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={disabled || isUploading}
-        >
-          <Image className="h-5 w-5" />
-        </Button>
+        <div className="flex gap-0.5">
+          {/* Emoji picker */}
+          <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="shrink-0 h-9 w-9 rounded-full hover:bg-muted"
+                disabled={disabled}
+              >
+                <Smile className="h-5 w-5 text-muted-foreground" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-2" side="top" align="start">
+              <div className="grid grid-cols-8 gap-1">
+                {EMOJI_PICKER.map(emoji => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => insertEmoji(emoji)}
+                    className="text-xl hover:scale-125 transition-transform duration-150 p-1.5 rounded-md hover:bg-muted"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
 
-        <Textarea
-          ref={textareaRef}
-          value={message}
-          onChange={(e) => {
-            setMessage(e.target.value);
-            onTyping();
-          }}
-          onKeyDown={handleKeyDown}
-          placeholder="Type a message..."
-          className={cn(
-            'flex-1 min-h-[40px] max-h-[120px] resize-none',
-            'py-2 px-3'
-          )}
-          disabled={disabled}
-          rows={1}
-        />
+          {/* Image upload */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="shrink-0 h-9 w-9 rounded-full hover:bg-muted"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={disabled || isUploading}
+          >
+            <Image className="h-5 w-5 text-muted-foreground" />
+          </Button>
+        </div>
+
+        <div className="flex-1 relative">
+          <Textarea
+            ref={textareaRef}
+            value={message}
+            onChange={(e) => {
+              setMessage(e.target.value);
+              onTyping();
+            }}
+            onKeyDown={handleKeyDown}
+            placeholder="Type a message..."
+            className={cn(
+              'min-h-[40px] max-h-[120px] resize-none',
+              'py-2.5 px-4 pr-12',
+              'bg-muted/50 border-transparent rounded-2xl',
+              'focus:bg-background focus:border-border',
+              'transition-all duration-200',
+              'placeholder:text-muted-foreground/60'
+            )}
+            disabled={disabled}
+            rows={1}
+          />
+        </div>
 
         <Button
           type="submit"
           size="icon"
-          className="shrink-0"
+          className={cn(
+            'shrink-0 h-9 w-9 rounded-full',
+            'transition-all duration-200',
+            'shadow-md hover:shadow-lg',
+            (!message.trim() && !imagePreview) && 'opacity-50'
+          )}
           disabled={(!message.trim() && !imagePreview) || disabled || isSending || isUploading}
         >
           {isSending || isUploading ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            <Send className="h-5 w-5" />
+            <Send className="h-4 w-4" />
           )}
         </Button>
       </form>
