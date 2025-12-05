@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 
 const Chat = () => {
   const { pageConfig } = usePageConfig();
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
   const [showSidebar, setShowSidebar] = useState(true);
 
   const {
