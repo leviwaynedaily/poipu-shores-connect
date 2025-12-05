@@ -233,22 +233,13 @@ export function ConversationSidebar({
             {/* Empty State */}
             {filteredConversations.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <MessageCircle className="h-8 w-8 text-primary/60" />
+                <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                  <MessageCircle className="h-8 w-8 text-muted-foreground/60" />
                 </div>
                 <h3 className="font-medium text-foreground mb-1">No conversations yet</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Start a conversation with your neighbors
+                <p className="text-sm text-muted-foreground">
+                  Use the button above to start chatting
                 </p>
-                <Button
-                  onClick={() => setShowNewDialog(true)}
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  Start a conversation
-                </Button>
               </div>
             )}
           </div>
