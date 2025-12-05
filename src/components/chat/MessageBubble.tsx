@@ -27,6 +27,7 @@ interface MessageBubbleProps {
   onDelete: (messageId: string) => void;
   showAvatar?: boolean;
   isGrouped?: boolean;
+  connectsWithNext?: boolean;
 }
 
 export function MessageBubble({
@@ -35,7 +36,8 @@ export function MessageBubble({
   onReaction,
   onDelete,
   showAvatar = true,
-  isGrouped = false
+  isGrouped = false,
+  connectsWithNext = false
 }: MessageBubbleProps) {
   const { user } = useAuth();
   const [showActions, setShowActions] = useState(false);
@@ -53,6 +55,31 @@ export function MessageBubble({
   const hasBeenRead = message.read_by && message.read_by.length > 0;
   const readByOthers = message.read_by?.filter(r => r.user_id !== user?.id) || [];
 
+  // Calculate border radius based on grouping (iMessage-style connected bubbles)
+  const getBubbleRadius = () => {
+    const baseRadius = 'rounded-2xl';
+    
+    if (isOwnMessage) {
+      if (isGrouped && connectsWithNext) {
+        return 'rounded-2xl rounded-r-md'; // Middle of a group
+      } else if (isGrouped) {
+        return 'rounded-2xl rounded-tr-md'; // Last in group
+      } else if (connectsWithNext) {
+        return 'rounded-2xl rounded-br-md'; // First in group
+      }
+      return baseRadius; // Standalone
+    } else {
+      if (isGrouped && connectsWithNext) {
+        return 'rounded-2xl rounded-l-md'; // Middle of a group
+      } else if (isGrouped) {
+        return 'rounded-2xl rounded-tl-md'; // Last in group
+      } else if (connectsWithNext) {
+        return 'rounded-2xl rounded-bl-md'; // First in group
+      }
+      return baseRadius; // Standalone
+    }
+  };
+
   return (
     <div
       className={cn(
@@ -65,9 +92,9 @@ export function MessageBubble({
     >
       {/* Avatar */}
       {showAvatar && !isGrouped ? (
-        <Avatar className="h-8 w-8 shrink-0">
+        <Avatar className="h-8 w-8 shrink-0 shadow-sm">
           <AvatarImage src={message.profiles.avatar_url || undefined} />
-          <AvatarFallback className="text-xs">
+          <AvatarFallback className="text-xs bg-muted">
             {getInitials(message.profiles.full_name)}
           </AvatarFallback>
         </Avatar>
@@ -86,7 +113,7 @@ export function MessageBubble({
             'flex items-center gap-2 mb-1 text-xs text-muted-foreground',
             isOwnMessage ? 'flex-row-reverse' : 'flex-row'
           )}>
-            <span className="font-medium">
+            <span className="font-medium text-foreground/80">
               {isOwnMessage ? 'You' : message.profiles.full_name}
             </span>
             <span>{format(new Date(message.created_at), 'h:mm a')}</span>
@@ -97,6 +124,7 @@ export function MessageBubble({
         {message.reply_message && (
           <div className={cn(
             'px-3 py-1.5 mb-1 text-xs rounded-lg border-l-2 border-primary/50',
+            'transition-colors duration-150',
             isOwnMessage ? 'bg-primary/5' : 'bg-muted/50'
           )}>
             <span className="font-medium text-primary">
@@ -110,10 +138,12 @@ export function MessageBubble({
 
         {/* Bubble */}
         <div className={cn(
-          'relative px-3 py-2 rounded-2xl',
+          'relative px-3.5 py-2.5',
+          getBubbleRadius(),
+          'transition-all duration-150',
           isOwnMessage
-            ? 'bg-primary text-primary-foreground rounded-br-md'
-            : 'bg-muted rounded-bl-md'
+            ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
+            : 'bg-muted/80'
         )}>
           {/* Image */}
           {message.image_url && (
@@ -126,20 +156,25 @@ export function MessageBubble({
 
           {/* Text */}
           {message.content && (
-            <p className="text-sm whitespace-pre-wrap break-words">
+            <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
               {message.content}
             </p>
           )}
 
           {/* Actions overlay */}
           <div className={cn(
-            'absolute top-0 flex items-center gap-1 transition-opacity',
-            isOwnMessage ? '-left-20' : '-right-20',
-            showActions ? 'opacity-100' : 'opacity-0'
+            'absolute top-1/2 -translate-y-1/2 flex items-center gap-0.5',
+            'transition-all duration-150',
+            isOwnMessage ? '-left-24' : '-right-24',
+            showActions ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
           )}>
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-7 w-7">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-7 w-7 rounded-full hover:bg-muted"
+                >
                   <Smile className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
@@ -149,7 +184,7 @@ export function MessageBubble({
                     <button
                       key={emoji}
                       onClick={() => onReaction(message.id, emoji)}
-                      className="text-lg hover:scale-125 transition-transform p-1"
+                      className="text-lg hover:scale-125 transition-transform duration-150 p-1.5 rounded-md hover:bg-muted"
                     >
                       {emoji}
                     </button>
@@ -161,7 +196,7 @@ export function MessageBubble({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7"
+              className="h-7 w-7 rounded-full hover:bg-muted"
               onClick={() => onReply(message)}
             >
               <Reply className="h-4 w-4" />
@@ -170,14 +205,18 @@ export function MessageBubble({
             {isOwnMessage && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-7 w-7 rounded-full hover:bg-muted"
+                  >
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align={isOwnMessage ? 'end' : 'start'}>
                   <DropdownMenuItem
                     onClick={() => onDelete(message.id)}
-                    className="text-destructive"
+                    className="text-destructive focus:text-destructive"
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete
@@ -199,9 +238,10 @@ export function MessageBubble({
                 key={reaction.emoji}
                 onClick={() => onReaction(message.id, reaction.emoji)}
                 className={cn(
-                  'flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs transition-colors',
+                  'flex items-center gap-1 px-2 py-0.5 rounded-full text-xs',
+                  'transition-all duration-150 hover:scale-105',
                   reaction.user_ids.includes(user?.id || '')
-                    ? 'bg-primary/20 border border-primary/30'
+                    ? 'bg-primary/20 border border-primary/30 shadow-sm'
                     : 'bg-muted hover:bg-muted/80'
                 )}
               >
@@ -213,11 +253,11 @@ export function MessageBubble({
         )}
 
         {/* Read receipts (only for own messages) */}
-        {isOwnMessage && (
-          <div className="flex items-center gap-1 mt-0.5">
+        {isOwnMessage && !connectsWithNext && (
+          <div className="flex items-center gap-1 mt-1">
             {readByOthers.length > 0 ? (
               <div className="flex items-center gap-1">
-                <CheckCheck className="h-3 w-3 text-primary" />
+                <CheckCheck className="h-3.5 w-3.5 text-primary" />
                 <div className="flex -space-x-1">
                   {readByOthers.slice(0, 3).map(receipt => (
                     <Avatar key={receipt.user_id} className="h-4 w-4 border border-background">
@@ -235,7 +275,7 @@ export function MessageBubble({
                 </div>
               </div>
             ) : (
-              <Check className="h-3 w-3 text-muted-foreground" />
+              <Check className="h-3.5 w-3.5 text-muted-foreground" />
             )}
           </div>
         )}

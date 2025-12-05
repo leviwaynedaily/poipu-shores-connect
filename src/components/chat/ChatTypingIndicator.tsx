@@ -30,24 +30,28 @@ export function ChatTypingIndicator({ typingUsers, className }: ChatTypingIndica
   };
 
   return (
-    <div className={cn('flex items-center gap-2 px-4 py-2', className)}>
+    <div className={cn(
+      'flex items-center gap-2 px-4 py-2 bg-muted/30',
+      'animate-in fade-in slide-in-from-bottom-1 duration-200',
+      className
+    )}>
       <div className="flex -space-x-2">
         {typingUsers.slice(0, 3).map(user => (
-          <Avatar key={user.user_id} className="h-6 w-6 border-2 border-background">
+          <Avatar key={user.user_id} className="h-6 w-6 border-2 border-background shadow-sm">
             <AvatarImage src={user.avatar_url || undefined} />
-            <AvatarFallback className="text-[10px]">
+            <AvatarFallback className="text-[10px] bg-muted">
               {getInitials(user.full_name)}
             </AvatarFallback>
           </Avatar>
         ))}
       </div>
       
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1.5">
         <span className="text-xs text-muted-foreground">{getTypingText()}</span>
-        <div className="flex gap-0.5">
-          <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]" />
-          <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]" />
-          <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" />
+        <div className="flex gap-0.5 items-center">
+          <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-[bounce_1s_ease-in-out_infinite]" />
+          <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-[bounce_1s_ease-in-out_infinite_0.15s]" />
+          <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-[bounce_1s_ease-in-out_infinite_0.3s]" />
         </div>
       </div>
     </div>
