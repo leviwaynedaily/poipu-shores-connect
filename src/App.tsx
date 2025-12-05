@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
 import { BackgroundProvider } from "@/contexts/BackgroundContext";
@@ -152,15 +153,17 @@ const AppContent = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
-      <AuthProvider>
-        <ThemeProvider>
-          <BackgroundProvider>
-            <TooltipProvider>
-              <AppContent />
-            </TooltipProvider>
-          </BackgroundProvider>
-        </ThemeProvider>
-      </AuthProvider>
+      <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
+        <AuthProvider>
+          <ThemeProvider>
+            <BackgroundProvider>
+              <TooltipProvider>
+                <AppContent />
+              </TooltipProvider>
+            </BackgroundProvider>
+          </ThemeProvider>
+        </AuthProvider>
+      </NextThemesProvider>
     </BrowserRouter>
   </QueryClientProvider>
 );
