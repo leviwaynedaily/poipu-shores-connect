@@ -5,8 +5,9 @@ import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme as useNextTheme } from 'next-themes';
 import { useBackground } from '@/contexts/BackgroundContext';
-import { Sparkles, Upload, Image, Palette, Wand2 } from 'lucide-react';
+import { Sparkles, Upload, Image, Palette, Wand2, Sun, Moon, Monitor } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -19,6 +20,7 @@ interface ThemeSettingsDialogProps {
 
 export const ThemeSettingsDialog = ({ open, onOpenChange }: ThemeSettingsDialogProps) => {
   const { isGlassTheme, toggleGlassTheme, glassIntensity, setGlassIntensity, sidebarOpacity, setSidebarOpacity, authPageOpacity, setAuthPageOpacity } = useTheme();
+  const { theme, setTheme } = useNextTheme();
   const { appBackground, setAppBackground, refreshBackgrounds } = useBackground();
   const [localIntensity, setLocalIntensity] = useState(glassIntensity);
   const [localSidebarOpacity, setLocalSidebarOpacity] = useState(sidebarOpacity);
@@ -388,7 +390,41 @@ export const ThemeSettingsDialog = ({ open, onOpenChange }: ThemeSettingsDialogP
           </TabsList>
 
           <TabsContent value="theme" className="space-y-6">
-            {/* Theme Mode Toggle */}
+            {/* Color Mode Toggle */}
+            <div className="space-y-3">
+              <Label>Color Mode</Label>
+              <div className="grid grid-cols-3 gap-3">
+                <Button
+                  onClick={() => setTheme('light')}
+                  variant={theme === 'light' ? 'default' : 'outline'}
+                  className="flex flex-col items-center gap-2 h-auto py-4"
+                >
+                  <Sun className="h-5 w-5" />
+                  <span className="text-xs">Light</span>
+                </Button>
+                <Button
+                  onClick={() => setTheme('dark')}
+                  variant={theme === 'dark' ? 'default' : 'outline'}
+                  className="flex flex-col items-center gap-2 h-auto py-4"
+                >
+                  <Moon className="h-5 w-5" />
+                  <span className="text-xs">Dark</span>
+                </Button>
+                <Button
+                  onClick={() => setTheme('system')}
+                  variant={theme === 'system' ? 'default' : 'outline'}
+                  className="flex flex-col items-center gap-2 h-auto py-4"
+                >
+                  <Monitor className="h-5 w-5" />
+                  <span className="text-xs">System</span>
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Choose between light, dark, or follow your system preference
+              </p>
+            </div>
+
+            {/* Display Mode Toggle */}
             <div className="space-y-3">
               <Label>Display Mode</Label>
               <div className="flex items-center gap-3">
