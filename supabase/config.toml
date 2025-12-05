@@ -83,3 +83,9 @@ verify_jwt = false
 
 [functions.update-notification-preferences]
 verify_jwt = true
+
+[functions.start-conversation]
+verify_jwt = true
+
+[functions.typing-indicator]
+verify_jwt = true

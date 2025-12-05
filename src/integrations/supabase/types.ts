@@ -100,8 +100,58 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_channel_members: {
+        Row: {
+          added_at: string
+          added_by: string | null
+          channel_id: string
+          id: string
+          is_admin: boolean
+          user_id: string
+        }
+        Insert: {
+          added_at?: string
+          added_by?: string | null
+          channel_id: string
+          id?: string
+          is_admin?: boolean
+          user_id: string
+        }
+        Update: {
+          added_at?: string
+          added_by?: string | null
+          channel_id?: string
+          id?: string
+          is_admin?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_channel_members_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_channel_members_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "chat_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_channel_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_channels: {
         Row: {
+          channel_type: string
           created_at: string
           created_by: string
           description: string | null
@@ -111,6 +161,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          channel_type?: string
           created_at?: string
           created_by: string
           description?: string | null
@@ -120,6 +171,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          channel_type?: string
           created_at?: string
           created_by?: string
           description?: string | null
@@ -168,6 +220,8 @@ export type Database = {
           channel_id: string
           content: string
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           id: string
           image_url: string | null
           is_private: boolean | null
@@ -179,6 +233,8 @@ export type Database = {
           channel_id: string
           content: string
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           id?: string
           image_url?: string | null
           is_private?: boolean | null
@@ -190,6 +246,8 @@ export type Database = {
           channel_id?: string
           content?: string
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           id?: string
           image_url?: string | null
           is_private?: boolean | null
@@ -205,10 +263,89 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "chat_messages_deleted_by_fkey"
+            columns: ["deleted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "chat_messages_reply_to_fkey"
             columns: ["reply_to"]
             isOneToOne: false
             referencedRelation: "chat_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_read_receipts: {
+        Row: {
+          id: string
+          message_id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          message_id: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          message_id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_read_receipts_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "chat_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_read_receipts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_typing_indicators: {
+        Row: {
+          channel_id: string
+          id: string
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          channel_id: string
+          id?: string
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          channel_id?: string
+          id?: string
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_typing_indicators_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "chat_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_typing_indicators_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
