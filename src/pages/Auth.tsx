@@ -226,7 +226,8 @@ const Auth = () => {
       setLoading(true);
       const { error } = await signIn(email, password);
       if (!error) {
-        trackLogin();
+        // Delay trackLogin to allow auth state to propagate
+        setTimeout(() => trackLogin(), 500);
         navigate("/dashboard");
       } else {
         if (error.message.includes('Invalid login credentials') || error.message.includes('not found')) {
@@ -267,16 +268,18 @@ const Auth = () => {
       if (/Mobi|Android/i.test(userAgent)) deviceType = 'Mobile';
       else if (/Tablet|iPad/i.test(userAgent)) deviceType = 'Tablet';
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      await supabase.functions.invoke('track-login', {
+      // Don't check session - just invoke the function which will use current auth
+      const { error } = await supabase.functions.invoke('track-login', {
         body: {
           userAgent,
           browser,
           deviceType,
         },
       });
+      
+      if (error) {
+        console.error('Track login error:', error);
+      }
     } catch (error) {
       console.error('Error tracking login:', error);
     }
@@ -442,7 +445,8 @@ const Auth = () => {
         title: "Success!",
         description: "Signed in successfully",
       });
-      trackLogin();
+      // Delay trackLogin to allow auth state to propagate
+      setTimeout(() => trackLogin(), 500);
       navigate("/dashboard");
     }
   };

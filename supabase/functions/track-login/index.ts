@@ -12,25 +12,29 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        auth: {
-          persistSession: false,
-        },
-      }
-    );
-
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       throw new Error('No authorization header');
     }
 
+    // Create a client that uses the user's JWT for RLS compliance
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: {
+            Authorization: authHeader,
+          },
+        },
+      }
+    );
+
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
 
     if (authError || !user) {
+      console.error('Auth error:', authError);
       throw new Error('Unauthorized');
     }
 
@@ -41,11 +45,9 @@ serve(async (req) => {
                      req.headers.get('x-real-ip') || 
                      'unknown';
 
-    // Parse location from IP (basic implementation - could use geo-IP service)
-    let locationCity = null;
-    let locationCountry = null;
+    console.log(`Tracking login for user ${user.id} from ${ipAddress}`);
 
-    // Insert login record
+    // Insert login record using user-authenticated client
     const { error: insertError } = await supabaseClient
       .from('login_history')
       .insert({
@@ -54,14 +56,16 @@ serve(async (req) => {
         user_agent: userAgent,
         browser: browser,
         device_type: deviceType,
-        location_city: locationCity,
-        location_country: locationCountry,
+        location_city: null,
+        location_country: null,
       });
 
     if (insertError) {
       console.error('Error inserting login history:', insertError);
       throw insertError;
     }
+
+    console.log('Login tracked successfully');
 
     return new Response(
       JSON.stringify({ success: true }),
