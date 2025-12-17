@@ -15,6 +15,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Textarea } from "@/components/ui/textarea";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { formatPhoneNumber, formatPhoneInput } from "@/lib/phoneUtils";
+import { UserDetailSheet } from "./UserDetailSheet";
 
 interface Profile {
   id: string;
@@ -81,6 +82,8 @@ export function UserManagement() {
   const [editRelationshipType, setEditRelationshipType] = useState<string>("primary");
   const [editIsPrimaryContact, setEditIsPrimaryContact] = useState<boolean>(false);
   const [editUnitOwnerId, setEditUnitOwnerId] = useState<string | null>(null);
+  const [detailSheetUser, setDetailSheetUser] = useState<UserWithRoles | null>(null);
+  const [detailSheetOpen, setDetailSheetOpen] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -132,6 +135,14 @@ export function UserManagement() {
       })) || [];
 
       setUsers(usersWithRoles);
+      
+      // Update detail sheet user if open
+      if (detailSheetUser) {
+        const updatedUser = usersWithRoles.find(u => u.id === detailSheetUser.id);
+        if (updatedUser) {
+          setDetailSheetUser(updatedUser);
+        }
+      }
     } catch (error: any) {
       toast({
         title: "Error",
@@ -1022,7 +1033,14 @@ export function UserManagement() {
                   };
                   
                   return (
-                    <TableRow key={user.id} className={isArchived ? "opacity-50" : ""}>
+                    <TableRow 
+                      key={user.id} 
+                      className={`${isArchived ? "opacity-50" : ""} cursor-pointer hover:bg-muted/50 transition-colors`}
+                      onClick={() => {
+                        setDetailSheetUser(user);
+                        setDetailSheetOpen(true);
+                      }}
+                    >
                       <TableCell className="font-medium">
                         {user.full_name}
                         {isArchived && (
@@ -1072,7 +1090,7 @@ export function UserManagement() {
                           )}
                         </div>
                       </TableCell>
-                       <TableCell>
+                       <TableCell onClick={(e) => e.stopPropagation()}>
                         <div className="flex gap-2 justify-end">
                           {isArchived ? (
                             <>
@@ -1534,6 +1552,23 @@ export function UserManagement() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <UserDetailSheet
+        user={detailSheetUser}
+        open={detailSheetOpen}
+        onOpenChange={setDetailSheetOpen}
+        onEdit={(user) => handleEditUser(user)}
+        onResetPassword={(user) => {
+          setSelectedResetUser(user);
+          setResetPasswordDialogOpen(true);
+        }}
+        onDeactivate={(user) => {
+          setSelectedUser(user);
+          setDeactivateDialogOpen(true);
+        }}
+        onReactivate={handleReactivateUser}
+        onToggleRole={handleToggleRole}
+      />
     </>
     </TooltipProvider>
   );
