@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, X, Save, User, Lock, RotateCcw } from "lucide-react";
-import { formatPhoneInput } from "@/lib/phoneUtils";
+import { formatPhoneInput, formatPhoneNumber } from "@/lib/phoneUtils";
 import { z } from "zod";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 
@@ -27,6 +27,7 @@ const Profile = () => {
   const { toast } = useToast();
   const [fullName, setFullName] = useState("");
   const [unitNumber, setUnitNumber] = useState("");
+  const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [showContactInfo, setShowContactInfo] = useState(true);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -42,6 +43,7 @@ const Profile = () => {
   const [initialState, setInitialState] = useState({
     fullName: "",
     unitNumber: "",
+    email: "",
     phone: "",
     showContactInfo: true,
   });
@@ -68,16 +70,19 @@ const Profile = () => {
         .eq("user_id", user.id);
       
       const unitNumber = unitsData?.[0]?.unit_number || "";
+      const userEmail = user.email || "";
       
       const state = {
         fullName: data.full_name || "",
         unitNumber: unitNumber,
-        phone: data.phone || "",
+        email: userEmail,
+        phone: formatPhoneNumber(data.phone) || "",
         showContactInfo: data.show_contact_info ?? true,
       };
       
       setFullName(state.fullName);
       setUnitNumber(state.unitNumber);
+      setEmail(state.email);
       setPhone(state.phone);
       setShowContactInfo(state.showContactInfo);
       setAvatarUrl(data.avatar_url || null);
@@ -90,11 +95,12 @@ const Profile = () => {
     const changed = 
       fullName !== initialState.fullName ||
       unitNumber !== initialState.unitNumber ||
+      email !== initialState.email ||
       phone !== initialState.phone ||
       showContactInfo !== initialState.showContactInfo ||
       avatarFile !== null;
     setHasChanges(changed);
-  }, [fullName, unitNumber, phone, showContactInfo, avatarFile, initialState]);
+  }, [fullName, unitNumber, email, phone, showContactInfo, avatarFile, initialState]);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -204,6 +210,16 @@ const Profile = () => {
         uploadedAvatarUrl = publicUrl;
       }
 
+      // Update email if changed
+      if (email !== initialState.email) {
+        const { error: emailError } = await supabase.auth.updateUser({ email });
+        if (emailError) throw emailError;
+        toast({
+          title: "Confirmation Required",
+          description: "A confirmation email has been sent to your new email address. Please check your inbox.",
+        });
+      }
+
       // Update profile
       const { error } = await supabase
         .from("profiles")
@@ -257,6 +273,7 @@ const Profile = () => {
       setInitialState({
         fullName,
         unitNumber,
+        email,
         phone,
         showContactInfo,
       });
@@ -410,9 +427,12 @@ const Profile = () => {
                     <Input
                       id="email"
                       type="email"
-                      value={user?.email || ""}
-                      disabled
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Changing your email requires confirmation via the new address
+                    </p>
                   </div>
                   
                   <div className="space-y-2">
