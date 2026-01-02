@@ -27,42 +27,113 @@ serve(async (req) => {
       });
     }
 
-    // Fetch document contents
+    // Get the user's latest message for semantic search
+    const userMessages = messages.filter((m: { role: string }) => m.role === "user");
+    const latestUserMessage = userMessages[userMessages.length - 1]?.content || "";
+
     let contextText = "";
-    if (documentIds && documentIds.length > 0) {
-      const { data: documents } = await supabase
-        .from("documents")
-        .select("title, category, folder, content")
-        .in("id", documentIds);
+    let usedVectorSearch = false;
 
-      if (documents && documents.length > 0) {
-        contextText = "Documents with their content:\n\n" + 
-          documents.map(doc => {
-            let docInfo = `## ${doc.title}\nCategory: ${doc.category}${doc.folder ? `, Folder: ${doc.folder}` : ''}\n`;
-            if (doc.content) {
-              docInfo += `\nContent:\n${doc.content}\n`;
-            } else {
-              docInfo += `\n(Content not yet extracted for this document)\n`;
+    // Try vector search first if we have embeddings
+    if (latestUserMessage) {
+      try {
+        // Generate embedding for the user's question
+        const embeddingResponse = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${lovableApiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "text-embedding-3-small",
+            input: latestUserMessage,
+            dimensions: 768,
+          }),
+        });
+
+        if (embeddingResponse.ok) {
+          const embeddingData = await embeddingResponse.json();
+          const queryEmbedding = embeddingData.data?.[0]?.embedding;
+
+          if (queryEmbedding) {
+            // Search for similar chunks using the database function
+            const { data: similarChunks, error: searchError } = await supabase.rpc(
+              "match_document_chunks",
+              {
+                query_embedding: `[${queryEmbedding.join(",")}]`,
+                match_count: 10,
+                match_threshold: 0.3,
+              }
+            );
+
+            if (!searchError && similarChunks && similarChunks.length > 0) {
+              console.log(`Found ${similarChunks.length} relevant chunks via vector search`);
+              usedVectorSearch = true;
+
+              // Group chunks by document
+              const docChunks: Record<string, { title: string; chunks: string[] }> = {};
+              for (const chunk of similarChunks) {
+                if (!docChunks[chunk.document_id]) {
+                  docChunks[chunk.document_id] = {
+                    title: chunk.document_title,
+                    chunks: [],
+                  };
+                }
+                docChunks[chunk.document_id].chunks.push(chunk.content);
+              }
+
+              contextText = "Relevant document excerpts (found via semantic search):\n\n" +
+                Object.values(docChunks).map(doc => 
+                  `## ${doc.title}\n\n${doc.chunks.join("\n\n")}`
+                ).join("\n\n---\n\n");
             }
-            return docInfo;
-          }).join("\n---\n\n");
+          }
+        }
+      } catch (vectorError) {
+        console.error("Vector search failed, falling back to full document fetch:", vectorError);
       }
-    } else {
-      // If no specific documents, list all available with content
-      const { data: allDocs } = await supabase
-        .from("documents")
-        .select("title, category, folder, content")
-        .limit(50);
+    }
 
-      if (allDocs && allDocs.length > 0) {
-        contextText = "Available documents in the system:\n\n" + 
-          allDocs.map(doc => {
-            let docInfo = `## ${doc.title}\nCategory: ${doc.category}${doc.folder ? `, Folder: ${doc.folder}` : ''}\n`;
-            if (doc.content) {
-              docInfo += `\nContent Preview:\n${doc.content.substring(0, 500)}${doc.content.length > 500 ? '...' : ''}\n`;
-            }
-            return docInfo;
-          }).join("\n---\n\n");
+    // Fallback: fetch documents directly if vector search didn't work
+    if (!usedVectorSearch) {
+      console.log("Using fallback: fetching documents directly");
+      
+      if (documentIds && documentIds.length > 0) {
+        const { data: documents } = await supabase
+          .from("documents")
+          .select("title, category, folder, content")
+          .in("id", documentIds);
+
+        if (documents && documents.length > 0) {
+          contextText = "Documents with their content:\n\n" + 
+            documents.map(doc => {
+              let docInfo = `## ${doc.title}\nCategory: ${doc.category}${doc.folder ? `, Folder: ${doc.folder}` : ''}\n`;
+              if (doc.content) {
+                docInfo += `\nContent:\n${doc.content}\n`;
+              } else {
+                docInfo += `\n(Content not yet extracted for this document)\n`;
+              }
+              return docInfo;
+            }).join("\n---\n\n");
+        }
+      } else {
+        // If no specific documents and no vector search, list available with content preview
+        const { data: allDocs } = await supabase
+          .from("documents")
+          .select("title, category, folder, content")
+          .not("content", "is", null)
+          .limit(20);
+
+        if (allDocs && allDocs.length > 0) {
+          contextText = "Available documents (content preview):\n\n" + 
+            allDocs.map(doc => {
+              let docInfo = `## ${doc.title}\nCategory: ${doc.category}${doc.folder ? `, Folder: ${doc.folder}` : ''}\n`;
+              if (doc.content) {
+                docInfo += `\nPreview:\n${doc.content.substring(0, 300)}${doc.content.length > 300 ? '...' : ''}\n`;
+              }
+              return docInfo;
+            }).join("\n---\n\n");
+        }
       }
     }
 
@@ -101,8 +172,8 @@ Example format:
 
 For questions about the community, be helpful and friendly. Use the actual document content to provide accurate answers.`;
 
-    console.log("System prompt:", systemPrompt);
-    console.log("User messages:", messages);
+    console.log("Using vector search:", usedVectorSearch);
+    console.log("Context length:", contextText.length);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
