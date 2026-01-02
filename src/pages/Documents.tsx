@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DocumentUpload } from "@/components/DocumentUpload";
 import { DocumentBrowser } from "@/components/documents/DocumentBrowser";
-import { FileText, RefreshCw, MessageCircle } from "lucide-react";
+import { FileText, RefreshCw, MessageCircle, Sparkles } from "lucide-react";
 import defaultChickenIcon from "@/assets/chicken-assistant.jpeg";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ export default function Documents() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
+  const [isEmbedding, setIsEmbedding] = useState(false);
   const [chickenIcon, setChickenIcon] = useState<string>(defaultChickenIcon);
   const { toast } = useToast();
 
@@ -65,6 +66,29 @@ export default function Documents() {
     }
   };
 
+  const handleBatchEmbed = async () => {
+    setIsEmbedding(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("batch-generate-embeddings");
+      
+      if (error) throw error;
+
+      toast({
+        title: "Embedding Generation Complete",
+        description: `${data.successful} documents vectorized for AI search`,
+      });
+    } catch (error: any) {
+      console.error("Error generating embeddings:", error);
+      toast({
+        title: "Embedding Error",
+        description: error.message || "Failed to generate embeddings",
+        variant: "destructive",
+      });
+    } finally {
+      setIsEmbedding(false);
+    }
+  };
+
   return (
     <div className="space-y-6 overflow-hidden">
       <PageHeader
@@ -77,13 +101,24 @@ export default function Documents() {
               <Button
                 variant="outline"
                 onClick={handleBatchExtract}
-                disabled={isExtracting}
+                disabled={isExtracting || isEmbedding}
                 size="sm"
                 className="w-full sm:w-auto"
               >
                 <RefreshCw className={`mr-2 h-4 w-4 ${isExtracting ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline">{isExtracting ? "Extracting..." : "Extract Existing"}</span>
-                <span className="sm:hidden">{isExtracting ? "Extract..." : "Extract"}</span>
+                <span className="hidden sm:inline">{isExtracting ? "Extracting..." : "Extract Text"}</span>
+                <span className="sm:hidden">{isExtracting ? "..." : "Extract"}</span>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleBatchEmbed}
+                disabled={isExtracting || isEmbedding}
+                size="sm"
+                className="w-full sm:w-auto"
+              >
+                <Sparkles className={`mr-2 h-4 w-4 ${isEmbedding ? 'animate-pulse' : ''}`} />
+                <span className="hidden sm:inline">{isEmbedding ? "Vectorizing..." : "Vectorize for AI"}</span>
+                <span className="sm:hidden">{isEmbedding ? "..." : "Vectorize"}</span>
               </Button>
               <DocumentUpload
                 onUploadComplete={() => setRefreshTrigger((k) => k + 1)}

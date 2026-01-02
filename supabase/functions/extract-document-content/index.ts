@@ -83,6 +83,29 @@ serve(async (req) => {
 
     console.log(`Successfully extracted content for document ${documentId}`);
 
+    // Auto-trigger embedding generation for this document
+    try {
+      console.log(`Triggering embedding generation for document ${documentId}`);
+      const embedResponse = await fetch(`${supabaseUrl}/functions/v1/generate-embeddings`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${supabaseServiceKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ documentId }),
+      });
+      
+      if (embedResponse.ok) {
+        const embedResult = await embedResponse.json();
+        console.log(`Embeddings generated: ${embedResult.chunksCreated} chunks`);
+      } else {
+        console.error("Failed to generate embeddings:", await embedResponse.text());
+      }
+    } catch (embedError) {
+      console.error("Error triggering embedding generation:", embedError);
+      // Don't fail the main extraction if embedding fails
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 

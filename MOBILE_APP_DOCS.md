@@ -264,6 +264,17 @@ supabase
 
 ## Recent Updates
 
+### January 2026
+
+- **Vector Search for Document AI** - Documents are now vectorized for semantic search
+  - New `document_chunks` table stores embeddings for document content
+  - `document-chat` edge function now uses vector similarity search
+  - Only relevant document chunks are sent to AI (reduces token usage significantly)
+  - New edge functions:
+    - `generate-embeddings` - Vectorize a single document
+    - `batch-generate-embeddings` - Vectorize all documents
+  - Documents are auto-vectorized when uploaded and extracted
+
 ### December 2025
 
 - **User Detail Sheet** - New comprehensive admin view for user management
@@ -278,6 +289,38 @@ supabase
   - Device type
   - IP address
   - Timestamp
+
+---
+
+## Document AI (Ask the Chicken)
+
+The document AI assistant uses vector search to find relevant document content:
+
+```typescript
+// Call the document chat edge function
+const response = await fetch(`${SUPABASE_URL}/functions/v1/document-chat`, {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${session.access_token}`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    messages: [
+      { role: 'user', content: 'What are the lanai rules?' }
+    ]
+  })
+});
+
+// Stream the response (SSE format)
+const reader = response.body.getReader();
+// Process SSE stream...
+```
+
+The AI will:
+1. Convert the user's question to a vector embedding
+2. Search `document_chunks` for similar content
+3. Include only relevant chunks in the AI prompt
+4. Return a focused, accurate response
 
 ---
 
