@@ -15,8 +15,15 @@ import {
   Edit,
   FolderInput,
   Eye,
+  Sparkles,
 } from "lucide-react";
 import { format } from "date-fns";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
 
 interface FolderItem {
   id: string;
@@ -36,6 +43,7 @@ interface DocumentItem {
   created_at: string;
   uploaded_by: string;
   uploader_name?: string;
+  has_embeddings?: boolean;
 }
 
 interface MobileDocumentListProps {
@@ -155,7 +163,27 @@ export function MobileDocumentList({
           )}
           {getFileIcon(doc.file_type)}
           <div className="flex-1 min-w-0">
-            <div className="font-medium truncate">{doc.title}</div>
+            <div className="font-medium truncate flex items-center gap-2">
+              {doc.title}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Sparkles 
+                      className={`h-3 w-3 shrink-0 ${
+                        doc.has_embeddings 
+                          ? "text-green-500" 
+                          : "text-muted-foreground/30"
+                      }`} 
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {doc.has_embeddings 
+                      ? "AI Ready" 
+                      : "Not vectorized"}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <div className="text-xs text-muted-foreground flex items-center gap-2">
               <span>{formatFileSize(doc.file_size)}</span>
               <span>•</span>

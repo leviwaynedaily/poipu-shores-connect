@@ -58,7 +58,14 @@ import {
   FolderInput,
   Home,
   Eye,
+  Sparkles,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
 import { Label } from "@/components/ui/label";
 import { DocumentViewer } from "./DocumentViewer";
 
@@ -80,6 +87,7 @@ interface DocumentItem {
   created_at: string;
   uploaded_by: string;
   uploader_name?: string;
+  has_embeddings?: boolean;
 }
 
 interface DocumentBrowserProps {
@@ -157,10 +165,22 @@ export function DocumentBrowser({ canManage, refreshTrigger, onFolderChange }: D
         profilesData?.map((p) => [p.id, p.full_name]) || []
       );
 
+      // Fetch embedding status for documents
+      const docIds = docsData?.map((d) => d.id) || [];
+      const { data: chunkData } = docIds.length > 0
+        ? await supabase
+            .from("document_chunks")
+            .select("document_id")
+            .in("document_id", docIds)
+        : { data: [] };
+
+      const embeddedDocIds = new Set(chunkData?.map((c) => c.document_id) || []);
+
       const enrichedDocs =
         docsData?.map((doc) => ({
           ...doc,
           uploader_name: profilesMap.get(doc.uploaded_by) || "Unknown",
+          has_embeddings: embeddedDocIds.has(doc.id),
         })) || [];
 
       setFolders(foldersData || []);
@@ -819,6 +839,24 @@ export function DocumentBrowser({ canManage, refreshTrigger, onFolderChange }: D
                   >
                     <FileText className="h-5 w-5 shrink-0" />
                     <span className="truncate">{doc.title}</span>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Sparkles 
+                            className={`h-4 w-4 shrink-0 ${
+                              doc.has_embeddings 
+                                ? "text-green-500" 
+                                : "text-muted-foreground/30"
+                            }`} 
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {doc.has_embeddings 
+                            ? "AI Ready - Vectorized" 
+                            : "Not yet vectorized for AI search"}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </TableCell>
                 <TableCell className="hidden sm:table-cell">
