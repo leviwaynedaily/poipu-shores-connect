@@ -274,6 +274,8 @@ supabase
     - `generate-embeddings` - Vectorize a single document
     - `batch-generate-embeddings` - Vectorize all documents
   - Documents are auto-vectorized when uploaded and extracted
+  - **`has_embeddings` field** - Documents now include a boolean `has_embeddings` indicating vectorization status
+  - To check vectorization status: query `document_chunks` table for the document ID
 
 ### December 2025
 
