@@ -140,11 +140,30 @@ const Auth = () => {
           });
           
           if (otpError) {
-            toast({
-              title: "Error",
-              description: otpError.message,
-              variant: "destructive",
+            // Phone OTP failed - fall back to email OTP
+            console.log('Phone OTP failed, falling back to email:', otpError.message);
+            setOtpMethod('email');
+            
+            const { error: emailOtpError } = await supabase.auth.signInWithOtp({
+              email: data[0].user_email,
+              options: {
+                shouldCreateUser: false,
+              },
             });
+            
+            if (emailOtpError) {
+              toast({
+                title: "Error",
+                description: emailOtpError.message,
+                variant: "destructive",
+              });
+            } else {
+              setOtpSent(true);
+              toast({
+                title: "Code Sent!",
+                description: `SMS unavailable - check your email for the 6-digit code`,
+              });
+            }
           } else {
             setOtpSent(true);
             toast({
