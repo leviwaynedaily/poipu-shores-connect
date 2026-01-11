@@ -145,7 +145,7 @@ export function AppSidebar() {
               <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
                 <div className="flex items-center gap-2 dark:bg-white rounded-lg px-2 py-1">
                   <img src={logoIcon} alt="Poipu Shores Logo" className="h-7 w-7 object-contain flex-shrink-0" />
-                  <img src={logoText} alt="Poipu Shores" className="h-4 w-auto flex-shrink min-w-0 dark:brightness-0" />
+                  <img src={logoText} alt="Poipu Shores" className="h-4 w-auto flex-shrink min-w-0" />
                 </div>
               </div>
               <SidebarTrigger className="h-8 w-8 flex-shrink-0" />
