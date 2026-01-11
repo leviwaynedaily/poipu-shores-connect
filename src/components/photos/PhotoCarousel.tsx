@@ -94,7 +94,7 @@ export function PhotoCarousel({ compact = false }: PhotoCarouselProps) {
               <h4 className={compact ? "font-semibold text-xs line-clamp-1" : "font-semibold text-sm line-clamp-1"}>
                 {photo.title}
               </h4>
-              {!compact && (
+              {!compact && photo.profiles && (
                 <p className="text-xs opacity-90 mt-0.5">
                   by {photo.profiles.full_name}
                 </p>
