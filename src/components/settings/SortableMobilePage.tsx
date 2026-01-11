@@ -4,11 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Upload, Copy, Home, MessageSquare, Camera, FileText, User, Bird, Users, Settings, ChevronDown, GripVertical, MoreHorizontal, Megaphone } from "lucide-react";
+import { Copy, ChevronDown, GripVertical } from "lucide-react";
 import { LucideIcon } from "lucide-react";
+import { IconPicker } from "./IconPicker";
 
 interface MobilePage {
   id: string;
@@ -36,7 +36,6 @@ interface SortableMobilePageProps {
   onCopyUrl: (url: string, label: string) => void;
   uploading: string | null;
   IconComponent: LucideIcon;
-  iconOptions: Array<{ value: string; label: string; Icon: LucideIcon }>;
 }
 
 export function SortableMobilePage({
@@ -50,7 +49,6 @@ export function SortableMobilePage({
   onCopyUrl,
   uploading,
   IconComponent,
-  iconOptions,
 }: SortableMobilePageProps) {
   const {
     attributes,
@@ -137,24 +135,11 @@ export function SortableMobilePage({
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label>Fallback Icon</Label>
-                  <Select
+                  <IconPicker
                     value={page.fallbackIcon}
-                    onValueChange={(value) => onUpdate({ fallbackIcon: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {iconOptions.map(({ value, label, Icon }) => (
-                        <SelectItem key={value} value={value}>
-                          <div className="flex items-center gap-2">
-                            <Icon className="h-4 w-4" />
-                            {label}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    onChange={(value) => onUpdate({ fallbackIcon: value })}
+                    triggerClassName="w-full justify-start"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Page ID</Label>

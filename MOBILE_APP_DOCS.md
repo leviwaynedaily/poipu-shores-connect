@@ -391,6 +391,12 @@ supabase
 
 ### January 2026
 
+- **Searchable Icon Picker** - Sidebar and page icons now use a searchable picker with 1,500+ Lucide icons
+  - Icons are stored as PascalCase strings (e.g., `"Home"`, `"MessageSquare"`, `"Camera"`)
+  - Mobile app should use the same Lucide icon names from their native library
+  - Query icon name from `web_pages_config` or `mobile_pages_config` in `app_settings` table
+  - Example: `page.icon` or `page.fallbackIcon` contains the icon name string
+
 - **Remember Me Feature (Web Only)** - Users can now toggle "Remember me" when signing in
   - When checked (default): Session persists in `localStorage` across browser restarts
   - When unchecked: Session stored in `sessionStorage`, cleared when browser/tab closes
