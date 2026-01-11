@@ -34,10 +34,10 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
+    const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
     
-    if (!lovableApiKey) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    if (!openaiApiKey) {
+      throw new Error("OPENAI_API_KEY is not configured");
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -88,17 +88,17 @@ serve(async (req) => {
     const chunks = splitIntoChunks(document.content);
     console.log(`Split document into ${chunks.length} chunks`);
 
-    // Generate embeddings for each chunk using Lovable AI
+    // Generate embeddings for each chunk using OpenAI
     const embeddedChunks: { chunk_index: number; content: string; embedding: number[] }[] = [];
 
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i];
       
-      // Use Lovable AI gateway for embeddings
-      const embeddingResponse = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
+      // Use OpenAI embeddings API
+      const embeddingResponse = await fetch("https://api.openai.com/v1/embeddings", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${lovableApiKey}`,
+          "Authorization": `Bearer ${openaiApiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -114,7 +114,8 @@ serve(async (req) => {
         
         if (embeddingResponse.status === 429) {
           // Rate limited - wait and retry
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          console.log("Rate limited, waiting 2s before retry...");
+          await new Promise(resolve => setTimeout(resolve, 2000));
           i--; // Retry this chunk
           continue;
         }
