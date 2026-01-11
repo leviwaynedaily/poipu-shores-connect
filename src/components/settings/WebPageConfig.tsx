@@ -9,7 +9,10 @@ import { Switch } from "@/components/ui/switch";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Home, Megaphone, MessageSquare, FileText, Camera, Users, Settings, Copy, ChevronDown } from "lucide-react";
+import { Home, Copy, ChevronDown } from "lucide-react";
+import { icons } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { IconPicker } from "./IconPicker";
 
 interface WebPage {
   id: string;
@@ -96,15 +99,18 @@ const defaultPages: WebPage[] = [
   },
 ];
 
-const iconOptions = [
-  { value: "Home", label: "Home", Icon: Home },
-  { value: "Megaphone", label: "Megaphone", Icon: Megaphone },
-  { value: "MessageSquare", label: "Message", Icon: MessageSquare },
-  { value: "FileText", label: "File", Icon: FileText },
-  { value: "Camera", label: "Camera", Icon: Camera },
-  { value: "Users", label: "Users", Icon: Users },
-  { value: "Settings", label: "Settings", Icon: Settings },
-];
+// Helper to get icon component dynamically
+const getIcon = (iconName: string): LucideIcon => {
+  const iconEntry = icons[iconName as keyof typeof icons];
+  if (
+    iconEntry &&
+    typeof iconEntry === "object" &&
+    "$$typeof" in (iconEntry as Record<string, unknown>)
+  ) {
+    return iconEntry as unknown as LucideIcon;
+  }
+  return Home;
+};
 
 export function WebPageConfig() {
   const [pages, setPages] = useState<WebPage[]>(defaultPages);
@@ -347,7 +353,7 @@ export function WebPageConfig() {
         {pages
           .sort((a, b) => a.order - b.order)
           .map((page) => {
-            const IconComponent = iconOptions.find(i => i.value === page.icon)?.Icon || Home;
+            const IconComponent = getIcon(page.icon);
             
             return (
               <Collapsible key={page.id} open={openPages[page.id]} onOpenChange={() => togglePage(page.id)}>
@@ -435,24 +441,11 @@ export function WebPageConfig() {
 
                       <div className="space-y-2">
                         <Label className="text-xs">Fallback Icon</Label>
-                        <Select
+                        <IconPicker
                           value={page.icon}
-                          onValueChange={(value) => updatePage(page.id, { icon: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {iconOptions.map((icon) => (
-                              <SelectItem key={icon.value} value={icon.value}>
-                                <div className="flex items-center gap-2">
-                                  <icon.Icon className="h-4 w-4" />
-                                  {icon.label}
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          onChange={(value) => updatePage(page.id, { icon: value })}
+                          triggerClassName="w-full justify-start"
+                        />
                       </div>
                     </div>
 

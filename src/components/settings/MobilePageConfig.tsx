@@ -647,7 +647,6 @@ export function MobilePageConfig() {
                   onCopyUrl={copyToClipboard}
                   uploading={uploading}
                   IconComponent={IconComponent}
-                  iconOptions={iconOptions}
                 />
               );
             })}

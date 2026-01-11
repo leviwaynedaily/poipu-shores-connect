@@ -1,4 +1,6 @@
-import { Home, Megaphone, MessageSquare, FileText, Camera, Users, User, LogOut, Settings, Edit, LucideIcon } from "lucide-react";
+import { Home, LogOut, Edit } from "lucide-react";
+import { icons } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -34,23 +36,28 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const defaultMenuItems = [
-  { title: "Dashboard", url: "/dashboard", icon: Home, iconUrl: null },
-  { title: "Announcements", url: "/announcements", icon: Megaphone, iconUrl: null },
-  { title: "Community Chat", url: "/chat", icon: MessageSquare, iconUrl: null },
-  { title: "Poipu Shores Documents", url: "/documents", icon: FileText, iconUrl: null },
-  { title: "Community Photos", url: "/photos", icon: Camera, iconUrl: null },
-  { title: "Poipu Members", url: "/members", icon: Users, iconUrl: null },
-];
-
-const iconMap: Record<string, LucideIcon> = {
-  Home,
-  Megaphone,
-  MessageSquare,
-  FileText,
-  Camera,
-  Users,
+// Helper to get icon component dynamically
+const getIcon = (iconName: string): LucideIcon => {
+  const iconEntry = icons[iconName as keyof typeof icons];
+  // Check if it's a valid React component (ForwardRefExoticComponent)
+  if (
+    iconEntry &&
+    typeof iconEntry === "object" &&
+    "$$typeof" in (iconEntry as Record<string, unknown>)
+  ) {
+    return iconEntry as unknown as LucideIcon;
+  }
+  return Home; // Fallback
 };
+
+const defaultMenuItems = [
+  { title: "Dashboard", url: "/dashboard", icon: "Home", iconUrl: null },
+  { title: "Announcements", url: "/announcements", icon: "Megaphone", iconUrl: null },
+  { title: "Community Chat", url: "/chat", icon: "MessageSquare", iconUrl: null },
+  { title: "Poipu Shores Documents", url: "/documents", icon: "FileText", iconUrl: null },
+  { title: "Community Photos", url: "/photos", icon: "Camera", iconUrl: null },
+  { title: "Poipu Members", url: "/members", icon: "Users", iconUrl: null },
+];
 
 export function AppSidebar() {
   const { open } = useSidebar();
@@ -79,7 +86,7 @@ export function AppSidebar() {
             .map((p: any) => ({
               title: p.title,
               url: p.route,
-              icon: iconMap[p.icon] || Home,
+              icon: p.icon || "Home",
               iconUrl: p.iconUrl || null,
             }));
           setMenuItems(configuredPages);
@@ -149,7 +156,9 @@ export function AppSidebar() {
           )}
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
+              {menuItems.map((item) => {
+                const IconComponent = getIcon(item.icon);
+                return (
                 <SidebarMenuItem key={item.title}>
                   {!open ? (
                     <Tooltip>
@@ -164,7 +173,7 @@ export function AppSidebar() {
                           {item.iconUrl ? (
                             <img src={item.iconUrl} alt={item.title} className="h-9 w-9 object-contain dark:brightness-125" />
                           ) : (
-                            <item.icon className="h-9 w-9 text-sidebar-foreground" />
+                            <IconComponent className="h-9 w-9 text-sidebar-foreground" />
                           )}
                         </NavLink>
                         </SidebarMenuButton>
@@ -184,14 +193,14 @@ export function AppSidebar() {
                         {item.iconUrl ? (
                           <img src={item.iconUrl} alt={item.title} className="h-5 w-5 object-contain dark:brightness-125" />
                         ) : (
-                          <item.icon className="h-5 w-5 text-sidebar-foreground" />
+                          <IconComponent className="h-5 w-5 text-sidebar-foreground" />
                         )}
                         <span>{item.title}</span>
                       </NavLink>
                     </SidebarMenuButton>
                   )}
                 </SidebarMenuItem>
-              ))}
+              )})}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
