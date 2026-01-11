@@ -94,4 +94,4 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.batch-generate-embeddings]
-verify_jwt = true
+verify_jwt = false
