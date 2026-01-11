@@ -798,6 +798,39 @@ export type Database = {
         }
         Relationships: []
       }
+      otp_codes: {
+        Row: {
+          attempts: number | null
+          code: string
+          created_at: string | null
+          expires_at: string
+          id: string
+          phone: string
+          user_id: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          attempts?: number | null
+          code: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          phone: string
+          user_id?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          attempts?: number | null
+          code?: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          phone?: string
+          user_id?: string | null
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
       pending_invites: {
         Row: {
           created_at: string | null
@@ -1091,6 +1124,7 @@ export type Database = {
           phone_number: string
         }[]
       }
+      cleanup_expired_otp_codes: { Args: never; Returns: undefined }
       cleanup_old_assistant_messages: { Args: never; Returns: undefined }
       has_role: {
         Args: {

@@ -46,6 +46,131 @@ Some operations require edge functions for security or complex logic:
 | `send-push-notification` | ✅ Yes | Send push notifications |
 | `track-login` | ✅ Yes | Track login activity |
 | `update-notification-preferences` | ✅ Yes | Update notification settings |
+| `send-otp` | ❌ No | Send SMS OTP via Twilio |
+| `verify-otp` | ❌ No | Verify SMS OTP and get session |
+
+---
+
+## Phone OTP Authentication (SMS via Twilio)
+
+The app supports phone number authentication using custom OTP via Twilio SMS. This bypasses Supabase's native phone auth and uses edge functions directly.
+
+### Flow Overview
+
+```
+User enters phone → send-otp → Twilio SMS → User enters code → verify-otp → Magic link token → Sign in
+```
+
+### Step 1: Send OTP
+
+```typescript
+const { data, error } = await supabase.functions.invoke('send-otp', {
+  body: { phone: '8085551234' } // 10-digit phone number (digits only)
+});
+
+// Success response:
+// { success: true, message: "Verification code sent", phone: "1234" }
+
+// Error responses:
+// { error: "Please wait before requesting another code" } (429 - rate limited)
+// { error: "If an account exists with this phone number, you will receive an SMS" } (user not found - for security)
+```
+
+**Rate Limiting:** One code per phone number every 60 seconds.
+
+### Step 2: Verify OTP
+
+```typescript
+const { data, error } = await supabase.functions.invoke('verify-otp', {
+  body: { 
+    phone: '8085551234',
+    code: '123456' // 6-digit code from SMS
+  }
+});
+
+// Success response:
+// { success: true, token_hash: "abc123...", email: "user@example.com" }
+
+// Error responses:
+// { error: "Invalid or expired code. Please request a new one." }
+// { error: "Invalid code. 3 attempts remaining." }
+// { error: "Too many attempts. Please request a new code." }
+```
+
+**Security:**
+- Codes expire after 10 minutes
+- Maximum 5 verification attempts per code
+- Codes are deleted after successful verification
+
+### Step 3: Complete Sign In
+
+After successful verification, use the returned `token_hash` and `email` to complete the Supabase session:
+
+```typescript
+const { error } = await supabase.auth.verifyOtp({
+  email: data.email,
+  token_hash: data.token_hash,
+  type: 'magiclink',
+});
+
+if (!error) {
+  // User is now signed in
+  // Track login
+  await supabase.functions.invoke('track-login', {
+    body: {
+      userAgent: 'Mobile App/1.0',
+      browser: 'React Native',
+      deviceType: 'Mobile'
+    }
+  });
+}
+```
+
+### Complete Mobile Implementation Example
+
+```typescript
+async function signInWithPhone(phone: string) {
+  // Normalize phone number
+  const normalizedPhone = phone.replace(/\D/g, '');
+  
+  // Step 1: Send OTP
+  const { data: sendData, error: sendError } = await supabase.functions.invoke('send-otp', {
+    body: { phone: normalizedPhone }
+  });
+  
+  if (sendError || sendData?.error) {
+    throw new Error(sendData?.error || 'Failed to send code');
+  }
+  
+  return { success: true };
+}
+
+async function verifyPhoneOtp(phone: string, code: string) {
+  const normalizedPhone = phone.replace(/\D/g, '');
+  
+  // Step 2: Verify OTP
+  const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-otp', {
+    body: { phone: normalizedPhone, code }
+  });
+  
+  if (verifyError || verifyData?.error) {
+    throw new Error(verifyData?.error || 'Verification failed');
+  }
+  
+  // Step 3: Complete sign in with magic link token
+  const { error: authError } = await supabase.auth.verifyOtp({
+    email: verifyData.email,
+    token_hash: verifyData.token_hash,
+    type: 'magiclink',
+  });
+  
+  if (authError) {
+    throw authError;
+  }
+  
+  return { success: true };
+}
+```
 
 ---
 
