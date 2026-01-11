@@ -459,10 +459,9 @@ const Auth = () => {
           variant: "destructive",
         });
         setLoading(false);
-      } else if (data?.success && data?.token_hash && data?.email) {
-        // Use the magic link token to complete sign in
+      } else if (data?.success && data?.token_hash) {
+        // Use the magic link token to complete sign in - only token_hash and type
         const { error: verifyError } = await supabase.auth.verifyOtp({
-          email: data.email,
           token_hash: data.token_hash,
           type: 'magiclink',
         });
