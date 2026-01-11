@@ -549,7 +549,8 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden">
+    <div className="light">
+    <div className="min-h-screen flex flex-col relative overflow-hidden bg-background text-foreground">
       {/* Background */}
       <div className="absolute inset-0 z-0" style={getBackgroundStyle()} />
       
@@ -838,6 +839,7 @@ const Auth = () => {
       </div>
       
       <Footer />
+    </div>
     </div>
   );
 };
