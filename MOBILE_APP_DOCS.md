@@ -428,6 +428,14 @@ supabase
   - **`has_embeddings` field** - Documents now include a boolean `has_embeddings` indicating vectorization status
   - To check vectorization status: query `document_chunks` table for the document ID
 
+### January 2026
+
+- **Auth Page Light Mode** - The sign-in/auth page now always renders in light mode regardless of user's system preference
+  - Mobile app should use light mode styling for auth screens
+
+- **Sidebar Logo Dark Mode** - Sidebar logos now have a subtle white background (`bg-white/15`) in dark mode for better contrast
+  - Mobile app can use similar approach: semi-transparent white background behind logos in dark mode
+
 ### December 2025
 
 - **User Detail Sheet** - New comprehensive admin view for user management
