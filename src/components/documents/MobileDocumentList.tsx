@@ -44,6 +44,8 @@ interface DocumentItem {
   uploaded_by: string;
   uploader_name?: string;
   has_embeddings?: boolean;
+  embedding_status?: string;
+  onRetryEmbedding?: () => void;
 }
 
 interface MobileDocumentListProps {
@@ -61,6 +63,7 @@ interface MobileDocumentListProps {
   onMoveDocument: (id: string) => void;
   onDeleteFolder: (id: string, name: string) => void;
   onDeleteDocument: (id: string, filePath: string) => void;
+  onRetryEmbedding?: (id: string) => void;
 }
 
 export function MobileDocumentList({
@@ -78,6 +81,7 @@ export function MobileDocumentList({
   onMoveDocument,
   onDeleteFolder,
   onDeleteDocument,
+  onRetryEmbedding,
 }: MobileDocumentListProps) {
   const formatFileSize = (bytes: number | null) => {
     if (!bytes) return "Unknown";
@@ -168,16 +172,32 @@ export function MobileDocumentList({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Sparkles 
-                      className={`h-3 w-3 shrink-0 ${
-                        doc.has_embeddings 
-                          ? "text-green-500" 
-                          : "text-muted-foreground/30"
-                      }`} 
-                    />
+                    <span className="shrink-0">
+                      {doc.embedding_status === 'processing' ? (
+                        <Sparkles className="h-3 w-3 text-yellow-500 animate-pulse" />
+                      ) : doc.embedding_status === 'failed' ? (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onRetryEmbedding?.(doc.id);
+                          }}
+                          className="hover:opacity-80"
+                        >
+                          <Sparkles className="h-3 w-3 text-destructive" />
+                        </button>
+                      ) : doc.has_embeddings ? (
+                        <Sparkles className="h-3 w-3 text-green-500" />
+                      ) : (
+                        <Sparkles className="h-3 w-3 text-muted-foreground/30" />
+                      )}
+                    </span>
                   </TooltipTrigger>
                   <TooltipContent>
-                    {doc.has_embeddings 
+                    {doc.embedding_status === 'processing' 
+                      ? "Vectorizing..." 
+                      : doc.embedding_status === 'failed'
+                      ? "Vectorization failed - click to retry"
+                      : doc.has_embeddings 
                       ? "AI Ready" 
                       : "Not vectorized"}
                   </TooltipContent>

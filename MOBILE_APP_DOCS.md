@@ -266,6 +266,19 @@ supabase
 
 ### January 2026
 
+- **Automatic Document Vectorization** - Documents are now automatically vectorized when uploaded
+  - New `embedding_status` column on `documents` table tracks vectorization progress
+  - Possible values: `pending`, `processing`, `completed`, `failed`
+  - The `extract-document-content` edge function now automatically triggers `generate-embeddings`
+  - Failed documents can be retried from the Documents UI
+  - Query embedding status directly:
+    ```typescript
+    const { data } = await supabase
+      .from('documents')
+      .select('id, title, embedding_status')
+      .eq('embedding_status', 'failed'); // Find failed documents
+    ```
+
 - **Vector Search for Document AI** - Documents are now vectorized for semantic search
   - New `document_chunks` table stores embeddings for document content
   - `document-chat` edge function now uses vector similarity search
@@ -273,7 +286,6 @@ supabase
   - New edge functions:
     - `generate-embeddings` - Vectorize a single document
     - `batch-generate-embeddings` - Vectorize all documents
-  - Documents are auto-vectorized when uploaded and extracted
   - **`has_embeddings` field** - Documents now include a boolean `has_embeddings` indicating vectorization status
   - To check vectorization status: query `document_chunks` table for the document ID
 

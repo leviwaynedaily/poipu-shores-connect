@@ -541,6 +541,7 @@ export type Database = {
           category: string
           content: string | null
           created_at: string
+          embedding_status: string | null
           file_path: string
           file_size: number | null
           file_type: string | null
@@ -555,6 +556,7 @@ export type Database = {
           category: string
           content?: string | null
           created_at?: string
+          embedding_status?: string | null
           file_path: string
           file_size?: number | null
           file_type?: string | null
@@ -569,6 +571,7 @@ export type Database = {
           category?: string
           content?: string | null
           created_at?: string
+          embedding_status?: string | null
           file_path?: string
           file_size?: number | null
           file_type?: string | null
