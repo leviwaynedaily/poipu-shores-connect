@@ -8,6 +8,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Copy, Home, MessageSquare, Camera, FileText, User, Bird, Users, Settings, ChevronDown, GripVertical, MoreHorizontal, Megaphone, Shield, RotateCcw } from "lucide-react";
@@ -638,15 +649,33 @@ export function MobilePageConfig() {
     <div className="space-y-6">
       {hasCustomIcons && (
         <div className="flex justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleResetAllIcons}
-            className="text-destructive hover:text-destructive"
-          >
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Reset All Icons
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-destructive hover:text-destructive"
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Reset All Icons
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Reset All Icons?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will clear all custom tab icons, floating icons, and header logos for all pages. 
+                  The pages will use their fallback Lucide icons instead. You'll need to save to apply changes.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleResetAllIcons} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Reset All
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       )}
       <DndContext
