@@ -18,10 +18,10 @@ serve(async (req) => {
 
     console.log("Starting batch embedding generation...");
 
-    // Fetch all documents with content
+    // Fetch all documents with content that need processing
     const { data: documents, error: fetchError } = await supabase
       .from("documents")
-      .select("id, title, content")
+      .select("id, title, content, embedding_status")
       .not("content", "is", null);
 
     if (fetchError) {
@@ -39,10 +39,10 @@ serve(async (req) => {
 
     const embeddedDocIds = new Set(existingChunks?.map(c => c.document_id) || []);
 
-    // Filter to documents that need embedding
+    // Filter to documents that need embedding (not already completed or not in chunks)
     const docsToProcess = documents?.filter(doc => 
       doc.content && 
-      doc.content.trim().length > 0 &&
+      doc.content.trim().length > 10 &&
       !embeddedDocIds.has(doc.id)
     ) || [];
 
@@ -59,6 +59,12 @@ serve(async (req) => {
     for (const doc of docsToProcess) {
       try {
         console.log(`Processing document: ${doc.title} (${doc.id})`);
+
+        // Update status to processing
+        await supabase
+          .from("documents")
+          .update({ embedding_status: 'processing' })
+          .eq("id", doc.id);
 
         // Call the generate-embeddings function
         const response = await fetch(`${supabaseUrl}/functions/v1/generate-embeddings`, {
@@ -77,12 +83,26 @@ serve(async (req) => {
 
         const result = await response.json();
         console.log(`Successfully processed ${doc.title}: ${result.chunksCreated} chunks`);
+        
+        // Update status to completed
+        await supabase
+          .from("documents")
+          .update({ embedding_status: 'completed' })
+          .eq("id", doc.id);
+        
         results.successful++;
 
         // Delay between documents to avoid rate limits
         await new Promise(resolve => setTimeout(resolve, 500));
       } catch (error) {
         console.error(`Error processing document ${doc.title}:`, error);
+        
+        // Update status to failed
+        await supabase
+          .from("documents")
+          .update({ embedding_status: 'failed' })
+          .eq("id", doc.id);
+        
         results.failed++;
         results.errors.push({
           documentId: doc.id,
