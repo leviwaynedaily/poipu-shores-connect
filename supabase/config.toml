@@ -95,3 +95,9 @@ verify_jwt = true
 
 [functions.batch-generate-embeddings]
 verify_jwt = false
+
+[functions.send-otp]
+verify_jwt = false
+
+[functions.verify-otp]
+verify_jwt = false

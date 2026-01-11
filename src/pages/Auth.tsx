@@ -107,70 +107,60 @@ const Auth = () => {
     
     try {
       if (inputType === 'phone') {
-        // Phone flow: lookup user by phone, then auto-send SMS OTP
-        const { data, error } = await supabase.rpc('check_user_by_phone', { 
-          user_phone: identifier 
+        // Phone flow: use custom OTP via Twilio edge function
+        const normalizedPhone = identifier.replace(/\D/g, '');
+        
+        // Call custom send-otp edge function
+        const { data, error } = await supabase.functions.invoke('send-otp', {
+          body: { phone: normalizedPhone },
         });
         
         if (error) {
           toast({
             title: "Error",
-            description: "Unable to verify phone number",
+            description: "Unable to send verification code",
             variant: "destructive",
           });
           setLoading(false);
           return;
         }
         
-        if (data && data.length > 0 && data[0].user_exists) {
-          // User found - store info and auto-send SMS OTP
-          setEmail(data[0].user_email);
+        if (data?.error) {
+          // Handle rate limiting
+          if (data.error.includes("wait")) {
+            toast({
+              title: "Please Wait",
+              description: "Please wait before requesting another code",
+              variant: "destructive",
+            });
+          } else if (data.error.includes("account exists")) {
+            // Silent success for security (don't reveal if account exists)
+            setUserPhone(identifier);
+            setIdentifierType('phone');
+            setOtpMethod('phone');
+            setShowOtpLogin(true);
+            setOtpSent(true);
+            toast({
+              title: "Code Sent!",
+              description: "Check your phone for the 6-digit code",
+            });
+          } else {
+            toast({
+              title: "Error",
+              description: data.error,
+              variant: "destructive",
+            });
+          }
+        } else if (data?.success) {
           setUserPhone(identifier);
           setIdentifierType('phone');
           setOtpMethod('phone');
           setShowOtpLogin(true);
-          
-          // Automatically send SMS OTP
-          const e164Phone = data[0].e164_phone;
-          const { error: otpError } = await supabase.auth.signInWithOtp({
-            phone: e164Phone,
-            options: {
-              shouldCreateUser: false,
-            },
+          setOtpSent(true);
+          toast({
+            title: "Code Sent!",
+            description: "Check your phone for the 6-digit code",
           });
-          
-          if (otpError) {
-            // Phone OTP failed - fall back to email OTP
-            console.log('Phone OTP failed, falling back to email:', otpError.message);
-            setOtpMethod('email');
-            
-            const { error: emailOtpError } = await supabase.auth.signInWithOtp({
-              email: data[0].user_email,
-              options: {
-                shouldCreateUser: false,
-              },
-            });
-            
-            if (emailOtpError) {
-              toast({
-                title: "Error",
-                description: emailOtpError.message,
-                variant: "destructive",
-              });
-            } else {
-              setOtpSent(true);
-              toast({
-                title: "Code Sent!",
-                description: `SMS unavailable - check your email for the 6-digit code`,
-              });
-            }
-          } else {
-            setOtpSent(true);
-            toast({
-              title: "Code Sent!",
-              description: `Check your phone for the 6-digit code`,
-            });
-          }
         } else {
           toast({
             title: "Account Not Found",
@@ -367,36 +357,34 @@ const Auth = () => {
           });
         }
       } else if (otpMethod === 'phone') {
-        if (!userPhone || userPhone.replace(/\D/g, '').length !== 10) {
+        if (!userPhone || userPhone.replace(/\D/g, '').length < 10) {
           toast({
             title: "Error",
-            description: "No valid phone number found in your profile",
+            description: "No valid phone number found",
             variant: "destructive",
           });
           setLoading(false);
           return;
         }
         
-        const e164Phone = `+1${userPhone.replace(/\D/g, '')}`;
+        const normalizedPhone = userPhone.replace(/\D/g, '');
         
-        const { error } = await supabase.auth.signInWithOtp({
-          phone: e164Phone,
-          options: {
-            shouldCreateUser: false,
-          },
+        // Use custom send-otp edge function
+        const { data, error } = await supabase.functions.invoke('send-otp', {
+          body: { phone: normalizedPhone },
         });
         
-        if (error) {
+        if (error || data?.error) {
           toast({
             title: "Error",
-            description: error.message,
+            description: data?.error || error?.message || "Failed to send SMS",
             variant: "destructive",
           });
         } else {
           setOtpSent(true);
           toast({
             title: "Code Sent!",
-            description: `Check your phone for the 6-digit code`,
+            description: "Check your phone for the 6-digit code",
           });
         }
       }
@@ -433,40 +421,75 @@ const Auth = () => {
     
     setLoading(true);
     
-    let verifyOptions: any;
-    
     if (otpMethod === 'email') {
-      verifyOptions = {
+      // Email OTP still uses Supabase native auth
+      const { error } = await supabase.auth.verifyOtp({
         email,
         token: otpCode,
         type: 'email',
-      };
+      });
+      
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+        setLoading(false);
+      } else {
+        toast({
+          title: "Success!",
+          description: "Signed in successfully",
+        });
+        setTimeout(() => trackLogin(), 500);
+        navigate("/dashboard");
+      }
     } else if (otpMethod === 'phone') {
-      const e164Phone = `+1${userPhone.replace(/\D/g, '')}`;
-      verifyOptions = {
-        phone: e164Phone,
-        token: otpCode,
-        type: 'sms',
-      };
-    }
-    
-    const { error } = await supabase.auth.verifyOtp(verifyOptions);
-    
-    if (error) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
+      // Phone OTP uses custom verify-otp edge function
+      const normalizedPhone = userPhone.replace(/\D/g, '');
+      
+      const { data, error } = await supabase.functions.invoke('verify-otp', {
+        body: { phone: normalizedPhone, code: otpCode },
       });
-      setLoading(false);
-    } else {
-      toast({
-        title: "Success!",
-        description: "Signed in successfully",
-      });
-      // Delay trackLogin to allow auth state to propagate
-      setTimeout(() => trackLogin(), 500);
-      navigate("/dashboard");
+      
+      if (error || data?.error) {
+        toast({
+          title: "Error",
+          description: data?.error || error?.message || "Invalid code",
+          variant: "destructive",
+        });
+        setLoading(false);
+      } else if (data?.success && data?.token_hash && data?.email) {
+        // Use the magic link token to complete sign in
+        const { error: verifyError } = await supabase.auth.verifyOtp({
+          email: data.email,
+          token_hash: data.token_hash,
+          type: 'magiclink',
+        });
+        
+        if (verifyError) {
+          toast({
+            title: "Error",
+            description: verifyError.message,
+            variant: "destructive",
+          });
+          setLoading(false);
+        } else {
+          toast({
+            title: "Success!",
+            description: "Signed in successfully",
+          });
+          setTimeout(() => trackLogin(), 500);
+          navigate("/dashboard");
+        }
+      } else {
+        toast({
+          title: "Error",
+          description: "Sign in failed",
+          variant: "destructive",
+        });
+        setLoading(false);
+      }
     }
   };
 
@@ -474,17 +497,21 @@ const Auth = () => {
     setOtpCode("");
     
     if (otpMethod === 'phone') {
-      // For phone OTP resend
+      // For phone OTP resend - use custom edge function
       setLoading(true);
-      const e164Phone = `+1${userPhone.replace(/\D/g, '')}`;
-      const { error } = await supabase.auth.signInWithOtp({
-        phone: e164Phone,
-        options: { shouldCreateUser: false },
+      const normalizedPhone = userPhone.replace(/\D/g, '');
+      
+      const { data, error } = await supabase.functions.invoke('send-otp', {
+        body: { phone: normalizedPhone },
       });
       setLoading(false);
       
-      if (error) {
-        toast({ title: "Error", description: error.message, variant: "destructive" });
+      if (error || data?.error) {
+        toast({ 
+          title: "Error", 
+          description: data?.error || error?.message || "Failed to resend code", 
+          variant: "destructive" 
+        });
       } else {
         toast({ title: "Code Sent!", description: "Check your phone for the 6-digit code" });
       }
