@@ -347,8 +347,35 @@ export function WebPageConfig() {
     });
   };
 
+  const hasCustomIcons = pages.some(p => p.iconUrl || p.headerLogoUrl);
+
+  const handleResetAllIcons = () => {
+    setPages(prev => prev.map(p => ({
+      ...p,
+      iconUrl: null,
+      headerLogoUrl: null,
+    })));
+    toast({
+      title: "Icons reset",
+      description: "All custom icons cleared. Save to apply changes.",
+    });
+  };
+
   return (
     <div className="space-y-6">
+      {hasCustomIcons && (
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleResetAllIcons}
+            className="text-destructive hover:text-destructive"
+          >
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Reset All Icons
+          </Button>
+        </div>
+      )}
       <div className="space-y-4">
         {pages
           .sort((a, b) => a.order - b.order)
