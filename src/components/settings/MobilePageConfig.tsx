@@ -10,7 +10,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Copy, Home, MessageSquare, Camera, FileText, User, Bird, Users, Settings, ChevronDown, GripVertical, MoreHorizontal, Megaphone, Shield } from "lucide-react";
+import { Upload, Copy, Home, MessageSquare, Camera, FileText, User, Bird, Users, Settings, ChevronDown, GripVertical, MoreHorizontal, Megaphone, Shield, RotateCcw } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -619,8 +619,36 @@ export function MobilePageConfig() {
     );
   }
 
+  const hasCustomIcons = pages.some(p => p.iconUrl || p.floatingIconUrl || p.headerLogoUrl);
+
+  const handleResetAllIcons = () => {
+    setPages(prev => prev.map(p => ({
+      ...p,
+      iconUrl: null,
+      floatingIconUrl: null,
+      headerLogoUrl: null,
+    })));
+    toast({
+      title: "Icons reset",
+      description: "All custom icons cleared. Save to apply changes.",
+    });
+  };
+
   return (
     <div className="space-y-6">
+      {hasCustomIcons && (
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleResetAllIcons}
+            className="text-destructive hover:text-destructive"
+          >
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Reset All Icons
+          </Button>
+        </div>
+      )}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
