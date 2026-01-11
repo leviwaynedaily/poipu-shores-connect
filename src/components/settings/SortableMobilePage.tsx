@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Copy, ChevronDown, GripVertical } from "lucide-react";
+import { Copy, ChevronDown, GripVertical, RotateCcw } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 import { IconPicker } from "./IconPicker";
 
@@ -34,6 +34,9 @@ interface SortableMobilePageProps {
   onFloatingIconUpload: (file: File) => void;
   onHeaderLogoUpload: (file: File) => void;
   onCopyUrl: (url: string, label: string) => void;
+  onResetIcon: () => void;
+  onResetFloatingIcon: () => void;
+  onResetHeaderLogo: () => void;
   uploading: string | null;
   IconComponent: LucideIcon;
 }
@@ -47,6 +50,9 @@ export function SortableMobilePage({
   onFloatingIconUpload,
   onHeaderLogoUpload,
   onCopyUrl,
+  onResetIcon,
+  onResetFloatingIcon,
+  onResetHeaderLogo,
   uploading,
   IconComponent,
 }: SortableMobilePageProps) {
@@ -196,9 +202,20 @@ export function SortableMobilePage({
                   )}
                 </div>
                 {page.iconUrl && (
-                  <div className="flex items-center gap-2">
-                    <img src={page.iconUrl} alt="Custom icon" className="h-8 w-8 object-contain" />
-                    <span className="text-xs text-muted-foreground">Current custom icon</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <img src={page.iconUrl} alt="Custom icon" className="h-8 w-8 object-contain" />
+                      <span className="text-xs text-muted-foreground">Current custom icon</span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={onResetIcon}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <RotateCcw className="h-3 w-3 mr-1" />
+                      Reset
+                    </Button>
                   </div>
                 )}
               </div>
@@ -230,9 +247,20 @@ export function SortableMobilePage({
                     )}
                   </div>
                   {page.floatingIconUrl && (
-                    <div className="flex items-center gap-2">
-                      <img src={page.floatingIconUrl} alt="Custom floating icon" className="h-12 w-12 object-contain" />
-                      <span className="text-xs text-muted-foreground">Current floating icon</span>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <img src={page.floatingIconUrl} alt="Custom floating icon" className="h-12 w-12 object-contain" />
+                        <span className="text-xs text-muted-foreground">Current floating icon</span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={onResetFloatingIcon}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <RotateCcw className="h-3 w-3 mr-1" />
+                        Reset
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -261,9 +289,20 @@ export function SortableMobilePage({
                   )}
                 </div>
                 {page.headerLogoUrl && (
-                  <div className="flex items-center gap-2">
-                    <img src={page.headerLogoUrl} alt="Custom header logo" className="h-12 object-contain" />
-                    <span className="text-xs text-muted-foreground">Current header logo</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <img src={page.headerLogoUrl} alt="Custom header logo" className="h-12 object-contain" />
+                      <span className="text-xs text-muted-foreground">Current header logo</span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={onResetHeaderLogo}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <RotateCcw className="h-3 w-3 mr-1" />
+                      Reset
+                    </Button>
                   </div>
                 )}
               </div>
