@@ -391,6 +391,14 @@ supabase
 
 ### January 2026
 
+- **Remember Me Feature (Web Only)** - Users can now toggle "Remember me" when signing in
+  - When checked (default): Session persists in `localStorage` across browser restarts
+  - When unchecked: Session stored in `sessionStorage`, cleared when browser/tab closes
+  - **Mobile note**: Mobile apps typically use secure storage (Keychain/Keystore) and don't need this toggle
+  - If implementing similar functionality on mobile, use:
+    - iOS: Keychain with `kSecAttrAccessibleAfterFirstUnlock`
+    - Android: EncryptedSharedPreferences or Keystore
+
 - **Automatic Document Vectorization** - Documents are now automatically vectorized when uploaded
   - New `embedding_status` column on `documents` table tracks vectorization progress
   - Possible values: `pending`, `processing`, `completed`, `failed`

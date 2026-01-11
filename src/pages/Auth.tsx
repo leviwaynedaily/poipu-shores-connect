@@ -8,10 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Footer } from "@/components/Footer";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, setRememberMePreference, switchToSessionStorage, switchToLocalStorage } from "@/integrations/supabase/client";
 import { formatPhoneInput, formatPhoneNumber } from "@/lib/phoneUtils";
 import beachImage from "@/assets/condo-oceanfront.jpeg";
 import logo from "@/assets/logo.png";
@@ -50,6 +51,7 @@ const Auth = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [authLogo, setAuthLogo] = useState<string>(logo);
+  const [rememberMe, setRememberMe] = useState(true);
 
   useEffect(() => {
     if (user) {
@@ -233,6 +235,15 @@ const Auth = () => {
     try {
       loginSchema.parse({ email, password });
       setLoading(true);
+      
+      // Set storage preference before signing in
+      setRememberMePreference(rememberMe);
+      if (!rememberMe) {
+        switchToSessionStorage();
+      } else {
+        switchToLocalStorage();
+      }
+      
       const { error } = await signIn(email, password);
       if (!error) {
         // Delay trackLogin to allow auth state to propagate
@@ -783,6 +794,20 @@ const Auth = () => {
                   className="text-lg p-6"
                   autoComplete="current-password"
                 />
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="rememberMe" 
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(checked === true)}
+                />
+                <Label 
+                  htmlFor="rememberMe" 
+                  className="text-sm font-normal cursor-pointer"
+                >
+                  Remember me
+                </Label>
               </div>
               
               <Button type="submit" className="w-full text-lg py-6" disabled={loading}>
