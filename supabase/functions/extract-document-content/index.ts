@@ -67,10 +67,13 @@ serve(async (req) => {
       extractedText = `[${extension?.toUpperCase() || 'Unknown'} Document - ${filePath}]\nThis document type requires specialized processing for content extraction.`;
     }
 
-    // Update the document record with extracted content
+    // Update the document record with extracted content and set embedding status to pending
     const { error: updateError } = await supabase
       .from("documents")
-      .update({ content: extractedText })
+      .update({ 
+        content: extractedText,
+        embedding_status: extractedText.length > 10 ? 'pending' : 'failed'
+      })
       .eq("id", documentId);
 
     if (updateError) {
@@ -81,36 +84,77 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Successfully extracted content for document ${documentId}`);
+    console.log(`Successfully extracted content for document ${documentId} (${extractedText.length} chars)`);
 
-    // Auto-trigger embedding generation for this document
-    try {
-      console.log(`Triggering embedding generation for document ${documentId}`);
-      const embedResponse = await fetch(`${supabaseUrl}/functions/v1/generate-embeddings`, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${supabaseServiceKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ documentId }),
+    // Only trigger embeddings if we have meaningful content
+    if (extractedText.length > 10) {
+      // Use EdgeRuntime.waitUntil to ensure embedding generation completes
+      // even after we return the response
+      const generateEmbeddings = async () => {
+        try {
+          console.log(`[Background] Starting embedding generation for document ${documentId}`);
+          
+          // Update status to processing
+          await supabase
+            .from("documents")
+            .update({ embedding_status: 'processing' })
+            .eq("id", documentId);
+          
+          const embedResponse = await fetch(`${supabaseUrl}/functions/v1/generate-embeddings`, {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${supabaseServiceKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ documentId }),
+          });
+          
+          if (embedResponse.ok) {
+            const embedResult = await embedResponse.json();
+            console.log(`[Background] Embeddings generated: ${embedResult.chunksCreated} chunks`);
+            
+            // Update status to completed
+            await supabase
+              .from("documents")
+              .update({ embedding_status: 'completed' })
+              .eq("id", documentId);
+          } else {
+            const errorText = await embedResponse.text();
+            console.error("[Background] Failed to generate embeddings:", embedResponse.status, errorText);
+            
+            // Update status to failed
+            await supabase
+              .from("documents")
+              .update({ embedding_status: 'failed' })
+              .eq("id", documentId);
+          }
+        } catch (embedError) {
+          console.error("[Background] Error in embedding generation:", embedError);
+          
+          // Update status to failed
+          await supabase
+            .from("documents")
+            .update({ embedding_status: 'failed' })
+            .eq("id", documentId);
+        }
+      };
+
+      // Run embedding generation without blocking the response
+      // We use a fire-and-forget pattern since the function will complete independently
+      generateEmbeddings().catch(err => {
+        console.error("Error in background embedding generation:", err);
       });
-      
-      if (embedResponse.ok) {
-        const embedResult = await embedResponse.json();
-        console.log(`Embeddings generated: ${embedResult.chunksCreated} chunks`);
-      } else {
-        console.error("Failed to generate embeddings:", await embedResponse.text());
-      }
-    } catch (embedError) {
-      console.error("Error triggering embedding generation:", embedError);
-      // Don't fail the main extraction if embedding fails
+      console.log(`Embedding generation started for document ${documentId}`);
+    } else {
+      console.log(`Skipping embedding generation - content too short (${extractedText.length} chars)`);
     }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         contentLength: extractedText.length,
-        message: "Content extracted and stored successfully"
+        embeddingStatus: extractedText.length > 10 ? 'processing' : 'failed',
+        message: "Content extracted and embedding generation started"
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

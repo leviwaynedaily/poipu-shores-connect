@@ -59,6 +59,7 @@ import {
   Home,
   Eye,
   Sparkles,
+  RefreshCw,
 } from "lucide-react";
 import {
   Tooltip,
@@ -88,6 +89,7 @@ interface DocumentItem {
   uploaded_by: string;
   uploader_name?: string;
   has_embeddings?: boolean;
+  embedding_status?: string;
 }
 
 interface DocumentBrowserProps {
@@ -181,6 +183,7 @@ export function DocumentBrowser({ canManage, refreshTrigger, onFolderChange }: D
           ...doc,
           uploader_name: profilesMap.get(doc.uploaded_by) || "Unknown",
           has_embeddings: embeddedDocIds.has(doc.id),
+          embedding_status: doc.embedding_status || 'pending',
         })) || [];
 
       setFolders(foldersData || []);
@@ -581,6 +584,54 @@ export function DocumentBrowser({ canManage, refreshTrigger, onFolderChange }: D
     }
   };
 
+  const handleRetryEmbedding = async (documentId: string) => {
+    try {
+      toast({
+        title: "Retrying",
+        description: "Starting vectorization...",
+      });
+
+      // Update status to processing
+      await supabase
+        .from("documents")
+        .update({ embedding_status: 'processing' })
+        .eq("id", documentId);
+
+      // Call generate-embeddings function
+      const { error } = await supabase.functions.invoke('generate-embeddings', {
+        body: { documentId }
+      });
+
+      if (error) throw error;
+
+      // Update status to completed
+      await supabase
+        .from("documents")
+        .update({ embedding_status: 'completed' })
+        .eq("id", documentId);
+
+      toast({
+        title: "Success",
+        description: "Document vectorized successfully",
+      });
+
+      fetchData();
+    } catch (error: any) {
+      // Update status to failed
+      await supabase
+        .from("documents")
+        .update({ embedding_status: 'failed' })
+        .eq("id", documentId);
+
+      toast({
+        title: "Error",
+        description: error.message || "Failed to vectorize document",
+        variant: "destructive",
+      });
+      fetchData();
+    }
+  };
+
   const formatFileSize = (bytes: number | null) => {
     if (!bytes) return "—";
     const mb = bytes / (1024 * 1024);
@@ -720,6 +771,7 @@ export function DocumentBrowser({ canManage, refreshTrigger, onFolderChange }: D
           }}
           onDeleteFolder={(id, name) => setDeleteFolderConfirm({ id, name })}
           onDeleteDocument={handleDeleteDocument}
+          onRetryEmbedding={handleRetryEmbedding}
         />
       ) : (
         <div
@@ -842,16 +894,32 @@ export function DocumentBrowser({ canManage, refreshTrigger, onFolderChange }: D
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Sparkles 
-                            className={`h-4 w-4 shrink-0 ${
-                              doc.has_embeddings 
-                                ? "text-green-500" 
-                                : "text-muted-foreground/30"
-                            }`} 
-                          />
+                          <span className="shrink-0">
+                            {doc.embedding_status === 'processing' ? (
+                              <Sparkles className="h-4 w-4 text-yellow-500 animate-pulse" />
+                            ) : doc.embedding_status === 'failed' ? (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRetryEmbedding(doc.id);
+                                }}
+                                className="hover:opacity-80"
+                              >
+                                <Sparkles className="h-4 w-4 text-destructive" />
+                              </button>
+                            ) : doc.has_embeddings ? (
+                              <Sparkles className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <Sparkles className="h-4 w-4 text-muted-foreground/30" />
+                            )}
+                          </span>
                         </TooltipTrigger>
                         <TooltipContent>
-                          {doc.has_embeddings 
+                          {doc.embedding_status === 'processing' 
+                            ? "Vectorizing..." 
+                            : doc.embedding_status === 'failed'
+                            ? "Vectorization failed - click to retry"
+                            : doc.has_embeddings 
                             ? "AI Ready - Vectorized" 
                             : "Not yet vectorized for AI search"}
                         </TooltipContent>
