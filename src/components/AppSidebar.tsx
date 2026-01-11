@@ -162,9 +162,9 @@ export function AppSidebar() {
                           activeClassName="bg-accent text-accent-foreground font-semibold"
                         >
                           {item.iconUrl ? (
-                            <img src={item.iconUrl} alt={item.title} className="h-9 w-9 object-contain" />
+                            <img src={item.iconUrl} alt={item.title} className="h-9 w-9 object-contain dark:brightness-125" />
                           ) : (
-                            <item.icon className="h-9 w-9" />
+                            <item.icon className="h-9 w-9 text-sidebar-foreground" />
                           )}
                         </NavLink>
                         </SidebarMenuButton>
@@ -182,9 +182,9 @@ export function AppSidebar() {
                         activeClassName="bg-accent text-accent-foreground font-semibold"
                       >
                         {item.iconUrl ? (
-                          <img src={item.iconUrl} alt={item.title} className="h-5 w-5 object-contain" />
+                          <img src={item.iconUrl} alt={item.title} className="h-5 w-5 object-contain dark:brightness-125" />
                         ) : (
-                          <item.icon className="h-5 w-5" />
+                          <item.icon className="h-5 w-5 text-sidebar-foreground" />
                         )}
                         <span>{item.title}</span>
                       </NavLink>
@@ -230,12 +230,12 @@ export function AppSidebar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuItem onClick={() => navigate("/profile")}>
-                  <Edit className="h-4 w-4 mr-2" />
+                  <Edit className="h-4 w-4 mr-2 text-foreground" />
                   Edit Profile
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={signOut}>
-                  <LogOut className="h-4 w-4 mr-2" />
+                  <LogOut className="h-4 w-4 mr-2 text-foreground" />
                   Sign Out
                 </DropdownMenuItem>
               </DropdownMenuContent>
