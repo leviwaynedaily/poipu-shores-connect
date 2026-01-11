@@ -645,6 +645,9 @@ export function MobilePageConfig() {
                   onFloatingIconUpload={(file) => handleFloatingIconUpload(page.id, file)}
                   onHeaderLogoUpload={(file) => handleHeaderLogoUpload(page.id, file)}
                   onCopyUrl={copyToClipboard}
+                  onResetIcon={() => updatePage(page.id, { iconUrl: null })}
+                  onResetFloatingIcon={() => updatePage(page.id, { floatingIconUrl: null })}
+                  onResetHeaderLogo={() => updatePage(page.id, { headerLogoUrl: null })}
                   uploading={uploading}
                   IconComponent={IconComponent}
                 />

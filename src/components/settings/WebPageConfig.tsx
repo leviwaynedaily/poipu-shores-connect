@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Home, Copy, ChevronDown } from "lucide-react";
+import { Home, Copy, ChevronDown, RotateCcw } from "lucide-react";
 import { icons } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { IconPicker } from "./IconPicker";
@@ -404,6 +404,15 @@ export function WebPageConfig() {
                               className="h-6 w-6 object-contain"
                             />
                           </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => updatePage(page.id, { iconUrl: null })}
+                            className="w-full text-destructive hover:text-destructive"
+                          >
+                            <RotateCcw className="h-3 w-3 mr-1" />
+                            Reset to Default Icon
+                          </Button>
                           <div className="space-y-2">
                             <Label className="text-xs text-muted-foreground">Fixed URL</Label>
                             <div className="flex gap-2">
@@ -463,6 +472,15 @@ export function WebPageConfig() {
                               className="h-16 max-w-full object-contain"
                             />
                           </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => updatePage(page.id, { headerLogoUrl: null })}
+                            className="w-full text-destructive hover:text-destructive"
+                          >
+                            <RotateCcw className="h-3 w-3 mr-1" />
+                            Reset to Default
+                          </Button>
                           <div className="space-y-2">
                             <Label className="text-xs text-muted-foreground">Fixed URL</Label>
                             <div className="flex gap-2">
