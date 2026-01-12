@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
+import { useTheme as useNextTheme } from 'next-themes';
 import { toast } from 'sonner';
 
 interface ThemeContextType {
@@ -204,19 +205,24 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     loadFavicon();
   }, []);
 
-  // Global keyboard shortcut
+  // Global keyboard shortcut - cycle through light → dark → system
+  const { theme, setTheme: setNextTheme } = useNextTheme();
+  
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       // Cmd+J on Mac, Ctrl+J on Windows/Linux
       if ((e.metaKey || e.ctrlKey) && e.key === 'j') {
         e.preventDefault();
-        setShowThemeDialog(true);
+        // Cycle: light → dark → system → light
+        const nextTheme = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light';
+        setNextTheme(nextTheme);
+        toast.success(`Theme: ${nextTheme.charAt(0).toUpperCase() + nextTheme.slice(1)}`);
       }
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [user]);
+  }, [theme, setNextTheme]);
 
   return (
     <ThemeContext.Provider value={{ 
