@@ -53,6 +53,7 @@ const Auth = () => {
   const [otpCode, setOtpCode] = useState("");
   const [authLogo, setAuthLogo] = useState<string>(logo);
   const [rememberMe, setRememberMe] = useState(true);
+  const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
     if (user) {
