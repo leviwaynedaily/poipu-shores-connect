@@ -220,7 +220,7 @@ export function UserManagement() {
     }
   };
 
-  const handleResendInvite = async (userId: string, fullName: string, unitNumber: string | null) => {
+  const handleResendInvite = async (userId: string, fullName: string, unitNumber: string | null, method: "email" | "sms" | "both" = "email") => {
     setResendingUserId(userId);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -237,6 +237,7 @@ export function UserManagement() {
           user_id: userId,
           full_name: fullName,
           unit_number: unitNumber,
+          method,
         },
       });
 
@@ -246,7 +247,7 @@ export function UserManagement() {
 
       toast({
         title: "Invite resent",
-        description: "Invitation email has been resent successfully",
+        description: data?.message || `Invitation sent via ${method}`,
       });
     } catch (error: any) {
       toast({
