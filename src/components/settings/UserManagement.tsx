@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserPlus, Shield, Clock, Mail, UserCheck, UserX, Trash2, Archive, RotateCcw, Users, Pencil, MoreVertical, KeyRound } from "lucide-react";
+import { UserPlus, Shield, Clock, Mail, UserCheck, UserX, Trash2, Archive, RotateCcw, Users, Pencil, MoreVertical, KeyRound, Smartphone, Send } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
@@ -220,7 +220,7 @@ export function UserManagement() {
     }
   };
 
-  const handleResendInvite = async (userId: string, fullName: string, unitNumber: string | null) => {
+  const handleResendInvite = async (userId: string, fullName: string, unitNumber: string | null, method: "email" | "sms" | "both" = "email") => {
     setResendingUserId(userId);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -237,6 +237,7 @@ export function UserManagement() {
           user_id: userId,
           full_name: fullName,
           unit_number: unitNumber,
+          method,
         },
       });
 
@@ -246,7 +247,7 @@ export function UserManagement() {
 
       toast({
         title: "Invite resent",
-        description: "Invitation email has been resent successfully",
+        description: data?.message || `Invitation sent via ${method}`,
       });
     } catch (error: any) {
       toast({
@@ -1135,12 +1136,29 @@ export function UserManagement() {
                               <Button
                                 size="sm"
                                 variant="secondary"
-                                onClick={() => handleResendInvite(user.id, user.full_name, user.units[0])}
+                                onClick={() => handleResendInvite(user.id, user.full_name, user.units[0], "email")}
                                 disabled={resendingUserId === user.id}
                               >
                                 <Mail className="h-4 w-4 mr-1" />
                                 {resendingUserId === user.id ? "Sending..." : "Resend"}
                               </Button>
+                              {user.phone && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleResendInvite(user.id, user.full_name, user.units[0], "sms")}
+                                      disabled={resendingUserId === user.id}
+                                    >
+                                      <Smartphone className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Send invite via SMS</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
                               <Button
                                 size="sm"
                                 variant="destructive"
@@ -1164,6 +1182,29 @@ export function UserManagement() {
                                   </TooltipContent>
                                 </Tooltip>
                                 <DropdownMenuContent align="end" className="w-48">
+                                  <DropdownMenuItem
+                                    onSelect={() => handleEditUser(user)}
+                                  >
+                                    <Pencil className="h-4 w-4 mr-2" />
+                                    Edit User
+                                  </DropdownMenuItem>
+                                  {user.phone && (
+                                    <DropdownMenuItem
+                                      onSelect={() => handleResendInvite(user.id, user.full_name, user.units[0], "both")}
+                                    >
+                                      <Send className="h-4 w-4 mr-2" />
+                                      Resend via Email & SMS
+                                    </DropdownMenuItem>
+                                  )}
+                                  {!user.phone && (
+                                    <DropdownMenuItem
+                                      onSelect={() => handleEditUser(user)}
+                                    >
+                                      <Smartphone className="h-4 w-4 mr-2" />
+                                      Add Phone Number
+                                    </DropdownMenuItem>
+                                  )}
+                                  <DropdownMenuSeparator />
                                   <DropdownMenuCheckboxItem
                                     onSelect={() => {
                                       setSelectedResetUser(user);

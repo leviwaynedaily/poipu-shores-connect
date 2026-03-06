@@ -18,7 +18,7 @@ serve(async (req) => {
     const supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
     const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
-    // Get authenticated user from JWT (already verified by Supabase)
+    // Get authenticated user from JWT
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -38,8 +38,6 @@ serve(async (req) => {
       });
     }
 
-    console.log(`Authenticated user: ${user.email} (${user.id})`);
-
     const { data: roles } = await supabaseClient
       .from("user_roles")
       .select("role")
@@ -53,7 +51,9 @@ serve(async (req) => {
       });
     }
 
-    const { user_id, full_name, unit_number } = await req.json();
+    const { user_id, full_name, unit_number, method } = await req.json();
+    // method: "email" (default), "sms", or "both"
+    const sendMethod = method || "email";
 
     if (!user_id || !full_name) {
       return new Response(JSON.stringify({ error: "User ID and full name are required" }), {
@@ -62,40 +62,68 @@ serve(async (req) => {
       });
     }
 
-    // Get the user's email using admin API
+    // Get the user's email and phone
     const { data: targetUser, error: getUserError } = await supabaseClient.auth.admin.getUserById(user_id);
 
-    if (getUserError || !targetUser?.user?.email) {
-      return new Response(JSON.stringify({ error: "Failed to get user email" }), {
+    if (getUserError || !targetUser?.user) {
+      return new Response(JSON.stringify({ error: "Failed to get user details" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const email = targetUser.user.email;
+    const phone = targetUser.user.phone;
 
-    // Generate a secure random token for custom invitation flow
+    // Get phone from profile if not in auth
+    let profilePhone = phone;
+    if (!profilePhone) {
+      const { data: profile } = await supabaseClient
+        .from("profiles")
+        .select("phone")
+        .eq("id", user_id)
+        .single();
+      
+      if (profile?.phone) {
+        // Format phone for SMS
+        const cleaned = profile.phone.replace(/\D/g, '');
+        if (cleaned.length === 10) {
+          profilePhone = '+1' + cleaned;
+        } else if (cleaned.length === 11 && cleaned.startsWith('1')) {
+          profilePhone = '+' + cleaned;
+        } else {
+          profilePhone = profile.phone;
+        }
+      }
+    }
+
+    if ((sendMethod === "sms" || sendMethod === "both") && !profilePhone) {
+      return new Response(JSON.stringify({ error: "User has no phone number. Add one first via Edit User." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Generate invite token
     const tokenBytes = new Uint8Array(32);
     crypto.getRandomValues(tokenBytes);
     const inviteToken = Array.from(tokenBytes)
       .map(b => b.toString(16).padStart(2, '0'))
       .join('');
 
-    // Store the token in pending_invites (or update existing)
-    // First, delete any existing unused tokens for this user
+    // Delete old unused tokens, create new one
     await supabaseClient
       .from("pending_invites")
       .delete()
       .eq("user_id", user_id)
       .is("used_at", null);
 
-    // Create new token
     const { error: tokenError } = await supabaseClient
       .from("pending_invites")
       .insert({
         user_id,
         token: inviteToken,
-        email,
+        email: email || '',
         full_name,
         unit_number: unit_number || null,
       });
@@ -106,135 +134,137 @@ serve(async (req) => {
     }
 
     const inviteLink = `https://poipu-shores.com/accept-invite?token=${inviteToken}`;
-    
-    console.log(`Successfully generated invite link for ${email}`);
+    let emailSent = false;
+    let smsSent = false;
 
-    // Send the email with password reset link
-    console.log(`Attempting to send email to ${email} from noreply@poipu-shores.com`);
-    
-    const { data: emailData, error: emailError } = await resend.emails.send({
-      from: "Poipu Shores <noreply@poipu-shores.com>",
-      replyTo: "support@poipu-shores.com",
-      to: [email],
-      subject: "Complete Your Poipu Shores Registration - Reminder",
-      headers: {
-        'X-Entity-Ref-ID': crypto.randomUUID(),
-        'List-Unsubscribe': '<mailto:unsubscribe@poipu-shores.com>',
-        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-      },
-      text: `Complete Your Poipu Shores Registration - Reminder
-
-Hi ${full_name},
-
-You were invited to join Poipu Shores but haven't completed your registration yet. This is an account notification reminder to set your password and access your account.
-
-Complete your registration: ${inviteLink}
-
-${unit_number ? `Your Unit: ${unit_number}\n\n` : ''}This is an automated account notification. If you didn't request this, please disregard this message.
-
----
-Poipu Shores Community
-Koloa, Kauai, HI 96756
-
-Questions? Reply to this email or contact support@poipu-shores.com`,
-      html: `<!DOCTYPE html>
+    // Send email
+    if ((sendMethod === "email" || sendMethod === "both") && email) {
+      try {
+        const { data: emailData, error: emailError } = await resend.emails.send({
+          from: "Poipu Shores <noreply@poipu-shores.com>",
+          replyTo: "support@poipu-shores.com",
+          to: [email],
+          subject: "Complete Your Poipu Shores Registration - Reminder",
+          headers: {
+            'X-Entity-Ref-ID': crypto.randomUUID(),
+            'List-Unsubscribe': '<mailto:unsubscribe@poipu-shores.com>',
+            'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+          },
+          text: `Hi ${full_name},\n\nYou were invited to join Poipu Shores but haven't completed your registration yet.\n\nComplete your registration: ${inviteLink}\n\n${unit_number ? `Your Unit: ${unit_number}\n\n` : ''}Poipu Shores Community\nKoloa, Kauai, HI 96756`,
+          html: `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="light">
-  <meta name="supported-color-schemes" content="light">
-  <!--[if mso]>
-  <style type="text/css">
-    table {border-collapse: collapse;}
-  </style>
-  <![endif]-->
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #ffffff;">
-  <!-- Preheader text (hidden) -->
-  <div style="display: none; max-height: 0px; overflow: hidden;">
-    Registration reminder ${unit_number ? `for Unit ${unit_number}` : ''} - Complete your Poipu Shores account setup
-  </div>
-  
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #ffffff;">
+  <div style="display: none; max-height: 0px; overflow: hidden;">Registration reminder - Complete your Poipu Shores account setup</div>
   <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff;">
-    <tr>
-      <td style="padding: 40px 20px;">
-        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin: 0 auto;">
-          
-          <!-- Header -->
-          <tr>
-            <td style="padding: 0 0 24px 0;">
-              <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #111827; line-height: 1.25;">Poipu Shores</h1>
+    <tr><td style="padding: 40px 20px;">
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin: 0 auto;">
+        <tr><td style="padding: 0 0 24px 0;"><h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #111827;">Poipu Shores</h1></td></tr>
+        <tr><td style="padding: 0 0 24px 0;">
+          <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.5; color: #111827;">Hi ${full_name},</p>
+          <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.5; color: #374151;">You were invited to join Poipu Shores but haven't completed your registration yet.</p>
+          ${unit_number ? `<p style="margin: 0 0 16px 0; font-size: 16px; color: #374151;"><strong>Your Unit:</strong> ${unit_number}</p>` : ''}
+        </td></tr>
+        <tr><td style="padding: 0 0 24px 0;">
+          <table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr>
+            <td style="background-color: #2563eb; border-radius: 6px;">
+              <a href="${inviteLink}" target="_blank" style="display: inline-block; padding: 14px 28px; font-size: 16px; font-weight: 500; color: #ffffff; text-decoration: none; border-radius: 6px;">Set Your Password</a>
             </td>
-          </tr>
-          
-          <!-- Main Content -->
-          <tr>
-            <td style="padding: 0 0 24px 0;">
-              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.5; color: #111827;">Hi ${full_name},</p>
-              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.5; color: #374151;">You were invited to join Poipu Shores but haven't completed your registration yet. This is an account notification reminder to set your password and access your account.</p>
-              ${unit_number ? `<p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.5; color: #374151;"><strong>Your Unit:</strong> ${unit_number}</p>` : ''}
-            </td>
-          </tr>
-          
-          <!-- CTA Button -->
-          <tr>
-            <td style="padding: 0 0 24px 0;">
-              <table role="presentation" border="0" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="background-color: #2563eb; border-radius: 6px;">
-                    <a href="${inviteLink}" target="_blank" style="display: inline-block; padding: 14px 28px; font-size: 16px; font-weight: 500; color: #ffffff; text-decoration: none; border-radius: 6px;">Set Your Password</a>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          
-          <!-- Link Fallback -->
-          <tr>
-            <td style="padding: 0 0 32px 0; border-bottom: 1px solid #e5e7eb;">
-              <p style="margin: 0 0 8px 0; font-size: 14px; line-height: 1.5; color: #6b7280;">Or copy this link:</p>
-              <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #2563eb; word-break: break-all;">${inviteLink}</p>
-            </td>
-          </tr>
-          
-          <!-- Security Notice -->
-          <tr>
-            <td style="padding: 24px 0 32px 0; border-bottom: 1px solid #e5e7eb;">
-              <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #6b7280;">This is an automated account notification. If you didn't request this, please disregard this message.</p>
-            </td>
-          </tr>
-          
-          <!-- Footer -->
-          <tr>
-            <td style="padding: 24px 0 0 0;">
-              <p style="margin: 0 0 8px 0; font-size: 14px; line-height: 1.5; color: #111827; font-weight: 500;">Poipu Shores Community</p>
-              <p style="margin: 0 0 4px 0; font-size: 13px; line-height: 1.5; color: #6b7280;">Koloa, Kauai, HI 96756</p>
-              <p style="margin: 0 0 16px 0; font-size: 13px; line-height: 1.5; color: #6b7280;">Questions? Reply to this email or contact support@poipu-shores.com</p>
-              <p style="margin: 0; font-size: 12px; line-height: 1.5; color: #9ca3af;">© ${new Date().getFullYear()} Poipu Shores. All rights reserved.</p>
-            </td>
-          </tr>
-          
-        </table>
-      </td>
-    </tr>
+          </tr></table>
+        </td></tr>
+        <tr><td style="padding: 0 0 32px 0; border-bottom: 1px solid #e5e7eb;">
+          <p style="margin: 0 0 8px 0; font-size: 14px; color: #6b7280;">Or copy this link:</p>
+          <p style="margin: 0; font-size: 13px; color: #2563eb; word-break: break-all;">${inviteLink}</p>
+        </td></tr>
+        <tr><td style="padding: 24px 0 0 0;">
+          <p style="margin: 0 0 8px 0; font-size: 14px; color: #111827; font-weight: 500;">Poipu Shores Community</p>
+          <p style="margin: 0; font-size: 13px; color: #6b7280;">Koloa, Kauai, HI 96756</p>
+        </td></tr>
+      </table>
+    </td></tr>
   </table>
 </body>
 </html>`,
-    });
+        });
 
-    if (emailError) {
-      console.error("Failed to send invitation email:", emailError);
-      throw new Error("Failed to send invitation email");
+        if (emailError) {
+          console.error("Email send error:", emailError);
+        } else {
+          emailSent = true;
+          console.log(`Email sent to ${email}, ID: ${emailData?.id}`);
+          
+          // Log email
+          try {
+            await supabaseClient.from("email_logs").insert({
+              to_email: email,
+              from_email: "noreply@poipu-shores.com",
+              subject: "Complete Your Poipu Shores Registration - Reminder",
+              status: "sent",
+              sent_by: user.id,
+              resend_email_id: emailData?.id,
+              delivery_status: "sent",
+            });
+          } catch (logError) {
+            console.error('Failed to log email:', logError);
+          }
+        }
+      } catch (emailError) {
+        console.error("Failed to send email:", emailError);
+      }
     }
 
-    console.log(`Email sent successfully to ${email}. Email ID:`, emailData?.id);
+    // Send SMS
+    if ((sendMethod === "sms" || sendMethod === "both") && profilePhone) {
+      try {
+        const twilioAccountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
+        const twilioAuthToken = Deno.env.get('TWILIO_AUTH_TOKEN');
+        const twilioPhoneNumber = Deno.env.get('TWILIO_PHONE_NUMBER');
+
+        if (!twilioAccountSid || !twilioAuthToken || !twilioPhoneNumber) {
+          console.error('Twilio credentials not configured - skipping SMS');
+        } else {
+          const smsMessage = `Hi ${full_name}! You've been invited to Poipu Shores. Complete your registration here: ${inviteLink}`;
+
+          const response = await fetch(
+            `https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`,
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': 'Basic ' + btoa(`${twilioAccountSid}:${twilioAuthToken}`),
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: new URLSearchParams({
+                To: profilePhone,
+                From: twilioPhoneNumber,
+                Body: smsMessage,
+              }),
+            }
+          );
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('SMS error:', errorText);
+          } else {
+            smsSent = true;
+            console.log(`SMS sent to ${profilePhone}`);
+          }
+        }
+      } catch (smsError) {
+        console.error('SMS send error:', smsError);
+      }
+    }
+
+    const sentVia = [emailSent && 'email', smsSent && 'SMS'].filter(Boolean).join(' and ');
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: "Invitation resent successfully",
-        email
+        message: sentVia ? `Invitation resent via ${sentVia}` : "Invite link generated",
+        email_sent: emailSent,
+        sms_sent: smsSent,
       }),
       {
         status: 200,
