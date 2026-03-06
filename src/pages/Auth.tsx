@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useBackground } from "@/contexts/BackgroundContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
+import { HelpCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
