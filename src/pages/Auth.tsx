@@ -14,6 +14,7 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase, setRememberMePreference, switchToSessionStorage, switchToLocalStorage } from "@/integrations/supabase/client";
 import { formatPhoneInput, formatPhoneNumber } from "@/lib/phoneUtils";
+import { LoginHelpDialog } from "@/components/LoginHelpDialog";
 import beachImage from "@/assets/condo-oceanfront.jpeg";
 import logo from "@/assets/logo.png";
 
