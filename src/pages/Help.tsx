@@ -150,12 +150,8 @@ const Help = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={pageConfig?.title || "Help & Getting Started"}
-        subtitle={pageConfig?.subtitle || "Everything you need to know about using Poipu Shores Connect"}
-        iconName="HelpCircle"
-        iconUrl={pageConfig?.iconUrl}
-        headerLogoUrl={pageConfig?.headerLogoUrl}
-        isLoading={isLoading}
+        title="Help & Getting Started"
+        description="Everything you need to know about using Poipu Shores Connect"
       />
 
       {/* Quick Start */}
