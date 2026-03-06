@@ -840,6 +840,19 @@ const Auth = () => {
       </Card>
       </div>
       
+      {/* Need Help Button */}
+      <div className="relative z-10 pb-4 flex justify-center">
+        <Button
+          variant="ghost"
+          onClick={() => setShowHelp(true)}
+          className="text-foreground/70 hover:text-foreground"
+        >
+          <HelpCircle className="h-4 w-4 mr-2" />
+          Need help signing in?
+        </Button>
+      </div>
+
+      <LoginHelpDialog open={showHelp} onOpenChange={setShowHelp} />
       <Footer />
     </div>
     </div>
