@@ -837,20 +837,18 @@ const Auth = () => {
               </div>
             </form>
           )}
+          <div className="pt-4 text-center">
+            <button
+              type="button"
+              onClick={() => setShowHelp(true)}
+              className="text-sm text-primary hover:text-primary/80 transition-colors inline-flex items-center gap-1.5"
+            >
+              <HelpCircle className="h-4 w-4" />
+              Need help signing in?
+            </button>
+          </div>
         </CardContent>
       </Card>
-      </div>
-      
-      {/* Need Help Button */}
-      <div className="relative z-10 pb-4 flex justify-center">
-        <Button
-          variant="ghost"
-          onClick={() => setShowHelp(true)}
-          className="text-foreground/70 hover:text-foreground"
-        >
-          <HelpCircle className="h-4 w-4 mr-2" />
-          Need help signing in?
-        </Button>
       </div>
 
       <LoginHelpDialog open={showHelp} onOpenChange={setShowHelp} />
