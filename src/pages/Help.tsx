@@ -143,7 +143,6 @@ const faqItems = [
 ];
 
 const Help = () => {
-  const { pageConfig, isLoading } = usePageConfig();
 
   return (
     <div className="space-y-6">
