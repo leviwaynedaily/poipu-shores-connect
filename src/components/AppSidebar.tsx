@@ -1,4 +1,4 @@
-import { Home, LogOut, Edit } from "lucide-react";
+import { Home, LogOut, Edit, HelpCircle } from "lucide-react";
 import { icons } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
