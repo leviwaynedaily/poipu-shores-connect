@@ -485,6 +485,32 @@ The AI will:
 
 ---
 
+## Resend Invite (Admin)
+
+The `resend-invite` edge function supports sending registration reminders via email, SMS, or both.
+
+```typescript
+const { data, error } = await supabase.functions.invoke('resend-invite', {
+  headers: { Authorization: `Bearer ${session.access_token}` },
+  body: {
+    user_id: 'target-user-uuid',
+    full_name: 'John Smith',
+    unit_number: '101A',        // optional
+    method: 'sms',              // "email" (default), "sms", or "both"
+  },
+});
+
+// Success response:
+// { success: true, message: "Invitation resent via SMS", email_sent: false, sms_sent: true }
+```
+
+**Requirements:**
+- Admin role required
+- For SMS: user must have a phone number in their profile (add via `update-user` if missing)
+- SMS is sent via Twilio; email via Resend
+
+---
+
 ## Questions?
 
 For backend changes or API questions, coordinate with the web app team to ensure compatibility.
