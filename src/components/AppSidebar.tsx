@@ -208,6 +208,47 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Help Link */}
+        <SidebarGroup className="mt-auto">
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                {!open ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SidebarMenuButton asChild>
+                        <NavLink
+                          to="/help"
+                          end
+                          className="flex items-center justify-center gap-3 py-4 text-base min-h-[44px]"
+                          activeClassName="bg-accent text-accent-foreground font-semibold"
+                        >
+                          <HelpCircle className="h-9 w-9 text-sidebar-foreground" />
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="font-medium">
+                      Help
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to="/help"
+                      end
+                      className="flex items-center gap-3 py-4 text-base min-h-[44px]"
+                      activeClassName="bg-accent text-accent-foreground font-semibold"
+                    >
+                      <HelpCircle className="h-5 w-5 text-sidebar-foreground" />
+                      <span>Help</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                )}
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
         
         {profile && (
           <div className="mt-auto border-t border-border/20">
