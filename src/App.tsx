@@ -145,6 +145,16 @@ const AppContent = () => {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/help"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Help />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
     </>

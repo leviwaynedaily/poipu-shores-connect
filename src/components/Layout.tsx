@@ -110,6 +110,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             <Footer />
           </div>
           <BottomNav />
+          <WelcomeTour />
         </main>
       </div>
     </SidebarProvider>
