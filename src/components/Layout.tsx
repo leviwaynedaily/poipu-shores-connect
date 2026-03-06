@@ -2,6 +2,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Footer } from "@/components/Footer";
 import { BottomNav } from "@/components/BottomNav";
+import { WelcomeTour } from "@/components/WelcomeTour";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useBackground } from "@/contexts/BackgroundContext";
 import beachImage from "@/assets/condo-oceanfront.jpeg";
@@ -109,6 +110,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             <Footer />
           </div>
           <BottomNav />
+          <WelcomeTour />
         </main>
       </div>
     </SidebarProvider>

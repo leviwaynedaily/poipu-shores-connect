@@ -27,6 +27,7 @@ import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import ApiDocs from "./pages/ApiDocs";
+import Help from "./pages/Help";
 
 const queryClient = new QueryClient();
 
@@ -140,6 +141,16 @@ const AppContent = () => {
                 <ProtectedRoute>
                   <Layout>
                     <Assistant />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/help"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Help />
                   </Layout>
                 </ProtectedRoute>
               }

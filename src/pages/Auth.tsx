@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useBackground } from "@/contexts/BackgroundContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
+import { HelpCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -14,6 +15,7 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase, setRememberMePreference, switchToSessionStorage, switchToLocalStorage } from "@/integrations/supabase/client";
 import { formatPhoneInput, formatPhoneNumber } from "@/lib/phoneUtils";
+import { LoginHelpDialog } from "@/components/LoginHelpDialog";
 import beachImage from "@/assets/condo-oceanfront.jpeg";
 import logo from "@/assets/logo.png";
 
@@ -52,6 +54,7 @@ const Auth = () => {
   const [otpCode, setOtpCode] = useState("");
   const [authLogo, setAuthLogo] = useState<string>(logo);
   const [rememberMe, setRememberMe] = useState(true);
+  const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -838,6 +841,19 @@ const Auth = () => {
       </Card>
       </div>
       
+      {/* Need Help Button */}
+      <div className="relative z-10 pb-4 flex justify-center">
+        <Button
+          variant="ghost"
+          onClick={() => setShowHelp(true)}
+          className="text-foreground/70 hover:text-foreground"
+        >
+          <HelpCircle className="h-4 w-4 mr-2" />
+          Need help signing in?
+        </Button>
+      </div>
+
+      <LoginHelpDialog open={showHelp} onOpenChange={setShowHelp} />
       <Footer />
     </div>
     </div>

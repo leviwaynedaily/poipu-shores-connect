@@ -511,6 +511,25 @@ const { data, error } = await supabase.functions.invoke('resend-invite', {
 
 ---
 
+## Help & Getting Started
+
+### Web App Features
+- **Login Help Dialog**: "Need help signing in?" button on the login page opens a step-by-step guide for email, phone, and OTP sign-in methods.
+- **Welcome Tour**: First-time users see a guided tour dialog after login highlighting all platform features (Dashboard, Announcements, Chat, Documents, Photos, Members, Assistant, Help). Tour status is stored in `localStorage` per user ID (`welcome_tour_seen_{userId}`).
+- **Help Page** (`/help`): A permanent help page accessible from the sidebar with:
+  - Quick Start Guide (3-step overview)
+  - Sign-In methods explained
+  - Feature guides for all sections
+  - FAQ with accordion-style answers
+
+### Mobile App Considerations
+- The mobile app should implement its own onboarding/help flow
+- Help content can be replicated from the web app's Help page structure
+- The welcome tour is client-side only (localStorage) — the mobile app should track its own tour status locally
+- No new edge functions or database tables are needed for help features
+
+---
+
 ## Questions?
 
 For backend changes or API questions, coordinate with the web app team to ensure compatibility.
