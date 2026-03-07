@@ -28,8 +28,8 @@ import {
 const tourSteps = [
   {
     icon: PartyPopper,
-    title: "Welcome to Poipu Shores!",
-    description: "Let's take a quick tour of the platform so you know where everything is. This will only take a minute!",
+    title: "Welcome to the Poipu Shores Owner's Portal!",
+    description: "Let's take a quick tour of the portal so you know where everything is. This will only take a minute!",
     tip: "You can revisit this guide anytime from the Help page.",
   },
   {
@@ -72,7 +72,7 @@ const tourSteps = [
     icon: Bird,
     title: "Ask the Chicken",
     description: "Your AI community assistant! Ask it questions about Poipu Shores, community rules, or local recommendations.",
-    tip: "Try asking: 'What are the pool hours?' or 'Tell me about recycling rules.'",
+    tip: "Try asking: 'How can I replace my windows?' or 'Do I need Board approval to remodel my unit?'",
   },
   {
     icon: HelpCircle,

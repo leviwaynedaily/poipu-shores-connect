@@ -26,7 +26,7 @@ interface Announcement {
 }
 
 const Announcements = () => {
-  const { user, isAdmin, isOwner } = useAuth();
+  const { user, isAdmin, isOwner, isBoard } = useAuth();
   const { toast } = useToast();
   const { pageConfig } = usePageConfig();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -36,7 +36,7 @@ const Announcements = () => {
   const [content, setContent] = useState("");
   const [isPinned, setIsPinned] = useState(false);
 
-  const canPost = isAdmin || isOwner;
+  const canPost = isAdmin || isOwner || isBoard;
 
   useEffect(() => {
     fetchAnnouncements();

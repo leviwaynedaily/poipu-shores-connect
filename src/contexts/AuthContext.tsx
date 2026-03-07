@@ -14,6 +14,7 @@ interface AuthContextType {
   updatePassword: (newPassword: string) => Promise<{ error: any }>;
   isAdmin: boolean;
   isOwner: boolean;
+  isBoard: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,6 +25,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+  const [isBoard, setIsBoard] = useState(false);
 
   useEffect(() => {
     // Set up auth state listener
@@ -40,6 +42,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         } else {
           setIsAdmin(false);
           setIsOwner(false);
+          setIsBoard(false);
         }
       }
     );
@@ -66,6 +69,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (data) {
       setIsAdmin(data.some(r => r.role === "admin"));
       setIsOwner(data.some(r => r.role === "owner"));
+      setIsBoard(data.some(r => r.role === "board"));
     }
   };
 
@@ -120,6 +124,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await supabase.auth.signOut();
     setIsAdmin(false);
     setIsOwner(false);
+    setIsBoard(false);
     toast.success("Signed out");
   };
 
@@ -166,6 +171,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         updatePassword,
         isAdmin,
         isOwner,
+        isBoard,
       }}
     >
       {children}
