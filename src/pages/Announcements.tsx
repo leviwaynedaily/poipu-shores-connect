@@ -36,7 +36,7 @@ const Announcements = () => {
   const [content, setContent] = useState("");
   const [isPinned, setIsPinned] = useState(false);
 
-  const canPost = isAdmin || isOwner;
+  const canPost = isAdmin || isOwner || isBoard;
 
   useEffect(() => {
     fetchAnnouncements();

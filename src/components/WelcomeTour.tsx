@@ -72,7 +72,7 @@ const tourSteps = [
     icon: Bird,
     title: "Ask the Chicken",
     description: "Your AI community assistant! Ask it questions about Poipu Shores, community rules, or local recommendations.",
-    tip: "Try asking: 'What are the pool hours?' or 'Tell me about recycling rules.'",
+    tip: "Try asking: 'How can I replace my windows?' or 'Do I need Board approval to remodel my unit?'",
   },
   {
     icon: HelpCircle,
