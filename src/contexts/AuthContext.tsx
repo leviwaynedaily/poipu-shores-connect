@@ -69,6 +69,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (data) {
       setIsAdmin(data.some(r => r.role === "admin"));
       setIsOwner(data.some(r => r.role === "owner"));
+      setIsBoard(data.some(r => r.role === "board"));
     }
   };
 
