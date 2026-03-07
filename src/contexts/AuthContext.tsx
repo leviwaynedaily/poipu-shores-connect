@@ -124,6 +124,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await supabase.auth.signOut();
     setIsAdmin(false);
     setIsOwner(false);
+    setIsBoard(false);
     toast.success("Signed out");
   };
 
