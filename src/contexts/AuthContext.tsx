@@ -171,6 +171,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         updatePassword,
         isAdmin,
         isOwner,
+        isBoard,
       }}
     >
       {children}
