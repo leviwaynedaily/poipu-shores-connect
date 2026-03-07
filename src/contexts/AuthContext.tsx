@@ -14,6 +14,7 @@ interface AuthContextType {
   updatePassword: (newPassword: string) => Promise<{ error: any }>;
   isAdmin: boolean;
   isOwner: boolean;
+  isBoard: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
