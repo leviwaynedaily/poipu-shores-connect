@@ -26,7 +26,7 @@ interface Announcement {
 }
 
 const Announcements = () => {
-  const { user, isAdmin, isOwner } = useAuth();
+  const { user, isAdmin, isOwner, isBoard } = useAuth();
   const { toast } = useToast();
   const { pageConfig } = usePageConfig();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
