@@ -28,8 +28,8 @@ import {
 const tourSteps = [
   {
     icon: PartyPopper,
-    title: "Welcome to Poipu Shores!",
-    description: "Let's take a quick tour of the platform so you know where everything is. This will only take a minute!",
+    title: "Welcome to the Poipu Shores Owner's Portal!",
+    description: "Let's take a quick tour of the portal so you know where everything is. This will only take a minute!",
     tip: "You can revisit this guide anytime from the Help page.",
   },
   {
