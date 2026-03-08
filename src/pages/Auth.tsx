@@ -249,8 +249,7 @@ const Auth = () => {
       
       const { error } = await signIn(email, password);
       if (!error) {
-        // Delay trackLogin to allow auth state to propagate
-        setTimeout(() => trackLogin(), 500);
+        await trackLogin();
         navigate("/dashboard");
       } else {
         if (error.message.includes('Invalid login credentials') || error.message.includes('not found')) {
