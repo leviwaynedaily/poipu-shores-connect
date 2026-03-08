@@ -491,8 +491,8 @@ const Auth = () => {
             title: "Success!",
             description: "Signed in successfully",
           });
-          setTimeout(() => trackLogin(), 500);
-          navigate("/dashboard");
+           await trackLogin();
+           navigate("/dashboard");
         }
       } else {
         toast({
