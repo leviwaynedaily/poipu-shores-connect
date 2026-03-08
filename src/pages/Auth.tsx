@@ -463,7 +463,7 @@ const Auth = () => {
             title: "Success!",
             description: "Signed in successfully",
           });
-           await trackLogin();
+           // Login tracking handled by AuthContext
            navigate("/dashboard");
         }
       } else {
