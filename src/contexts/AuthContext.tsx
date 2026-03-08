@@ -118,14 +118,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (error) {
       toast.error("Error", { description: error.message });
     } else {
-      // Update last sign-in timestamp
-      if (data.user) {
-        await supabase
-          .from("profiles")
-          .update({ last_sign_in_at: new Date().toISOString() })
-          .eq("id", data.user.id);
-      }
-      
       toast.success("Welcome back!");
     }
 

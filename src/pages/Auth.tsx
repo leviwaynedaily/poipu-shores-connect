@@ -277,35 +277,7 @@ const Auth = () => {
   };
 
   const trackLogin = async () => {
-    try {
-      const userAgent = navigator.userAgent;
-      
-      let browser = 'Unknown';
-      if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) browser = 'Chrome';
-      else if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) browser = 'Safari';
-      else if (userAgent.includes('Firefox')) browser = 'Firefox';
-      else if (userAgent.includes('Edg')) browser = 'Edge';
-      
-      let deviceType = 'Desktop';
-      if (/Mobi|Android/i.test(userAgent)) deviceType = 'Mobile';
-      else if (/Tablet|iPad/i.test(userAgent)) deviceType = 'Tablet';
-
-      // Don't check session - just invoke the function which will use current auth
-      const { error } = await supabase.functions.invoke('track-login', {
-        body: {
-          userAgent,
-          browser,
-          deviceType,
-        },
-      });
-      
-      if (error) {
-        console.error('Track login error:', error);
-      }
-    } catch (error) {
-      console.error('Error tracking login:', error);
-    }
-  };
+  // trackLogin is now handled centrally by AuthContext
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
