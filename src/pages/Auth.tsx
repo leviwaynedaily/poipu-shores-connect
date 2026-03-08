@@ -454,7 +454,7 @@ const Auth = () => {
           title: "Success!",
           description: "Signed in successfully",
         });
-        setTimeout(() => trackLogin(), 500);
+        await trackLogin();
         navigate("/dashboard");
       }
     } else if (otpMethod === 'phone') {
