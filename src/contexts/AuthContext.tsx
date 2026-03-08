@@ -27,6 +27,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isOwner, setIsOwner] = useState(false);
   const [isBoard, setIsBoard] = useState(false);
 
+  const trackLoginOnce = async (userId: string) => {
+    // Only track once per browser session
+    const sessionKey = `login_tracked_${userId}`;
+    if (sessionStorage.getItem(sessionKey)) return;
+    sessionStorage.setItem(sessionKey, 'true');
+
+    try {
+      const userAgent = navigator.userAgent;
+      let browser = 'Unknown';
+      if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) browser = 'Chrome';
+      else if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) browser = 'Safari';
+      else if (userAgent.includes('Firefox')) browser = 'Firefox';
+      else if (userAgent.includes('Edg')) browser = 'Edge';
+      
+      let deviceType = 'Desktop';
+      if (/Mobi|Android/i.test(userAgent)) deviceType = 'Mobile';
+      else if (/Tablet|iPad/i.test(userAgent)) deviceType = 'Tablet';
+
+      await supabase.functions.invoke('track-login', {
+        body: { userAgent, browser, deviceType },
+      });
+    } catch (error) {
+      console.error('Error tracking login:', error);
+    }
+  };
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -39,6 +65,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setTimeout(() => {
             fetchUserRoles(session.user.id);
           }, 0);
+
+          // Track login on sign-in events
+          if (event === 'SIGNED_IN') {
+            trackLoginOnce(session.user.id);
+            // Update last sign-in timestamp
+            supabase
+              .from("profiles")
+              .update({ last_sign_in_at: new Date().toISOString() })
+              .eq("id", session.user.id);
+          }
         } else {
           setIsAdmin(false);
           setIsOwner(false);
@@ -82,14 +118,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (error) {
       toast.error("Error", { description: error.message });
     } else {
-      // Update last sign-in timestamp
-      if (data.user) {
-        await supabase
-          .from("profiles")
-          .update({ last_sign_in_at: new Date().toISOString() })
-          .eq("id", data.user.id);
-      }
-      
       toast.success("Welcome back!");
     }
 
