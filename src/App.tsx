@@ -1,6 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -29,7 +30,15 @@ import TermsOfService from "./pages/TermsOfService";
 import ApiDocs from "./pages/ApiDocs";
 import Help from "./pages/Help";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const AppContent = () => {
   const { showThemeDialog, setShowThemeDialog } = useTheme();
@@ -162,21 +171,23 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
-      <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
-        <AuthProvider>
-          <ThemeProvider>
-            <BackgroundProvider>
-              <TooltipProvider>
-                <AppContent />
-              </TooltipProvider>
-            </BackgroundProvider>
-          </ThemeProvider>
-        </AuthProvider>
-      </NextThemesProvider>
-    </BrowserRouter>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
+          <AuthProvider>
+            <ThemeProvider>
+              <BackgroundProvider>
+                <TooltipProvider>
+                  <AppContent />
+                </TooltipProvider>
+              </BackgroundProvider>
+            </ThemeProvider>
+          </AuthProvider>
+        </NextThemesProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
