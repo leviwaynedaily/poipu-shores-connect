@@ -249,7 +249,7 @@ const Auth = () => {
       
       const { error } = await signIn(email, password);
       if (!error) {
-        await trackLogin();
+        // Login tracking handled by AuthContext
         navigate("/dashboard");
       } else {
         if (error.message.includes('Invalid login credentials') || error.message.includes('not found')) {
