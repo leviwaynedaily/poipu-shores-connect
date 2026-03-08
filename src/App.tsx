@@ -171,21 +171,23 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
-      <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
-        <AuthProvider>
-          <ThemeProvider>
-            <BackgroundProvider>
-              <TooltipProvider>
-                <AppContent />
-              </TooltipProvider>
-            </BackgroundProvider>
-          </ThemeProvider>
-        </AuthProvider>
-      </NextThemesProvider>
-    </BrowserRouter>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
+          <AuthProvider>
+            <ThemeProvider>
+              <BackgroundProvider>
+                <TooltipProvider>
+                  <AppContent />
+                </TooltipProvider>
+              </BackgroundProvider>
+            </ThemeProvider>
+          </AuthProvider>
+        </NextThemesProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

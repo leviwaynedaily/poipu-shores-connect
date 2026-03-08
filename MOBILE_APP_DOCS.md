@@ -389,6 +389,22 @@ supabase
 
 ## Recent Updates
 
+### March 2026
+
+- **Branding Update** - Platform now branded as "Poipu Shores Owner's Portal" (not "Member Portal")
+  - Welcome Tour updated with new branding and relevant AI assistant example questions
+  - OG/meta tags updated for poipu-shores.com
+  - Members referred to as "Portal Members" in UI
+
+- **Board Role: Announcements** - Users with the `board` role can now create and edit announcements
+  - RLS policies updated: `board` role has INSERT and UPDATE on `announcements` table
+  - `isBoard` flag available in AuthContext for conditional UI rendering
+  - Mobile app: check `user_roles` table for `board` role to show announcement creation UI
+
+- **Error Boundary** - App now has a global error boundary that shows a friendly recovery page instead of a white screen on crashes
+
+- **QueryClient Optimization** - Queries now use 5-minute staleTime and single retry to reduce unnecessary API calls
+
 ### January 2026
 
 - **Searchable Icon Picker** - Sidebar and page icons now use a searchable picker with 1,500+ Lucide icons
