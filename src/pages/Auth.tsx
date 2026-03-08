@@ -276,7 +276,6 @@ const Auth = () => {
     }
   };
 
-  const trackLogin = async () => {
   // trackLogin is now handled centrally by AuthContext
 
   const handleResetPassword = async (e: React.FormEvent) => {
