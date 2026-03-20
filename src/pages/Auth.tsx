@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBackground } from "@/contexts/BackgroundContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useTheme as useNextTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { HelpCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -37,6 +38,8 @@ const Auth = () => {
   const { user, signIn, resetPassword } = useAuth();
   const { homeBackground, loading: backgroundLoading } = useBackground();
   const { isGlassTheme, authPageOpacity } = useTheme();
+  const { theme: currentTheme, setTheme } = useNextTheme();
+  const previousThemeRef = useRef<string | undefined>();
   const { toast } = useToast();
   
   const [identifier, setIdentifier] = useState(""); // Can be email or phone
@@ -61,6 +64,19 @@ const Auth = () => {
       navigate("/dashboard");
     }
   }, [user, navigate]);
+
+  // Force light mode on sign-in screen
+  useEffect(() => {
+    previousThemeRef.current = currentTheme;
+    if (currentTheme !== 'light') {
+      setTheme('light');
+    }
+    return () => {
+      if (previousThemeRef.current && previousThemeRef.current !== 'light') {
+        setTheme(previousThemeRef.current);
+      }
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const fetchAuthLogo = async () => {
