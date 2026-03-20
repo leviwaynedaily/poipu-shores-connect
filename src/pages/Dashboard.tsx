@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Pin, MessageSquare, FileText, Users, MessageCircle } from "lucide-react";
+import { Pin, MessageSquare, FileText, Users, MessageCircle, HelpCircle } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { WeatherAndBeachConditions } from "@/components/dashboard/WeatherAndBeachConditions";
