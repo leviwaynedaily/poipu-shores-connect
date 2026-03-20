@@ -65,6 +65,19 @@ const Auth = () => {
     }
   }, [user, navigate]);
 
+  // Force light mode on sign-in screen
+  useEffect(() => {
+    previousThemeRef.current = currentTheme;
+    if (currentTheme !== 'light') {
+      setTheme('light');
+    }
+    return () => {
+      if (previousThemeRef.current && previousThemeRef.current !== 'light') {
+        setTheme(previousThemeRef.current);
+      }
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     const fetchAuthLogo = async () => {
       const { data } = await supabase
