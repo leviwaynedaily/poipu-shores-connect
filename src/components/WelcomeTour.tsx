@@ -89,6 +89,14 @@ export const WelcomeTour = ({ externalOpen, onExternalClose }: { externalOpen?: 
   const [currentStep, setCurrentStep] = useState(0);
   const [checked, setChecked] = useState(false);
 
+  // Allow external trigger
+  useEffect(() => {
+    if (externalOpen) {
+      setCurrentStep(0);
+      setShow(true);
+    }
+  }, [externalOpen]);
+
   useEffect(() => {
     if (!user || checked) return;
 
