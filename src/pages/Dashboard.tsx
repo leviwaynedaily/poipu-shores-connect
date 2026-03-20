@@ -122,7 +122,7 @@ const Dashboard = () => {
         {/* Welcome Tour Banner */}
         <button
           onClick={() => setShowTour(true)}
-          className="w-full flex items-center justify-center gap-2 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors px-4 py-2.5 mb-3 text-sm font-medium text-primary"
+          className="w-full flex items-center justify-center gap-2 rounded-lg border border-border bg-card hover:bg-accent transition-colors px-4 py-2.5 mb-3 text-sm font-medium text-primary shadow-sm"
         >
           <HelpCircle className="h-4 w-4" />
           New here? Take the Welcome Tour
