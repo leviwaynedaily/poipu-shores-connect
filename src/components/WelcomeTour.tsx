@@ -82,12 +82,20 @@ const tourSteps = [
   },
 ];
 
-export const WelcomeTour = () => {
+export const WelcomeTour = ({ externalOpen, onExternalClose }: { externalOpen?: boolean; onExternalClose?: () => void } = {}) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [show, setShow] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [checked, setChecked] = useState(false);
+
+  // Allow external trigger
+  useEffect(() => {
+    if (externalOpen) {
+      setCurrentStep(0);
+      setShow(true);
+    }
+  }, [externalOpen]);
 
   useEffect(() => {
     if (!user || checked) return;
@@ -113,6 +121,7 @@ export const WelcomeTour = () => {
     }
     setShow(false);
     setCurrentStep(0);
+    onExternalClose?.();
   };
 
   const handleDismiss = () => {
@@ -121,6 +130,7 @@ export const WelcomeTour = () => {
     }
     setShow(false);
     setCurrentStep(0);
+    onExternalClose?.();
   };
 
   const step = tourSteps[currentStep];

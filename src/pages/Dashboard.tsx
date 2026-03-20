@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Pin, MessageSquare, FileText, Users, MessageCircle } from "lucide-react";
+import { Pin, MessageSquare, FileText, Users, MessageCircle, HelpCircle } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { WeatherAndBeachConditions } from "@/components/dashboard/WeatherAndBeachConditions";
@@ -12,6 +12,7 @@ import { EmergencyContacts } from "@/components/dashboard/EmergencyContacts";
 import { LiveCameraEmbed } from "@/components/dashboard/LiveCameraEmbed";
 import { PhotoCarousel } from "@/components/photos/PhotoCarousel";
 import { AnnouncementDialog } from "@/components/AnnouncementDialog";
+import { WelcomeTour } from "@/components/WelcomeTour";
 import defaultChickenIcon from "@/assets/chicken-assistant.jpeg";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -31,6 +32,8 @@ const Dashboard = () => {
   const isMobile = useIsMobile();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [chickenIcon, setChickenIcon] = useState<string>(defaultChickenIcon);
+  const [showTour, setShowTour] = useState(false);
+  const handleCloseTour = useCallback(() => setShowTour(false), []);
   const [stats, setStats] = useState({
     totalMessages: 0,
     totalDocuments: 0,
@@ -114,6 +117,7 @@ const Dashboard = () => {
   return (
     <>
       <AnnouncementDialog />
+      <WelcomeTour externalOpen={showTour} onExternalClose={handleCloseTour} />
       <div>
         {/* Featured Announcement */}
         {announcements.length > 0 && (
@@ -234,6 +238,15 @@ const Dashboard = () => {
           </CardHeader>
         </Card>
       </Link>
+
+      {/* Take the Tour */}
+      <button
+        onClick={() => setShowTour(true)}
+        className="flex items-center gap-1.5 text-sm text-primary hover:underline font-medium mt-2 ml-1"
+      >
+        <HelpCircle className="h-4 w-4" />
+        New here? Take the Welcome Tour
+      </button>
 
       {/* Live Camera & Weather */}
       <div className="grid gap-3 grid-cols-1 lg:grid-cols-2 mt-3">
