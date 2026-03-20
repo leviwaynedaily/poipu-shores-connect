@@ -117,6 +117,7 @@ const Dashboard = () => {
   return (
     <>
       <AnnouncementDialog />
+      <WelcomeTour externalOpen={showTour} onExternalClose={handleCloseTour} />
       <div>
         {/* Featured Announcement */}
         {announcements.length > 0 && (
