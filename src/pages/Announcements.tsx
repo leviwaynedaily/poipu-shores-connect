@@ -177,7 +177,45 @@ const Announcements = () => {
                     New Announcement
                   </Button>
                 </DialogTrigger>
-...
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>New Announcement</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="title">Title</Label>
+                      <Input
+                        id="title"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="Announcement title"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="content">Content</Label>
+                      <Textarea
+                        id="content"
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        placeholder="Write your announcement..."
+                        rows={5}
+                        required
+                      />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="pinned"
+                        checked={isPinned}
+                        onCheckedChange={setIsPinned}
+                      />
+                      <Label htmlFor="pinned">Pin this announcement</Label>
+                    </div>
+                    <Button type="submit" className="w-full">
+                      Post Announcement
+                    </Button>
+                  </form>
+                </DialogContent>
               </Dialog>
             )}
           </div>
