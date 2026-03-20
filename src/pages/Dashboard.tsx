@@ -12,6 +12,7 @@ import { EmergencyContacts } from "@/components/dashboard/EmergencyContacts";
 import { LiveCameraEmbed } from "@/components/dashboard/LiveCameraEmbed";
 import { PhotoCarousel } from "@/components/photos/PhotoCarousel";
 import { AnnouncementDialog } from "@/components/AnnouncementDialog";
+import { WelcomeTour } from "@/components/WelcomeTour";
 import defaultChickenIcon from "@/assets/chicken-assistant.jpeg";
 import { useIsMobile } from "@/hooks/use-mobile";
 
