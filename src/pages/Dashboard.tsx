@@ -306,10 +306,10 @@ const Dashboard = () => {
               </Link>
             </CardHeader>
             <CardContent className="space-y-1.5 p-4 sm:p-6 pt-0">
-              {announcements.length <= 1 ? (
+              {announcements.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No more announcements.</p>
               ) : (
-                announcements.slice(1, 4).map((announcement) => (
+                announcements.slice(0, 4).map((announcement) => (
                   <Link key={announcement.id} to="/announcements" className="block hover:bg-accent/50 rounded px-2 py-1.5 transition-colors">
                     <div className="flex items-center gap-2">
                       {announcement.is_pinned && <Pin className="h-3 w-3 text-muted-foreground shrink-0" />}
@@ -330,10 +330,10 @@ const Dashboard = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
-                {announcements.length <= 1 ? (
+                {announcements.length === 0 ? (
                   <p className="text-sm sm:text-base text-muted-foreground">No more announcements.</p>
                 ) : (
-                  announcements.slice(1, 4).map((announcement) => (
+                  announcements.slice(0, 4).map((announcement) => (
                     <div key={announcement.id} className="border-l-2 border-primary pl-3">
                       <div className="flex items-center gap-2 mb-1">
                         {announcement.is_pinned && (
