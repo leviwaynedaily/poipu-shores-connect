@@ -342,7 +342,7 @@ const Dashboard = () => {
                         <p className="text-sm font-medium line-clamp-1">{announcement.title}</p>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {format(new Date(announcement.created_at), "MMM dd, yyyy")}
+                        {announcement.author_name} · {format(new Date(announcement.created_at), "MMM dd, yyyy")}
                       </p>
                     </div>
                   ))
