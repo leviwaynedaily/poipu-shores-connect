@@ -401,6 +401,11 @@ supabase
   - `isBoard` flag available in AuthContext for conditional UI rendering
   - Mobile app: check `user_roles` table for `board` role to show announcement creation UI
 
+- **Announcements Role Loading Fix (Web parity guidance)**
+  - Announcement composer visibility now waits for role resolution (`rolesLoading`) before evaluating admin/owner/board access.
+  - This prevents a first-render race where privileged users can briefly lose the `+New Announcement` action.
+  - Mobile app guidance: after session restore/login, fetch `user_roles` via Supabase SDK and only render announcement-create controls once that role query has completed.
+
 - **Error Boundary** - App now has a global error boundary that shows a friendly recovery page instead of a white screen on crashes
 
 - **QueryClient Optimization** - Queries now use 5-minute staleTime and single retry to reduce unnecessary API calls
