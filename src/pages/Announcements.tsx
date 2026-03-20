@@ -82,7 +82,21 @@ const Announcements = () => {
     }
   };
 
-  const markAsRead = async (announcementId: string) => {
+  const deleteAnnouncement = async (announcementId: string) => {
+    const { error } = await supabase
+      .from("announcements")
+      .delete()
+      .eq("id", announcementId);
+
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Deleted", description: "Announcement removed" });
+      fetchAnnouncements();
+    }
+  };
+
+
     if (!user) return;
 
     const { error } = await supabase
