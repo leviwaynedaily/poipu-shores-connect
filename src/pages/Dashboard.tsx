@@ -73,18 +73,25 @@ const Dashboard = () => {
 
     const { data } = await supabase
       .from("announcements")
-      .select(`
-        *,
-        profiles:author_id (
-          full_name
-        )
-      `)
+      .select("id, title, content, is_pinned, created_at, author_id")
       .gte("created_at", ninetyDaysAgo.toISOString())
       .order("is_pinned", { ascending: false })
       .order("created_at", { ascending: false })
       .limit(5);
 
-    if (data) setAnnouncements(data as any);
+    if (data && data.length > 0) {
+      // Fetch author names
+      const authorIds = [...new Set(data.map(a => a.author_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", authorIds);
+
+      const profileMap = new Map(profiles?.map(p => [p.id, p.full_name]) || []);
+      setAnnouncements(data.map(a => ({ ...a, author_name: profileMap.get(a.author_id) || "Unknown" })));
+    } else {
+      setAnnouncements([]);
+    }
   };
 
   const fetchStats = async () => {
