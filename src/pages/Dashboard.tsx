@@ -32,6 +32,8 @@ const Dashboard = () => {
   const isMobile = useIsMobile();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [chickenIcon, setChickenIcon] = useState<string>(defaultChickenIcon);
+  const [showTour, setShowTour] = useState(false);
+  const handleCloseTour = useCallback(() => setShowTour(false), []);
   const [stats, setStats] = useState({
     totalMessages: 0,
     totalDocuments: 0,
