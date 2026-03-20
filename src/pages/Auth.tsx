@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBackground } from "@/contexts/BackgroundContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useTheme as useNextTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { HelpCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
