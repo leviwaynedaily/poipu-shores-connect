@@ -151,7 +151,7 @@ const Dashboard = () => {
                       {announcements[0].title}
                     </CardTitle>
                     <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mb-3">
-                      <span>{announcements[0].profiles?.full_name || "Unknown"}</span>
+                      <span>{announcements[0].author_name || "Unknown"}</span>
                       <span>•</span>
                       <span>{format(new Date(announcements[0].created_at), "MMMM dd, yyyy")}</span>
                     </div>
