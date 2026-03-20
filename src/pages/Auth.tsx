@@ -38,6 +38,8 @@ const Auth = () => {
   const { user, signIn, resetPassword } = useAuth();
   const { homeBackground, loading: backgroundLoading } = useBackground();
   const { isGlassTheme, authPageOpacity } = useTheme();
+  const { theme: currentTheme, setTheme } = useNextTheme();
+  const previousThemeRef = useRef<string | undefined>();
   const { toast } = useToast();
   
   const [identifier, setIdentifier] = useState(""); // Can be email or phone
