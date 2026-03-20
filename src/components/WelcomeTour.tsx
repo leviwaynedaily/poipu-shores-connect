@@ -121,6 +121,7 @@ export const WelcomeTour = ({ externalOpen, onExternalClose }: { externalOpen?: 
     }
     setShow(false);
     setCurrentStep(0);
+    onExternalClose?.();
   };
 
   const handleDismiss = () => {
@@ -129,6 +130,7 @@ export const WelcomeTour = ({ externalOpen, onExternalClose }: { externalOpen?: 
     }
     setShow(false);
     setCurrentStep(0);
+    onExternalClose?.();
   };
 
   const step = tourSteps[currentStep];
