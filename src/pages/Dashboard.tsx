@@ -119,6 +119,15 @@ const Dashboard = () => {
       <AnnouncementDialog />
       <WelcomeTour externalOpen={showTour} onExternalClose={handleCloseTour} />
       <div>
+        {/* Welcome Tour Banner */}
+        <button
+          onClick={() => setShowTour(true)}
+          className="w-full flex items-center justify-center gap-2 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors px-4 py-2.5 mb-3 text-sm font-medium text-primary"
+        >
+          <HelpCircle className="h-4 w-4" />
+          New here? Take the Welcome Tour
+        </button>
+
         {/* Featured Announcement */}
         {announcements.length > 0 && (
           <Link to="/announcements" className="block mb-3">
@@ -238,15 +247,6 @@ const Dashboard = () => {
           </CardHeader>
         </Card>
       </Link>
-
-      {/* Take the Tour */}
-      <button
-        onClick={() => setShowTour(true)}
-        className="flex items-center gap-1.5 text-sm text-primary hover:underline font-medium mt-2 ml-1"
-      >
-        <HelpCircle className="h-4 w-4" />
-        New here? Take the Welcome Tour
-      </button>
 
       {/* Live Camera & Weather */}
       <div className="grid gap-3 grid-cols-1 lg:grid-cols-2 mt-3">
