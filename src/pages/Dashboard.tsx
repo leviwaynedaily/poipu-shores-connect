@@ -239,6 +239,15 @@ const Dashboard = () => {
         </Card>
       </Link>
 
+      {/* Take the Tour */}
+      <button
+        onClick={() => setShowTour(true)}
+        className="flex items-center gap-1.5 text-sm text-primary hover:underline font-medium mt-2 ml-1"
+      >
+        <HelpCircle className="h-4 w-4" />
+        New here? Take the Welcome Tour
+      </button>
+
       {/* Live Camera & Weather */}
       <div className="grid gap-3 grid-cols-1 lg:grid-cols-2 mt-3">
         <LiveCameraEmbed compact={isMobile} />
