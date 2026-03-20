@@ -274,16 +274,40 @@ const Announcements = () => {
                         {format(new Date(announcement.created_at), "MMM dd, yyyy 'at' h:mm a")}
                       </CardDescription>
                     </div>
-                    {!isRead && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => markAsRead(announcement.id)}
-                        className="shrink-0"
-                      >
-                        Mark as Read
-                      </Button>
-                    )}
+                    <div className="flex items-center gap-1 shrink-0">
+                      {!isRead && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => markAsRead(announcement.id)}
+                        >
+                          Mark as Read
+                        </Button>
+                      )}
+                      {(announcement.author_id === user?.id || isAdmin) && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Announcement</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently remove this announcement. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => deleteAnnouncement(announcement.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="p-4 sm:p-6 pt-0">
