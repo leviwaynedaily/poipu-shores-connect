@@ -96,7 +96,7 @@ const Announcements = () => {
     }
   };
 
-
+  const markAsRead = async (announcementId: string) => {
     if (!user) return;
 
     const { error } = await supabase
