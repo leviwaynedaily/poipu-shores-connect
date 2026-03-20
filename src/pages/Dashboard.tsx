@@ -22,9 +22,8 @@ interface Announcement {
   content: string;
   is_pinned: boolean;
   created_at: string;
-  profiles: {
-    full_name: string;
-  };
+  author_id: string;
+  author_name?: string;
 }
 
 const Dashboard = () => {
