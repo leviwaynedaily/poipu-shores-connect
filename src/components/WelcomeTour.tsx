@@ -82,7 +82,7 @@ const tourSteps = [
   },
 ];
 
-export const WelcomeTour = () => {
+export const WelcomeTour = ({ externalOpen, onExternalClose }: { externalOpen?: boolean; onExternalClose?: () => void } = {}) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [show, setShow] = useState(false);
