@@ -210,7 +210,7 @@ export function AppSidebar() {
         </SidebarGroup>
 
         {/* Help Link */}
-        <SidebarGroup className="mt-auto">
+        <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
