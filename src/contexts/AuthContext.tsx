@@ -72,11 +72,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           // Track login on sign-in events
           if (event === 'SIGNED_IN') {
             trackLoginOnce(session.user.id);
-            // Update last sign-in timestamp
-            supabase
+            // Update last sign-in timestamp (must await/then or the query never fires)
+            void supabase
               .from("profiles")
               .update({ last_sign_in_at: new Date().toISOString() })
-              .eq("id", session.user.id);
+              .eq("id", session.user.id)
+              .then(({ error }) => {
+                if (error) console.error('Failed to update last_sign_in_at:', error);
+              });
           }
         } else {
           setIsAdmin(false);
