@@ -100,10 +100,10 @@ const Auth = () => {
 
   // Handle identifier input change with formatting
   const handleIdentifierChange = (value: string) => {
-    const inputType = detectInputType(value);
-    
-    // If it looks like a phone number, format it
-    if (inputType === 'phone' || (!value.includes('@') && value.replace(/\D/g, '').length > 0)) {
+    // Only treat as phone if input contains no letters (digits + phone punctuation only).
+    // This prevents stripping letters from email-style usernames like "ddaggett4".
+    const hasLetters = /[a-zA-Z@]/.test(value);
+    if (!hasLetters && /\d/.test(value)) {
       setIdentifier(formatPhoneInput(value));
     } else {
       setIdentifier(value);
